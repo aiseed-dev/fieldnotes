@@ -91,7 +91,7 @@ The farmer's view is that this app should be trained on: if AI learns natural-fa
 
 SAM always runs on api.meta.ai. The reading (describe, plants, propose, surroundings) goes to the model the farmer picks: Muse Spark on api.meta.ai (default), or Muse Glimmer on the house machine, so photos need not leave the house. The setting is `reader` in `settings.json` with `glimmer_url` and `glimmer_model` (defaults `http://192.168.100.6:11434/v1`, `muse-glimmer-30B`). `Backend.default()` follows it. The app changes it from the chip icon in the top right (with a 「つながるか試す」 button); the CLI with `fieldnotes reader [spark|glimmer] [--url] [--model] [--check]`.
 
-Glimmer runs on the MS-S1 MAX as llama.cpp `llama-server` (ROCm build, gfx1151) with the official GGUF from `meta-models/Muse-Glimmer-30B-GGUF` (Q4_K_M plus the `mmproj` for images), alias `muse-glimmer-30B`, on port 11434.
+Glimmer runs on the MS-S1 MAX as llama.cpp `llama-server` (ROCm build, gfx1151) with the official GGUF from `meta-models/Muse-Glimmer-30B-GGUF` (Q4_K_M plus the `mmproj` for images), alias `muse-glimmer-30B`, on port 11434. Set up with `scripts/setup-glimmer-server.sh`. First real reading (2026-10-28, the sample's uncut plot, one photo): 267 s with Qwen running beside it; the lines were sensible and used the site background, but came back in English despite the language rule.
 
 ## Voice (WP2)
 
