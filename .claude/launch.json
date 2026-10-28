@@ -4,7 +4,10 @@
     {
       "name": "fieldnotes-app",
       "runtimeExecutable": "/home/dev/dev/fieldnotes/.venv/bin/python",
-      "runtimeArgs": ["-m", "fieldnotes.app"],
+      "runtimeArgs": [
+        "-m",
+        "fieldnotes.app"
+      ],
       "port": 8550
     }
   ]

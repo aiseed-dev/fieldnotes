@@ -72,6 +72,14 @@ Running `observe` again on the same day replaces the AI lines but keeps your rig
 
 Tests run offline: `.venv/bin/pip install -e ".[dev]" && .venv/bin/pytest`.
 
+### Phone app
+
+```bash
+.venv/bin/python -m fieldnotes.app        # http://<this machine>:8550, open it on the phone
+```
+
+Three views at the bottom: 送る (send photos into `photos/`), 読む (run the observation for a field and day, look at the SAM overlays, mark each AI line ✓ or ✗ with a reason) and 名詞 (the SAM noun phrases of a field, ✓ or ✗ with a replacement). Everything it shows or saves is a plain-text record under `FIELDNOTES_ROOT` (default: the current directory).
+
 ## Licence
 
 AGPL-3.0-or-later.
