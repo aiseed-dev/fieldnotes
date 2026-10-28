@@ -38,6 +38,8 @@ The farmer's knowledge and the AI's guesses are treated the same way.
 
 ## Geology
 
+- `data` Surface geology at the field: unconsolidated deposit, mud (未固結堆積物「泥」). Landform: 扇状地性低地（氾濫原性低地）. Soil: 細粒灰色低地土壌 (gray lowland soil, fine). — 国土交通省 20万分の1土地分類基本調査 GIS data, 徳島県 (https://nlftp.mlit.go.jp/kokjo/tochimizu/F2/GIS/36.zip), point-in-polygon at 34.0801, 134.4454, checked 2026-10-28. At 1:200,000 a small rise (微高地) does not show; the landform unit does not contradict the farmer's 微高地 within it.
+
 - `hypothesis` Regional context (general knowledge): the Yoshino valley follows the Median Tectonic Line; north of the river is the Izumi Group, south is the Sambagawa belt (crystalline schist). — AI. Check: GSJ seamless geology map (`https://gbank.gsj.jp/seamless/v2/api/1.0/legend.json?point=34.0801,134.4454`, under maintenance on 10-27 and 10-28).
 
 ## Soil
@@ -84,7 +86,12 @@ The farmer's knowledge and the AI's guesses are treated the same way.
 - `record` Planned for autumn 2026: a mixed sowing led by rye, with crimson clover (Trifolium incarnatum) as the legume. — farmer, 2026-10-28
 - `hypothesis` Hairy vetch is too strong in this farm's fields, so crimson clover is used instead. — farmer, 2026-10-28
 - `refuted` "Susuki (Miscanthus sinensis)" — AI identification; corrected to ogi by the farmer.
-- `hypothesis` Masanobu Fukuoka's farm in 伊予市 (Ehime) lies on the same Median Tectonic Line / Sambagawa side. — AI. Check: GSJ map.
+- `data` Masanobu Fukuoka was born in 伊予郡南山崎村, now 伊予市 (石坂 2021, 愛媛大学, https://ehime-u.repo.nii.ac.jp/record/2001326/files/AA12777305_2021_50_1-20.pdf); a book biography gives 伊予市大平. The farm (福岡正信自然農園) is in 伊予市 (its official site, https://f-masanobu.jp/). No street address found.
+- `data` Surface geology at 伊予市大平 (GSI address point 33.71682, 132.7052, the town's representative point, not the farm itself): consolidated sedimentary rock, alternating sandstone and shale (固結堆積物「砂岩・頁岩互層」). Landform: 小起伏山地. Soil: 黄色土壌. — 国土交通省 20万分の1土地分類基本調査 GIS data, 愛媛県 (https://nlftp.mlit.go.jp/kokjo/tochimizu/F2/GIS/38.zip), checked 2026-10-28.
+- `hypothesis` In detail the geology differs, but both soils come from rocks of the Sambagawa belt. — farmer, 2026-10-28.
+  - At 大平, the 1:200,000 map puts 緑色片岩 (green schist, a metamorphic unit) 1.3 km from the town's point. 安山岩質岩石 lies at 0.2 km, 砂岩・頁岩互層 at the point itself, and 礫岩・砂岩・頁岩（始新統） at 3.7 km. The farm's exact position is unknown. — MLIT 土地分類基本調査 愛媛県 GIS, 2026-10-28.
+  - Here, the map gives only 泥 (mud). The farmer reads it as silt from black schist. Green and black schist are both crystalline schists of the kind the Sambagawa belt is made of.
+  - Not yet checked against a map that names geological units (GSJ seamless map; under maintenance on 2026-10-28).
 
 ## How a hypothesis is checked
 
