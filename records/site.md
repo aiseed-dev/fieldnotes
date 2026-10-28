@@ -88,6 +88,7 @@ The farmer's knowledge and the AI's guesses are treated the same way.
 - `refuted` "Susuki (Miscanthus sinensis)" — AI identification; corrected to ogi by the farmer.
 - `data` Masanobu Fukuoka was born in 伊予郡南山崎村, now 伊予市 (石坂 2021, 愛媛大学, https://ehime-u.repo.nii.ac.jp/record/2001326/files/AA12777305_2021_50_1-20.pdf); a book biography gives 伊予市大平. The farm (福岡正信自然農園) is in 伊予市 (its official site, https://f-masanobu.jp/). No street address found.
 - `data` Surface geology at 伊予市大平 (GSI address point 33.71682, 132.7052, the town's representative point, not the farm itself): consolidated sedimentary rock, alternating sandstone and shale (固結堆積物「砂岩・頁岩互層」). Landform: 小起伏山地. Soil: 黄色土壌. — 国土交通省 20万分の1土地分類基本調査 GIS data, 愛媛県 (https://nlftp.mlit.go.jp/kokjo/tochimizu/F2/GIS/38.zip), checked 2026-10-28.
+- `hypothesis` This field's soil may also hold sandstone and shale from the north bank of the Yoshino. — farmer, 2026-10-28
 - `hypothesis` In detail the geology differs, but both soils come from rocks of the Sambagawa belt. — farmer, 2026-10-28.
   - At 大平, the 1:200,000 map puts 緑色片岩 (green schist, a metamorphic unit) 1.3 km from the town's point. 安山岩質岩石 lies at 0.2 km, 砂岩・頁岩互層 at the point itself, and 礫岩・砂岩・頁岩（始新統） at 3.7 km. The farm's exact position is unknown. — MLIT 土地分類基本調査 愛媛県 GIS, 2026-10-28.
   - Here, the map gives only 泥 (mud). The farmer reads it as silt from black schist. Green and black schist are both crystalline schists of the kind the Sambagawa belt is made of.
