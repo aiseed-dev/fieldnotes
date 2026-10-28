@@ -62,7 +62,7 @@ mkdir ~/myfarm && cd ~/myfarm
 fieldnotes init --place "Nakuru, Kenya" --country KE --lat -0.30 --lon 36.07 --climate "highland, two rainy seasons"
 ```
 
-Then add what you know about the land to `records/site.md` (terrain, soil, history, what works there), each line marked `data`, `record` or `hypothesis`. Hypotheses are things to check, not premises. Maps: Japan gets the GSI aerial photos (now and the 1960s–70s) and landform maps; elsewhere the OpenStreetMap standard map.
+`fieldnotes lookup` then fetches public data for the spot into `records/lookup.md`, each line with its source: elevation, bedrock (Macrostrat; in Japan also the GSJ seamless geological map), soil (ISRIC SoilGrids), and history nearby (Wikipedia articles with coordinates, OpenStreetMap castles, archaeological sites and flood memorials). `fieldnotes search 城 --save` looks for any word near the farm. Then add what you know about the land to `records/site.md` (terrain, soil, history, what works there), each line marked `data`, `record` or `hypothesis`. Hypotheses are things to check, not premises. Maps: Japan gets the GSI aerial photos (now and the 1960s–70s) and landform maps; elsewhere the OpenStreetMap standard map.
 
 ### The sample farm
 

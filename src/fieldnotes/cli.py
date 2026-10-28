@@ -8,6 +8,8 @@
     fieldnotes propose <field>                       cover-crop proposal from the latest record
     fieldnotes compare [YYYY-MM-DD]                  rank fields (latest record of each)
     fieldnotes surroundings                          fetch maps + read once
+    fieldnotes lookup                                geology, soil, history from open data
+    fieldnotes search <words> [--save]               look for a name near the farm
     fieldnotes consent [yes|no]                      may Meta train on what Spark is sent
     fieldnotes reader [spark|glimmer] [--url URL] [--model NAME] [--check]
                                                      which model reads the fields
@@ -26,7 +28,7 @@ import sys
 from datetime import date
 from pathlib import Path
 
-from . import concepts, pipeline, propose, site, surroundings
+from . import concepts, lookup, pipeline, propose, site, surroundings
 from . import llm
 from .llm import Backend
 from .records import Record
@@ -87,6 +89,12 @@ def build_parser() -> argparse.ArgumentParser:
 
     s = sub.add_parser("surroundings", help="fetch the maps around the farm and read them (once)")
     s.add_argument("--force", action="store_true", help="read again, replacing the farmer's marks")
+
+    s = sub.add_parser("lookup", help="look up geology, soil and history for the farm (records/lookup.md)")
+
+    s = sub.add_parser("search", help="look for a name near the farm (Wikipedia, OpenStreetMap)")
+    s.add_argument("words", nargs="+")
+    s.add_argument("--save", action="store_true", help="add what was found to records/lookup.md")
 
     s = sub.add_parser("app", help="serve the phone app")
     s.add_argument("--port", type=int, default=8550)
@@ -157,6 +165,18 @@ def run(args: argparse.Namespace) -> int:
             surroundings.read_surroundings(records, Backend.default())
             _say(f"保存しました: {path}")
         print(path.read_text(encoding="utf-8"))
+    elif args.cmd == "lookup":
+        _say("公開データを調べています（標高、地質、土壌、近くの歴史）")
+        print(lookup.lookup(records).read_text(encoding="utf-8"))
+    elif args.cmd == "search":
+        words = " ".join(args.words)
+        found = lookup.search(records, words)
+        print("\n".join(found) or "見つかりませんでした")
+        if args.save and found:
+            path = records / lookup.FILE
+            with path.open("a", encoding="utf-8") as f:
+                f.write(f"\n## Search: {words} ({today.isoformat()})\n\n" + "\n".join(found) + "\n")
+            _say(f"追記しました: {path}")
     elif args.cmd == "consent":
         if args.answer:
             llm.set_training_consent(args.answer == "yes")

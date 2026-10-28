@@ -124,12 +124,17 @@ def _body(p: Path) -> str:
 
 
 def site_background(records_root: Path) -> str:
-    """records/site.md (without its how-to section), plus the surroundings read
-    from the maps (records/surroundings.md) if that has been done."""
+    """records/site.md (without its how-to section), plus the public data
+    looked up (records/lookup.md) and the surroundings read from the maps
+    (records/surroundings.md) where those have been done."""
     parts = []
     site = records_root / "site.md"
     if site.exists():
         parts.append("Site background (records/site.md):\n" + _body(site).split(SITE_CHECK_HEADING)[0].strip())
+    looked = records_root / "lookup.md"
+    if looked.exists():
+        parts.append("Public data looked up for the farm (records/lookup.md; world maps are coarse, "
+                     "`reference` lines are only names of places nearby):\n" + _body(looked))
     around = records_root / "surroundings.md"
     if around.exists():
         parts.append("Surroundings, read from maps (hypotheses; lines marked '→ farmer: wrong' are known wrong):\n"

@@ -79,6 +79,9 @@ The farmer's knowledge and the AI's guesses are treated the same way.
 
 ## History
 
+- `record` 高川原城 stood near the field. — farmer, 2026-10-28. Not found by `fieldnotes search 高川原城` (ja Wikipedia within 10 km, OpenStreetMap names). The nearest castle there is 芝原城, 2.2 km NE. Check: 徳島県の中世城館跡調査, 石井町史.
+- `data` North of the river (飯尾川) are the indigo merchants' houses (藍屋敷): 武知家住宅 (「武知家の藍寝床」, national Important Cultural Property), 0.8 km N, and 田中家住宅, 1.1 km N. The village north of the river was called 藍畑村, 1.7 km N. — farmer; Wikipedia 武知家住宅, 藍畑村; OpenStreetMap (records/lookup.md).
+- `reference` 慶応2年寅の大水 (1866-09-15) has a flood-mark memorial 2.1 km NE at 国府町芝原. — OpenStreetMap node 8463027003, from the GSI 自然災害伝承碑 data (records/lookup.md).
 - Pending: GSI aerial photos (1940s onward) and old topographic maps for land use; town history (石井町史).
 
 ## Farming

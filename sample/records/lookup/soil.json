@@ -1,0 +1,147 @@
+{
+ "type": "Feature",
+ "geometry": {
+  "type": "Point",
+  "coordinates": [
+   134.4454,
+   34.0801
+  ]
+ },
+ "properties": {
+  "layers": [
+   {
+    "name": "clay",
+    "unit_measure": {
+     "d_factor": 10,
+     "mapped_units": "g/kg",
+     "target_units": "%",
+     "uncertainty_unit": ""
+    },
+    "depths": [
+     {
+      "range": {
+       "top_depth": 0,
+       "bottom_depth": 5,
+       "unit_depth": "cm"
+      },
+      "label": "0-5cm",
+      "values": {
+       "mean": null
+      }
+     },
+     {
+      "range": {
+       "top_depth": 15,
+       "bottom_depth": 30,
+       "unit_depth": "cm"
+      },
+      "label": "15-30cm",
+      "values": {
+       "mean": null
+      }
+     }
+    ]
+   },
+   {
+    "name": "phh2o",
+    "unit_measure": {
+     "d_factor": 10,
+     "mapped_units": "pH*10",
+     "target_units": "-",
+     "uncertainty_unit": ""
+    },
+    "depths": [
+     {
+      "range": {
+       "top_depth": 0,
+       "bottom_depth": 5,
+       "unit_depth": "cm"
+      },
+      "label": "0-5cm",
+      "values": {
+       "mean": null
+      }
+     },
+     {
+      "range": {
+       "top_depth": 15,
+       "bottom_depth": 30,
+       "unit_depth": "cm"
+      },
+      "label": "15-30cm",
+      "values": {
+       "mean": null
+      }
+     }
+    ]
+   },
+   {
+    "name": "sand",
+    "unit_measure": {
+     "d_factor": 10,
+     "mapped_units": "g/kg",
+     "target_units": "%",
+     "uncertainty_unit": ""
+    },
+    "depths": [
+     {
+      "range": {
+       "top_depth": 0,
+       "bottom_depth": 5,
+       "unit_depth": "cm"
+      },
+      "label": "0-5cm",
+      "values": {
+       "mean": null
+      }
+     },
+     {
+      "range": {
+       "top_depth": 15,
+       "bottom_depth": 30,
+       "unit_depth": "cm"
+      },
+      "label": "15-30cm",
+      "values": {
+       "mean": null
+      }
+     }
+    ]
+   },
+   {
+    "name": "soc",
+    "unit_measure": {
+     "d_factor": 10,
+     "mapped_units": "dg/kg",
+     "target_units": "g/kg",
+     "uncertainty_unit": ""
+    },
+    "depths": [
+     {
+      "range": {
+       "top_depth": 0,
+       "bottom_depth": 5,
+       "unit_depth": "cm"
+      },
+      "label": "0-5cm",
+      "values": {
+       "mean": null
+      }
+     },
+     {
+      "range": {
+       "top_depth": 15,
+       "bottom_depth": 30,
+       "unit_depth": "cm"
+      },
+      "label": "15-30cm",
+      "values": {
+       "mean": null
+      }
+     }
+    ]
+   }
+  ]
+ },
+ "query_time_s": 2.8693926334381104
+}
