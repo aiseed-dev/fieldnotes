@@ -41,9 +41,11 @@ class FakeModel:
     def __call__(self, backend, messages):
         system, user = messages[0]["content"], messages[1]["content"]
         text = user if isinstance(user, str) else "\n".join(p["text"] for p in user if p["type"] == "text")
-        kind = {concepts.SYSTEM: "concepts", plants.ECOLOGY_SYSTEM: "ecology", describe.SYSTEM: "describe",
-                describe.COMPARE_SYSTEM: "compare", propose.SYSTEM: "propose",
-                surroundings.SYSTEM: "surroundings"}[system]
+        kinds = {concepts.SYSTEM: "concepts", plants.ECOLOGY_SYSTEM: "ecology", describe.SYSTEM: "describe",
+                 describe.COMPARE_SYSTEM: "compare", propose.SYSTEM: "propose",
+                 surroundings.SYSTEM: "surroundings"}
+        # prompts may carry a trailing language rule (llm.in_language)
+        kind = next(k for s, k in kinds.items() if system.startswith(s))
         self.calls.append(kind)
         self.messages.setdefault(kind, []).append(messages)
         if kind == "concepts":

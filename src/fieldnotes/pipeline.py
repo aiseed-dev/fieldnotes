@@ -151,12 +151,16 @@ def run_observation(field: str, day: date, root: Path = ROOT, backend: Backend |
     concepts.ensure(records, field, species_in([o for r in previous for o in r.observations]), backend, shared)
 
     # 5. segmentation, one overlay per photo
-    say(f"SAM で {len(photos)} 枚を分けています")
-    results = concepts.segment_field(rec, photo_root=root, records_root=records)
-    for old in overlay_paths(field, day_s, root):
-        old.unlink()  # a re-run with fewer photos must not leave stale overlays
-    for n, result in enumerate(results, start=1):
-        segment.save_overlay(result, records / field / f"{day_s}-overlay-{n}.jpg")
+    def segment_and_overlay():
+        say(f"SAM で {len(photos)} 枚を分けています")
+        results = concepts.segment_field(rec, photo_root=root, records_root=records)
+        for old in overlay_paths(field, day_s, root):
+            old.unlink()  # a re-run with fewer photos must not leave stale overlays
+        for n, result in enumerate(results, start=1):
+            segment.save_overlay(result, records / field / f"{day_s}-overlay-{n}.jpg")
+
+    asked = set(concepts.FieldConcepts.load(records, field).nouns())
+    segment_and_overlay()
 
     # 6. reading
     say("Muse Spark が畑を読んでいます")
@@ -165,6 +169,12 @@ def run_observation(field: str, day: date, root: Path = ROOT, backend: Backend |
     # 7. prompts for next time
     say("次回の SAM の名詞を用意しています")
     concepts.ensure(records, field, species_in(rec.observations), backend, shared)
+
+    # On a field's first days SAM had little to look for (only the defaults);
+    # when today's reading added prompts, run SAM again so today's record and
+    # overlays already show the dominant plants.
+    if set(concepts.FieldConcepts.load(records, field).nouns()) - asked:
+        segment_and_overlay()
 
     # 8. save, keeping the farmer's verdicts and note from an earlier run of this day
     say("記録を保存しています")

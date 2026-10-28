@@ -45,6 +45,24 @@ def training_consent() -> bool | None:
     return json.loads(p.read_text(encoding="utf-8")).get("training_consent")
 
 
+LANGUAGES = {"ja": "Japanese", "en": "English"}
+
+
+def language() -> str:
+    """The language the farmer reads: "ja" unless settings.json says otherwise."""
+    p = config_dir() / "settings.json"
+    lang = json.loads(p.read_text(encoding="utf-8")).get("language", "ja") if p.exists() else "ja"
+    return lang if lang in LANGUAGES else "ja"
+
+
+def in_language(system: str) -> str:
+    """A system prompt plus the rule to write every free-text value in the
+    farmer's language. JSON keys, enum values and scientific names stay as
+    they are, so parsing does not change."""
+    return (system + f"\nWrite every free-text value (text, evidence, why, notes) in {LANGUAGES[language()]}. "
+            "Keep JSON keys, the allowed enum values and scientific names exactly as specified.")
+
+
 def set_training_consent(agreed: bool) -> None:
     p = config_dir() / "settings.json"
     settings = json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}

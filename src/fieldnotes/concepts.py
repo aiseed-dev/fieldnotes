@@ -41,12 +41,18 @@ from .records import Observation, Record, notes_from_markdown, notes_to_markdown
 
 CONCEPTS = "_concepts"
 SHARED = Path("shared/sam_concepts.md")
-BASE = [("bare soil", "裸地")]  # every field starts with these
+# Every field starts with these. Tried on real field photos on 2026-10-28:
+# SAM finds plain visible parts ("leaf": 9 in a sown row, 55 in a mixed patch;
+# "flower cluster": 7 goldenrod heads in a head-high stand) but not species
+# names ("goldenrod", "chickweed") nor "seedling", "weed" or "bare soil".
+BASE = [("leaf", "葉（作物も草も）"), ("flower cluster", "花の房"), ("bare soil", "裸地")]
 SCI = re.compile(r"\(([A-Z][a-z]+ [a-z][a-z-]+)\)")
 
 SYSTEM = """You choose the text prompts for SAM 3.1, a segmentation model, for photos of a natural-farming field in Tokushima, Japan.
 SAM 3.1 takes ONE short English noun phrase per request and returns every matching object. It cannot take commas, lists, "or", negation, or positions ("left", "behind"). Zero matches is a normal answer.
-For each plant given, propose the single noun phrase most likely to make SAM find that plant in a field photo: prefer a plain, common English name or a simple visual description over a scientific name. Do not reuse any phrase the farmer marked wrong.
+For each plant given, propose the single noun phrase most likely to make SAM find that plant in a field photo.
+What works: plain names of a visible part or shape that SAM can outline one by one ("leaf", "flower cluster", "seed head", "grass blade", "clover leaf"). What fails on these photos: species names ("goldenrod", "chickweed"), and words for a mass rather than objects ("weed", "grass", "seedling"). So describe what the plant looks like in the photo, not what it is called.
+Do not reuse any phrase the farmer marked wrong.
 Answer with JSON only: [{"scientific": as given, "noun": the phrase, "confidence": 0-1}]."""
 
 
@@ -90,7 +96,10 @@ class FieldConcepts:
         if not p.exists():
             return cls(field, [Concept(noun, target, by="default") for noun, target in BASE])
         front, notes = notes_from_markdown(p.read_text(encoding="utf-8"))
-        return cls(front.get("field", field), [Concept.from_obs(o) for o in notes if o.key == "concept"])
+        fc = cls(front.get("field", field), [Concept.from_obs(o) for o in notes if o.key == "concept"])
+        known = {c.noun for c in fc.items}  # a base noun the farmer marked wrong stays wrong
+        fc.items += [Concept(noun, target, by="default") for noun, target in BASE if noun not in known]
+        return fc
 
     def save(self, root: Path) -> Path:
         p = self.path_for(root, self.field)

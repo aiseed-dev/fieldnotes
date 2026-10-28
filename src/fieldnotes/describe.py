@@ -27,7 +27,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from .llm import Backend, chat, conf, json_value
+from .llm import Backend, chat, conf, in_language, json_value
 from .plants import ecology, notes_for_prompt, species_in
 from .records import FRONT, Observation, Record, corrected_examples
 from .segment import load_image_as_data_url
@@ -148,7 +148,7 @@ def build_messages(today: Record, previous: list[Record], photo_root: Path,
     content += _text_part(plant_notes)
     content += _corrections_part(previous)
     content.append({"type": "text", "text": "How does the field look as a whole today, which weeds dominate, how are the vegetables growing, what does all that say about acidity, fertility and dryness, and what changed? JSON array only, overall first."})
-    return [{"role": "system", "content": SYSTEM}, {"role": "user", "content": content}]
+    return [{"role": "system", "content": in_language(SYSTEM)}, {"role": "user", "content": content}]
 
 
 def build_compare_messages(latest: list[Record], photo_root: Path, history: list[Record] = (),
@@ -164,7 +164,7 @@ def build_compare_messages(latest: list[Record], photo_root: Path, history: list
     content += _text_part(plant_notes)
     content += _corrections_part(list(history))
     content.append({"type": "text", "text": "How do these fields differ, and how do they rank on acidity, fertility and dryness? JSON array only, overall first."})
-    return [{"role": "system", "content": COMPARE_SYSTEM}, {"role": "user", "content": content}]
+    return [{"role": "system", "content": in_language(COMPARE_SYSTEM)}, {"role": "user", "content": content}]
 
 
 def _level(key: str, level) -> str:

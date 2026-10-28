@@ -33,7 +33,7 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw
 
-from .llm import Backend, chat, conf, json_value
+from .llm import Backend, chat, conf, in_language, json_value
 from .records import Observation, notes_from_markdown, notes_to_markdown
 from .segment import load_image_as_data_url
 from .weather import FIELD_LAT, FIELD_LON
@@ -128,7 +128,7 @@ def build_messages(maps: dict[str, Path], max_side: int = 768) -> list[dict]:
         url, _, _ = load_image_as_data_url(p, max_side)
         content.append({"type": "image_url", "image_url": {"url": url}})
     content.append({"type": "text", "text": "What around this field is likely to matter to it? JSON only."})
-    return [{"role": "system", "content": SYSTEM}, {"role": "user", "content": content}]
+    return [{"role": "system", "content": in_language(SYSTEM)}, {"role": "user", "content": content}]
 
 
 def parse(text: str) -> list[Observation]:

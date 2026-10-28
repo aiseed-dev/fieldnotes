@@ -24,7 +24,7 @@ from dataclasses import dataclass, field
 from datetime import date
 from pathlib import Path
 
-from .llm import Backend, chat, conf, json_value
+from .llm import Backend, chat, conf, in_language, json_value
 from .records import Observation, notes_from_markdown, notes_to_markdown
 
 PLANTS = "_plants"
@@ -82,7 +82,7 @@ def species_in(observations: list[Observation]) -> list[tuple[str, str]]:
 
 
 def build_ecology_messages(name: str, scientific: str) -> list[dict]:
-    return [{"role": "system", "content": ECOLOGY_SYSTEM},
+    return [{"role": "system", "content": in_language(ECOLOGY_SYSTEM)},
             {"role": "user", "content": f"{name} ({scientific}). JSON only."}]
 
 

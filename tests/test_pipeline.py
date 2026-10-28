@@ -27,7 +27,8 @@ def test_run_observation_end_to_end(root, model, sam, wx, backend):
     assert rec.weather["days_since_rain"] == 1
     assert rec.ai_model == "fake-model"
     assert [o.key for o in rec.observations] == ["overall", "dominant", "acidity", "animal"]
-    assert rec.coverage == {"bare soil": 25.0}  # first day: only the base noun was known when SAM ran
+    # first day: SAM runs again once the reading has named the dominant plants
+    assert rec.coverage == {"leaf": 0.0, "flower cluster": 0.0, "bare soil": 25.0, "goldenrod": 50.0}
     assert len(steps) >= 6
 
     # the saved file is what was returned, and a person can read it
@@ -55,8 +56,8 @@ def test_second_day_uses_the_first(root, model, sam, wx, backend):
 
     rec = pipeline.run_observation(FIELD, nxt, root, backend)
 
-    assert rec.coverage == {"bare soil": 25.0, "goldenrod": 50.0}
-    assert sam.calls[-1] == ("090000-c.jpg", ["bare soil", "goldenrod"])
+    assert rec.coverage == {"leaf": 0.0, "flower cluster": 0.0, "bare soil": 25.0, "goldenrod": 50.0}
+    assert sam.calls[-1] == ("090000-c.jpg", ["leaf", "flower cluster", "bare soil", "goldenrod"])
     # describe saw the earlier day's two photos and today's one
     user = model.messages["describe"][-1][1]["content"]
     assert sum(p["type"] == "image_url" for p in user) == 3

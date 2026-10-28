@@ -29,3 +29,11 @@ def test_cli_consent(tmp_path, monkeypatch, capsys):
     assert cli.main(["consent", "yes"]) == 0
     out = capsys.readouterr().out
     assert "同意しています" in out and llm.SPARK_CONTRIBUTOR in out
+
+
+def test_readings_are_asked_in_the_farmers_language(tmp_path, monkeypatch):
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
+    assert "in Japanese" in llm.in_language("SYS")          # default ja
+    (tmp_path / "fieldnotes").mkdir()
+    (tmp_path / "fieldnotes" / "settings.json").write_text('{"language": "en"}')
+    assert "in English" in llm.in_language("SYS")

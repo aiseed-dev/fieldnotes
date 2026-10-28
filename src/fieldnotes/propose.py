@@ -28,7 +28,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from .describe import site_background
-from .llm import Backend, chat, conf, json_value
+from .llm import Backend, chat, conf, in_language, json_value
 from .plants import notes_for_prompt, species_in
 from .records import Observation, Record, corrected_examples, notes_from_markdown, notes_to_markdown
 
@@ -108,7 +108,7 @@ def build_messages(latest: Record, date: str, records_root: Path, seeds_on_hand:
         parts.append("The farmer marked these points of earlier proposals for this field wrong; do not repeat them:\n"
                      + "\n".join(f'- {k}: "{t}" was wrong: {r}' for k, t, r in wrong))
     parts.append("Propose a cover-crop mix for this field now. JSON only.")
-    return [{"role": "system", "content": SYSTEM}, {"role": "user", "content": "\n\n".join(p for p in parts if p)}]
+    return [{"role": "system", "content": in_language(SYSTEM)}, {"role": "user", "content": "\n\n".join(p for p in parts if p)}]
 
 
 def parse(text: str) -> list[Observation]:

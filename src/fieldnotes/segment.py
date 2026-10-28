@@ -36,6 +36,10 @@ from PIL import Image, ImageOps
 from .llm import api_key
 
 MODEL = "sam-3.1"
+# Measured on a real field photo (2026-10-28): "flower cluster" found 6-7
+# goldenrod heads at 1024 px and none at 1500 or 2048 px. Phone photos are
+# ~4000 px, so SAM always gets a 1024 px copy.
+SAM_SIDE = 1024
 BASE_URL = "https://api.meta.ai/v1"
 
 
@@ -145,14 +149,14 @@ def records_to_concept(concept: str, width: int, height: int, records) -> Concep
     return out
 
 
-async def segment_concepts_async(photo: Path, concepts: list[str], max_side: int = 2048) -> SegmentResult:
+async def segment_concepts_async(photo: Path, concepts: list[str], max_side: int = SAM_SIDE) -> SegmentResult:
     image_url, w, h = load_image_as_data_url(photo, max_side)
     client = _client()
     results = await asyncio.gather(*(_segment_one(client, c, image_url, w, h) for c in concepts))
     return SegmentResult(photo=photo, width=w, height=h, concepts={r.concept: r for r in results})
 
 
-def segment_concepts(photo: Path, concepts: list[str], max_side: int = 2048) -> SegmentResult:
+def segment_concepts(photo: Path, concepts: list[str], max_side: int = SAM_SIDE) -> SegmentResult:
     return asyncio.run(segment_concepts_async(photo, concepts, max_side))
 
 
