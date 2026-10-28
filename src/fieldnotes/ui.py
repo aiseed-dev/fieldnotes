@@ -41,6 +41,21 @@ TEXTS: dict[str, tuple[str, str]] = {
     "send.sending": ("{n} 枚を送っています…", "Sending {n} photo(s)…"),
     "around": ("近所（畑のまわり）", "Neighbourhood (around the fields)"),
     # 読む
+    "voice.button": ("声を送る（したこと・見たこと）", "Send your voice (what you did and saw)"),
+    "voice.answer": ("声で答える（✓ ✗ と理由）", "Answer by voice (✓ ✗ and why)"),
+    "voice.sending": ("声を送っています…", "Sending your voice…"),
+    "voice.working": ("文字にして整理しています… {s} 秒", "Writing it down and sorting it… {s} s"),
+    "voice.done": ("聞き取りました: {text}", "Heard: {text}"),
+    "voice.sorted": ("記録に入れたもの: {n} 件", "Put into the record: {n}"),
+    "voice.failed": ("声を記録できませんでした: {e}", "Could not record your voice: {e}"),
+    "voice.heading": ("農家の声から（AI が整理）　合っていますか？", "From your voice (sorted by AI): is it right?"),
+    "key.work": ("したこと", "Work done"),
+    "key.seen": ("見たこと", "Seen"),
+    "voice.words": ("大根, カイラン, 子葉, 本葉, 刈り草, 草マルチ, 刈り敷き, 足跡, 鹿, 猪, オギ, セイタカアワダチソウ, "
+                    "クリムソンクローバー, ライ麦, 不耕起, 無肥料",
+                    "daikon, kailan, cotyledon, true leaf, cut grass, grass mulch, footprints, deer, boar, "
+                    "silvergrass, goldenrod, crimson clover, rye, no-till, no fertiliser"),
+    "cli.heard": ("聞き取り: {text}", "Heard: {text}"),
     "read.title": ("畑を読む", "Read a field"),
     "read.day": ("日付（写真がある日）", "Date (days with photos)"),
     "read.button": ("読む", "Read"),

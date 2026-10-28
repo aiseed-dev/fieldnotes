@@ -11,7 +11,7 @@ import numpy as np
 import pytest
 from PIL import Image
 
-from fieldnotes import around, concepts, describe, llm, plants, propose, segment, surroundings, weather
+from fieldnotes import around, concepts, describe, llm, plants, propose, segment, surroundings, voice, weather
 from fieldnotes.llm import Backend
 from fieldnotes.segment import ConceptResult, Instance, SegmentResult
 
@@ -41,13 +41,20 @@ class FakeModel:
             {"key": "acidity", "level": "5.5-6.5", "direction": "none", "evidence": "goldenrod", "confidence": 0.5},
             {"key": "animal", "text": "no new tracks", "confidence": 0.6},
         ]
+        # what Muse Spark makes of the farmer's words (voice.sort_speech)
+        self.sorted = [
+            {"kind": "work", "text": "東側を刈って草マルチにした"},
+            {"kind": "seen", "text": "ダイコンに本葉が出た"},
+            {"kind": "verdict", "line": "acidity", "verdict": "wrong", "reason": "スギナが少ないので酸性ではない"},
+            {"kind": "verdict", "line": "crops", "verdict": "right"},  # no such line today: kept as seen
+        ]
 
     def __call__(self, backend, messages):
         system, user = messages[0]["content"], messages[1]["content"]
         text = user if isinstance(user, str) else "\n".join(p["text"] for p in user if p["type"] == "text")
         kinds = {concepts.SYSTEM: "concepts", plants.ECOLOGY_SYSTEM: "ecology", describe.SYSTEM: "describe",
                  describe.COMPARE_SYSTEM: "compare", propose.SYSTEM: "propose",
-                 surroundings.SYSTEM: "surroundings", around.SYSTEM: "around"}
+                 surroundings.SYSTEM: "surroundings", around.SYSTEM: "around", voice.SYSTEM: "voice"}
         # prompts carry the farm's place (<FIELD>, <REGION>; site.py) and may
         # carry a trailing language rule (llm.in_language)
         kind = next(k for s, k in kinds.items() if re.match(_pattern(s), system))
@@ -75,6 +82,8 @@ class FakeModel:
                                         "confidence": 0.6}],
                                "sowing": {"text": "sow in November", "confidence": 0.5},
                                "cautions": [], "watch": [{"text": "clover leaves by December"}]})
+        if kind == "voice":
+            return json.dumps(self.sorted)
         return json.dumps([{"aspect": "land_use", "text": "paddies to the south", "confidence": 0.6}])
 
 
@@ -118,12 +127,13 @@ def offline(monkeypatch, tmp_path):
     monkeypatch.setattr(urllib.request, "urlopen", no_network)
     monkeypatch.setattr(llm, "OpenAI", no_network)
     monkeypatch.setattr(segment, "AsyncOpenAI", no_network)
+    monkeypatch.setattr(voice.httpx, "post", no_network)
 
 
 @pytest.fixture
 def model(monkeypatch):
     fake = FakeModel()
-    for mod in (llm, describe, concepts, plants, propose, surroundings, around):
+    for mod in (llm, describe, concepts, plants, propose, surroundings, around, voice):
         monkeypatch.setattr(mod, "chat", fake)
     return fake
 

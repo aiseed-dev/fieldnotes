@@ -101,6 +101,15 @@ def _photo_parts(rec: Record, photo_root: Path, max_side: int) -> list[dict]:
     return parts
 
 
+def _voice_part(rec: Record) -> list[dict]:
+    """What the farmer said they did and saw that day (lines they marked wrong left out)."""
+    said = [f"- {o.key}: {o.text}" for o in rec.voice if o.verdict != "wrong"]
+    if not said:
+        return []
+    return [{"type": "text", "text": "The farmer said (work: what they did; seen: what they saw). "
+             "Take what they did as a record; check what they saw against the photos:\n" + "\n".join(said)}]
+
+
 def _corrections_part(records: list[Record]) -> list[dict]:
     corrections = corrected_examples(records)
     if not corrections:
@@ -153,6 +162,7 @@ def build_messages(today: Record, previous: list[Record], photo_root: Path,
         label = "TODAY" if rec is today else "earlier"
         content.append({"type": "text", "text": f"--- {label} {day_summary(rec)}"})
         content += _photo_parts(rec, photo_root, max_side)
+        content += _voice_part(rec)
     content += _text_part(site)
     content += _text_part(plant_notes)
     content += _corrections_part(previous)

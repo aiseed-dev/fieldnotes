@@ -11,6 +11,8 @@ dependencies = [
   "numpy",
   "pyyaml",
   "pillow-heif",
+  "httpx",
+  "av",  # decodes the phone's voice recordings (voice.py)
   "flet[all]==1.0.5",
 ]
 

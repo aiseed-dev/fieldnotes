@@ -1,4 +1,4 @@
-"""Phone app: send field photos from an iPhone or Android browser.
+"""Phone app: send field photos and voice recordings from an iPhone or Android browser.
 
 Run on the house machine:
 
@@ -12,6 +12,8 @@ Three views, switched from the bar at the bottom (docs/design.md §1.13):
 送る / Send (this file's send_view), 読む / Read (run the pipeline, see the SAM
 overlays and the AI's lines, mark each right or wrong) and 名詞 / Nouns (the
 SAM noun phrases of a field, marked right or wrong with a replacement).
+Send and Read also take a voice recording (voice_button, voice.py): what the
+farmer did and saw, or which lines are right or wrong and why.
 
 The screen is in Japanese or English, following the language the AI writes
 in (ui.py); every view takes the page's `w` for its words.
@@ -28,7 +30,7 @@ from pathlib import Path
 
 import flet as ft
 
-from . import appdata, concepts, llm, pipeline
+from . import appdata, concepts, llm, pipeline, voice
 from .inbox import AROUND, file_photo, list_fields, valid_field
 from .records import Observation, Record
 from .ui import Words
@@ -40,7 +42,7 @@ UPLOADS = ROOT / "uploads"
 NEW = "__new__"
 
 
-def send_view(page: ft.Page, w: Words) -> ft.Control:
+def send_view(page: ft.Page, w: Words, lang: str | None = None) -> ft.Control:
     """送る: pick the field and day, choose photos, upload; each lands in photos/ via inbox.file_photo."""
     fields = list_fields(PHOTOS, RECORDS)
     field_dd = ft.Dropdown(
@@ -120,6 +122,14 @@ def send_view(page: ft.Page, w: Words) -> ft.Control:
             for f in files
         ])
 
+    def voice_target():
+        field, d = chosen_field(), chosen_day()
+        if not field or not d:
+            status.value = w("send.bad_field") if not field else w("send.bad_day")
+            page.update()
+            return None
+        return field, d
+
     return ft.Column([
         ft.Text(w("send.title"), size=22, weight=ft.FontWeight.BOLD),
         ft.Row([field_dd]),
@@ -130,7 +140,66 @@ def send_view(page: ft.Page, w: Words) -> ft.Control:
         progress,
         status,
         sent,
+        voice_button(page, w, w("voice.button"), voice_target, lang),
     ])
+
+def voice_button(page: ft.Page, w: Words, label: str, target, lang: str | None, on_done=None) -> ft.Control:
+    """A button that takes a recording (the phone's recorder, or a file), keeps it
+    next to the day's photos and sorts what was said into the record (voice.py).
+    `target()` returns (field, day), or None after saying what is missing."""
+    status = ft.Text("", size=14, selectable=True)
+    busy = ft.Row([ft.ProgressRing(width=24, height=24), ft.Text("", expand=True)], visible=False, spacing=12)
+    job: dict = {}
+
+    async def work(path: Path):
+        t0 = time.monotonic()
+        busy.visible, status.value = True, ""
+        llm.device_language.set(lang)  # the thread inherits it: the transcript and sorting are in the farmer's language
+        task = asyncio.create_task(asyncio.to_thread(voice.file_voice, path, job["field"], job["day"], ROOT))
+        while not task.done():
+            busy.controls[1].value = w("voice.working", s=int(time.monotonic() - t0))
+            page.update()
+            await asyncio.sleep(1)
+        busy.visible = False
+        try:
+            text, changed = task.result()
+            status.value = w("voice.done", text=text) + "\n" + w("voice.sorted", n=len(changed))
+            status.color = None
+        except Exception as ex:
+            status.value, status.color = w("voice.failed", e=ex), ft.Colors.ERROR
+        if on_done:
+            on_done()
+        page.update()
+
+    def on_upload(e: ft.FilePickerUploadEvent):
+        if e.error:
+            status.value, status.color = w("send.failed", name=e.file_name, error=e.error), ft.Colors.ERROR
+            page.update()
+        elif e.progress is not None and e.progress >= 1.0:
+            page.run_task(work, UPLOADS / job["dir"] / e.file_name)
+
+    picker = ft.FilePicker(on_upload=on_upload)
+    page.services.append(picker)
+
+    async def pick(e):
+        sel = target()
+        if not sel:
+            return
+        files = await picker.pick_files(file_type=ft.FilePickerFileType.AUDIO, allow_multiple=False,
+                                        cancel_upload_on_window_blur=False)
+        if not files:
+            return
+        f = files[0]
+        job.update(dir=secrets.token_hex(4), field=sel[0], day=date.fromisoformat(str(sel[1])))
+        status.value, status.color = w("voice.sending"), None
+        page.update()
+        await picker.upload(files=[ft.FilePickerUploadFile(
+            id=f.id, name=f.name, upload_url=page.get_upload_url(f"{job['dir']}/{f.name}", 600))])
+
+    return ft.Column([ft.FilledTonalButton(label, icon=ft.Icons.MIC, on_click=pick, height=56,
+                                           style=ft.ButtonStyle(padding=20), expand=True),
+                      busy, status], spacing=8)
+
 
 THUMB = 164  # two thumbnails side by side in 375 px minus the 16 px page padding
 GOOD, BAD = ft.Colors.GREEN_700, ft.Colors.RED_700
@@ -263,6 +332,12 @@ def read_view(page: ft.Page, dialogs: Dialogs, w: Words, lang: str | None):
             # pipeline.mark finds a repeated key as key#n
             cards.append(line_card(o, o.key if seen[o.key] == 1 else f"{o.key}#{seen[o.key]}"))
         lines.controls += cards or [ft.Text(w("read.empty"))]
+        if rec.voice:
+            lines.controls.append(ft.Text(w("voice.heading"), size=18, weight=ft.FontWeight.BOLD))
+            said: dict[str, int] = {}
+            for o in rec.voice:
+                said[o.key] = said.get(o.key, 0) + 1
+                lines.controls.append(line_card(o, o.key if said[o.key] == 1 else f"{o.key}#{said[o.key]}"))
         if rec.farmer_note:
             lines.controls.append(card(ft.Text(w("read.note"), size=13), ft.Text(rec.farmer_note, selectable=True)))
 
@@ -327,6 +402,7 @@ def read_view(page: ft.Page, dialogs: Dialogs, w: Words, lang: str | None):
         ft.Text(w("read.title"), size=22, weight=ft.FontWeight.BOLD),
         ft.Row([field_dd]), ft.Row([day_dd]),
         ft.Row([read_btn]), busy, status, photos, lines,
+        voice_button(page, w, w("voice.answer"), chosen, lang, on_done=show),
     ], spacing=12)
     return view, refresh
 
@@ -491,10 +567,10 @@ def build(page: ft.Page, here: str | None, rebuild) -> Dialogs:
     w = Words(lang)
     dialogs = Dialogs(page, w)
     page.controls.clear()
-    page.services[:] = [s for s in page.services if not isinstance(s, ft.FilePicker)]  # send_view adds its own
+    page.services[:] = [s for s in page.services if not isinstance(s, ft.FilePicker)]  # send_view and the voice buttons add their own
     read, refresh_read = read_view(page, dialogs, w, lang)
     nouns, refresh_nouns = nouns_view(page, dialogs, w)
-    views = [(send_view(page, w), None), (read, refresh_read), (nouns, refresh_nouns)]
+    views = [(send_view(page, w, lang), None), (read, refresh_read), (nouns, refresh_nouns)]
     holder = ft.Container()
 
     def go(e=None):

@@ -90,7 +90,7 @@ def merge_rerun(new: Record, old: Record) -> Record:
     * a marked old line whose text changed is kept, with its verdict, under
       `earlier` (the "## Earlier AI lines" section), so the mark is never lost;
     * unmarked old lines are simply replaced;
-    * the farmer note stays.
+    * the farmer note and what was sorted from the farmer's voice stay.
     """
     taken: set[int] = set()
     for o in new.observations:
@@ -104,7 +104,8 @@ def merge_rerun(new: Record, old: Record) -> Record:
                 _same(p, e) and e.verdict == p.verdict for e in earlier):
             earlier.append(p)
     new.earlier = earlier
-    new.farmer_note, new.note_model = old.farmer_note, old.note_model
+    new.farmer_note, new.note_model, new.note_language = old.farmer_note, old.note_model, old.note_language
+    new.voice, new.voice_model = old.voice, old.voice_model
     return new
 
 
@@ -140,6 +141,9 @@ def run_observation(field: str, day: date, root: Path = ROOT, backend: Backend |
         save_merged(around.read_around(root, day_s, photos, backend), records)
         return Record.load(records, field, day_s)
     rec = Record(field=field, date=day_s, photos=photos)
+    if Record.path_for(records, field, day_s).exists():  # what the farmer said today goes into the reading
+        old = Record.load(records, field, day_s)
+        rec.voice, rec.voice_model = old.voice, old.voice_model
 
     # 2. weather: a missing day (the archive lags a few days) must not stop the reading
     say(w("step.weather"))
@@ -189,9 +193,10 @@ def run_observation(field: str, day: date, root: Path = ROOT, backend: Backend |
 
 
 def _find_line(rec: Record, key: str) -> Observation:
-    """`key` is the line's key; `key#2` picks the second line with that key."""
+    """`key` is the line's key; `key#2` picks the second line with that key.
+    `work` and `seen` are the lines sorted from the farmer's voice."""
     base, _, nth = key.partition("#")
-    lines = [o for o in rec.observations if o.key == base]
+    lines = [o for o in (rec.voice if base in ("work", "seen") else rec.observations) if o.key == base]
     i = int(nth) - 1 if nth.isdigit() else 0
     if not 0 <= i < len(lines):
         raise KeyError(f"no line {key!r} in {rec.field} {rec.date}")

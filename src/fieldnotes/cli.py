@@ -3,6 +3,7 @@
     fieldnotes init --place P --country CC --lat LAT --lon LON   start a farm (records/site.md)
     fieldnotes observe <field> [YYYY-MM-DD]          run the pipeline (default today)
     fieldnotes show <field> [YYYY-MM-DD]             print the record (default the latest)
+    fieldnotes voice <field> <recording> [YYYY-MM-DD]  what you did and saw, or right/wrong, said aloud
     fieldnotes mark <field> <date> <key> right|wrong [reason]
     fieldnotes concept <field> <noun> right|wrong [reason] [--replace NOUN]
     fieldnotes propose <field>                       cover-crop proposal from the latest record
@@ -12,24 +13,26 @@
     fieldnotes search <words> [--save]               look for a name near the farm
     fieldnotes consent [yes|no]                      may Meta train on what Spark is sent
     fieldnotes reader [spark|glimmer] [--url URL] [--model NAME] [--check]
-    fieldnotes language [auto|ja|en|...]
                                                      which model reads the fields
+    fieldnotes language [auto|ja|en|...]             the language the AI writes in
     fieldnotes app [--port 8550]                     the phone app
 
 `--root DIR` (before the subcommand) is the folder that holds photos/ and
 records/; it defaults to $FIELDNOTES_ROOT, else the current folder.
-Messages for the farmer are in Japanese.
+Messages for the farmer are in the screen language (ui.py).
 """
 
 from __future__ import annotations
 
 import argparse
 import os
+import shutil
 import sys
+import tempfile
 from datetime import date
 from pathlib import Path
 
-from . import concepts, lookup, pipeline, propose, site, surroundings
+from . import concepts, lookup, pipeline, propose, site, surroundings, voice
 from . import llm
 from .llm import Backend
 from .records import Record
@@ -66,6 +69,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     s = sub.add_parser("show", help="print a record")
     s.add_argument("field")
+    s.add_argument("date", nargs="?", type=_day, default=None)
+
+    s = sub.add_parser("voice", help="file a recording: what you did and saw, or which lines are right or wrong")
+    s.add_argument("field")
+    s.add_argument("recording", type=Path, help="m4a, 3gp, ogg, webm or WAV from the phone")
     s.add_argument("date", nargs="?", type=_day, default=None)
 
     s = sub.add_parser("mark", help="mark one AI line right or wrong")
@@ -148,6 +156,14 @@ def run(args: argparse.Namespace) -> int:
     elif args.cmd == "show":
         rec = Record.load(records, args.field, args.date.isoformat()) if args.date else _latest_or_fail(args.field, root)
         print(rec.to_markdown())
+    elif args.cmd == "voice":
+        with tempfile.TemporaryDirectory() as tmp:  # file_voice moves its input; keep the farmer's file
+            copy = Path(tmp) / args.recording.name
+            shutil.copyfile(args.recording, copy)
+            text, changed = voice.file_voice(copy, args.field, args.date or today, root)
+        _say(w("cli.heard", text=text))
+        for o in changed:
+            print(o.to_line())
     elif args.cmd == "mark":
         line = pipeline.mark(args.field, args.date, args.key, args.verdict, _reason(args.reason), root=root)
         print(line.to_line())

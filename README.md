@@ -23,7 +23,7 @@ I photograph the same spots regularly with my phone and look at them together wi
 1. **Align** each photo to the earlier ones (`field-timelapse`, SIFT + RANSAC — built before the hackathon, see below).
 2. **Segment** crops, weeds, bare soil and animal tracks with **SAM 3.1** → cover % per concept per day.
 3. **Describe** today against the previous days with **Muse Spark 1.3** (or **Muse Glimmer** running locally): what changed in leaf colour, weed height, soil dryness, animal signs.
-4. **Verify**: I speak a note in the field; **Muse Voice Transcribe** (Japanese) turns it into text; I mark each AI observation right or wrong.
+4. **Verify**: I mark each AI observation right or wrong, by tapping or by voice. In the field I say what I did and saw; **Muse Voice Transcribe** writes it down in my language, and Muse Spark sorts it into work done, things seen, and verdicts on the AI's lines.
 5. **Record** everything as plain Markdown that any person or model can read later. Corrections feed back into the next day's prompt.
 
 ## What was built during the hackathon
@@ -42,7 +42,7 @@ Everything in this repository: `src/fieldnotes/` (segment, describe, verify, rec
 | Segment | `sam-3.1` | Meta Model API, one concept per request, masks → cover % (`src/fieldnotes/segment.py`) |
 | Describe | `muse-spark-1.3` | Meta Model API, several days' photos in one request, JSON out (`src/fieldnotes/describe.py`) |
 | Describe (local) | Muse Glimmer 30B | llama.cpp `llama-server` on a Ryzen AI Max+ 395 box in the house; same code, different `base_url`. Switch with `fieldnotes reader glimmer` or the app's 読む AI setting |
-| Verify | `muse-voice-transcribe-1.0` | Japanese, with vocabulary biasing for crop names |
+| Verify | `muse-voice-transcribe-1.0` | the farmer's recordings, language-biased to the farmer's language, with the field's plant names as keywords (`src/fieldnotes/voice.py`); Muse Spark then sorts what was said |
 | Development | Muse Code | used for parts noted in commit messages |
 
 ## Running
@@ -72,6 +72,16 @@ fieldnotes init --place "Nakuru, Kenya" --country KE --lat -0.30 --lon 36.07 --c
 
 Now and then, photograph around the fields too: the neighbours' fields and verges (herbicide, tillage), the river bank, abandoned land that sends seed, old walls. In the app choose 「近所（畑のまわり）」 when sending; `fieldnotes observe _around` reads them (no SAM), each point marked right or wrong, and the newest reading goes to every later reading of the fields. Fields and verges show land, not houses or people.
 
+### Photos and voice, no typing
+
+The farmer only takes photos and talks. Record with the phone's own voice recorder and send the file from the app (「声を送る」 on Send, 「声で答える」 on Read), or `fieldnotes voice uncut memo.m4a`. The recording is kept next to the day's photos, written down by Muse Voice Transcribe, and sorted by Muse Spark into:
+
+* `work`: what the farmer did (cut, sowed, mulched, harvested);
+* `seen`: what the farmer saw;
+* ✓ / ✗ with the reason on the day's AI lines.
+
+The transcript is the record's farmer note, word for word; the sorted lines can themselves be marked right or wrong, and what the farmer did and saw goes into the next reading. The app takes a file rather than the browser's microphone because browsers allow the microphone only on HTTPS or localhost.
+
 ### Daily use
 
 Photos are filed under `photos/<field>/<date>/` by the phone app, or put there by hand. Run these inside the farm folder (or with `--root DIR`):
@@ -79,6 +89,7 @@ Photos are filed under `photos/<field>/<date>/` by the phone app, or put there b
 ```bash
 fieldnotes observe uncut 2026-10-28      # weather → SAM → Muse Spark → records/uncut/2026-10-28.md (+ overlays)
 fieldnotes show uncut                    # the latest record
+fieldnotes voice uncut memo.m4a 2026-10-28  # what you did and saw, or which lines are right or wrong, said aloud
 fieldnotes mark uncut 2026-10-28 dominant right
 fieldnotes mark uncut 2026-10-28 overall wrong "it is uneven, not even"
 fieldnotes concept uncut goldenrod wrong "finds ogi too" --replace "yellow flowers"
@@ -101,7 +112,7 @@ Tests run offline: `.venv/bin/pip install -e ".[dev]" && .venv/bin/pytest`.
 fieldnotes --root ~/myfarm app           # http://<this machine>:8550, open it on the phone
 ```
 
-Three views at the bottom: Send (photos into `photos/`), Read (run the observation for a field and day, look at the SAM overlays, mark each AI line ✓ or ✗ with a reason) and Nouns (the SAM noun phrases of a field, ✓ or ✗ with a replacement). The screen and the CLI are in English, or in Japanese when the language is Japanese; the language is each phone's or PC's own unless set with the 文A button or `fieldnotes language`. Everything it shows or saves is a plain-text record under `FIELDNOTES_ROOT` (default: the current directory).
+Three views at the bottom: Send (photos and voice recordings into `photos/`), Read (run the observation for a field and day, look at the SAM overlays, mark each AI line ✓ or ✗ with a reason, by tap or by voice) and Nouns (the SAM noun phrases of a field, ✓ or ✗ with a replacement). The screen and the CLI are in English, or in Japanese when the language is Japanese; the language is each phone's or PC's own unless set with the 文A button or `fieldnotes language`. Everything it shows or saves is a plain-text record under `FIELDNOTES_ROOT` (default: the current directory).
 
 ## Licence
 
