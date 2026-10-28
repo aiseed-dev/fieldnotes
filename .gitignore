@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+*.egg-info/
+.env
+# raw phone photos are large; aligned copies and overlays are kept
+photos/**/*.HEIC
