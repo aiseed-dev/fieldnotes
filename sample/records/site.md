@@ -1,5 +1,9 @@
 ---
 site: ishii-takagawara
+place: Ishii, Tokushima, Japan
+country: JP
+climate: warm temperate, humid
+method: no tillage, no fertiliser, no pesticide, Fukuoka method; weeds are cut, not pulled
 lat: 34.0801
 lon: 134.4454
 elevation_m: 7

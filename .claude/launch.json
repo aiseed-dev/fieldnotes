@@ -3,10 +3,13 @@
   "configurations": [
     {
       "name": "fieldnotes-app",
-      "runtimeExecutable": "/home/dev/dev/fieldnotes/.venv/bin/python",
+      "runtimeExecutable": "/home/dev/dev/fieldnotes/.venv/bin/fieldnotes",
       "runtimeArgs": [
-        "-m",
-        "fieldnotes.app"
+        "--root",
+        "sample",
+        "app",
+        "--port",
+        "8550"
       ],
       "port": 8550
     }

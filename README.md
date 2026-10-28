@@ -28,7 +28,7 @@ I photograph the same spots regularly with my phone and look at them together wi
 
 ## What was built during the hackathon
 
-Everything in this repository: `src/fieldnotes/` (segment, describe, verify, records, report), `scripts/`, `docs/`, and the daily records under `records/`.
+Everything in this repository: `src/fieldnotes/` (segment, describe, verify, records, report), `scripts/`, `docs/`, and the sample farm's records under `sample/`.
 
 ## What existed before the hackathon
 
@@ -53,7 +53,24 @@ python -m venv .venv && .venv/bin/pip install -e .
 # or keep it in ~/.config/fieldnotes/model_api_key (chmod 600), which is read when the variable is unset.
 ```
 
-Daily use (photos are filed under `photos/<field>/<date>/` by the phone app, or put there by hand):
+### Your own farm
+
+Each farm is a folder with `photos/` and `records/`. Start one with where it is; everything about the place (prompts, weather, maps) comes from the `records/site.md` this writes, never from the code, so it works for any farm in any country:
+
+```bash
+mkdir ~/myfarm && cd ~/myfarm
+fieldnotes init --place "Nakuru, Kenya" --country KE --lat -0.30 --lon 36.07 --climate "highland, two rainy seasons"
+```
+
+Then add what you know about the land to `records/site.md` (terrain, soil, history, what works there), each line marked `data`, `record` or `hypothesis`. Hypotheses are things to check, not premises. Maps: Japan gets the GSI aerial photos (now and the 1960s–70s) and landform maps; elsewhere the OpenStreetMap standard map.
+
+### The sample farm
+
+`sample/` is the first farm: a natural-farming field in Tokushima, Japan, just south of the Median Tectonic Line, with its site profile, photos and records (fields `row1`, `mix1`, `uncut`). Try the commands on it with `--root sample`, or read it as an example of what a farm folder becomes.
+
+### Daily use
+
+Photos are filed under `photos/<field>/<date>/` by the phone app, or put there by hand. Run these inside the farm folder (or with `--root DIR`):
 
 ```bash
 fieldnotes observe uncut 2026-10-28      # weather → SAM → Muse Spark → records/uncut/2026-10-28.md (+ overlays)
@@ -63,7 +80,8 @@ fieldnotes mark uncut 2026-10-28 overall wrong "it is uneven, not even"
 fieldnotes concept uncut goldenrod wrong "finds ogi too" --replace "yellow flowers"
 fieldnotes propose uncut --seeds "crimson clover, rye"
 fieldnotes compare                       # rank fields by the newest record of each
-fieldnotes surroundings                  # read the GSI maps once (--force to redo)
+fieldnotes surroundings                  # read the maps around the farm once (--force to redo)
+fieldnotes reader glimmer --check        # read with Muse Glimmer at home instead of Muse Spark
 fieldnotes app --port 8550               # the phone app
 ```
 
@@ -75,7 +93,7 @@ Tests run offline: `.venv/bin/pip install -e ".[dev]" && .venv/bin/pytest`.
 ### Phone app
 
 ```bash
-.venv/bin/python -m fieldnotes.app        # http://<this machine>:8550, open it on the phone
+fieldnotes --root ~/myfarm app           # http://<this machine>:8550, open it on the phone
 ```
 
 Three views at the bottom: 送る (send photos into `photos/`), 読む (run the observation for a field and day, look at the SAM overlays, mark each AI line ✓ or ✗ with a reason) and 名詞 (the SAM noun phrases of a field, ✓ or ✗ with a replacement). Everything it shows or saves is a plain-text record under `FIELDNOTES_ROOT` (default: the current directory).

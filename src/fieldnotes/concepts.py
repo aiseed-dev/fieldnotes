@@ -38,6 +38,7 @@ from pathlib import Path
 
 from .llm import Backend, chat, json_value
 from .records import Observation, Record, notes_from_markdown, notes_to_markdown
+from .site import Site
 
 CONCEPTS = "_concepts"
 SHARED = Path("shared/sam_concepts.md")
@@ -48,7 +49,7 @@ SHARED = Path("shared/sam_concepts.md")
 BASE = [("leaf", "葉（作物も草も）"), ("flower cluster", "花の房"), ("bare soil", "裸地")]
 SCI = re.compile(r"\(([A-Z][a-z]+ [a-z][a-z-]+)\)")
 
-SYSTEM = """You choose the text prompts for SAM 3.1, a segmentation model, for photos of a natural-farming field in Tokushima, Japan.
+SYSTEM = """You choose the text prompts for SAM 3.1, a segmentation model, for photos of <FIELD>.
 SAM 3.1 takes ONE short English noun phrase per request and returns every matching object. It cannot take commas, lists, "or", negation, or positions ("left", "behind"). Zero matches is a normal answer.
 For each plant given, propose the single noun phrase most likely to make SAM find that plant in a field photo.
 What works: plain names of a visible part or shape that SAM can outline one by one ("leaf", "flower cluster", "seed head", "grass blade", "clover leaf"). What fails on these photos: species names ("goldenrod", "chickweed"), and words for a mass rather than objects ("weed", "grass", "seedling"). So describe what the plant looks like in the photo, not what it is called.
@@ -196,13 +197,13 @@ class SharedConcepts:
         return [e for e in self.entries if e.plant == plant and e.wrong > e.right]
 
 
-def build_messages(species: list[tuple[str, str]], wrong: list[Concept]) -> list[dict]:
+def build_messages(species: list[tuple[str, str]], wrong: list[Concept], place: Site | None = None) -> list[dict]:
     lines = [f"- {name} ({sci})" for name, sci in species]
     user = "Plants:\n" + "\n".join(lines)
     if wrong:
         user += "\n\nPhrases the farmer marked wrong; do not reuse:\n" + "\n".join(
             f'- "{c.noun}" for {c.target}: {c.reason or "no reason given"}' for c in wrong)
-    return [{"role": "system", "content": SYSTEM}, {"role": "user", "content": user + "\n\nJSON only."}]
+    return [{"role": "system", "content": (place or Site()).fill(SYSTEM)}, {"role": "user", "content": user + "\n\nJSON only."}]
 
 
 def ensure(root: Path, field: str, species: list[tuple[str, str]], backend: Backend,
@@ -225,7 +226,7 @@ def ensure(root: Path, field: str, species: list[tuple[str, str]], backend: Back
             Concept(e.noun, e.plant, verdict="wrong", reason=f"shared: {e.last_reason}")
             for _, s in missing for e in shared.known_wrong(s)]
         names = {s: n for n, s in missing}
-        for it in json_value(chat(backend, build_messages(missing, wrong))):
+        for it in json_value(chat(backend, build_messages(missing, wrong, Site.load(root)))):
             sci, noun = it.get("scientific", ""), (it.get("noun") or "").strip().lower()
             if sci in names and noun and noun not in {c.noun for c in wrong}:
                 fc.items.append(Concept(noun, f"{names[sci]} ({sci})"))

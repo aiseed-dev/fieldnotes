@@ -1,12 +1,12 @@
 """Daily weather for the field from the Open-Meteo archive (ERA5-based, no key).
 
-Open-Meteo serves a ~9 km grid; the nearest grid point to the field is about
-2 km away at 5 m elevation, close enough for daily rain / temperature context.
-The JMA station nearest the field (Tokushima, 71106) is 12 km east, so the grid
-value is not worse than the station value for this purpose.
+The farm's coordinates come from records/site.md (site.py); the archive
+answers for anywhere on Earth. Open-Meteo serves a ~9 km grid, close enough
+for daily rain / temperature context. (For the first farm, in Tokushima, the
+nearest grid point is about 2 km away, nearer than the JMA station.)
 
     from fieldnotes.weather import daily_weather
-    daily_weather(date(2026, 10, 27))
+    daily_weather(date(2026, 10, 27), Path("records"))
     -> {'tmax': 25.1, 'tmin': 15.4, 'rain_mm': 2.0, 'sun_h': 10.0, 'et0_mm': 2.9,
         'days_since_rain': 1}
 
@@ -22,8 +22,8 @@ import urllib.request
 from datetime import date, timedelta
 from pathlib import Path
 
-FIELD_LAT = 34.0801
-FIELD_LON = 134.4454
+from .site import Site
+
 ARCHIVE = "https://archive-api.open-meteo.com/v1/archive"
 DAILY = ["temperature_2m_max", "temperature_2m_min", "temperature_2m_mean",
          "precipitation_sum", "sunshine_duration", "et0_fao_evapotranspiration"]
@@ -31,11 +31,11 @@ RAIN_DAY_MM = 1.0  # a day with less than this counts as dry for days_since_rain
 ATTRIBUTION = "Weather data by Open-Meteo.com (CC BY 4.0), ERA5 reanalysis"
 
 
-def fetch_range(start: date, end: date, lat: float = FIELD_LAT, lon: float = FIELD_LON) -> dict[str, dict]:
+def fetch_range(start: date, end: date, lat: float, lon: float) -> dict[str, dict]:
     q = urllib.parse.urlencode({
         "latitude": lat, "longitude": lon,
         "start_date": start.isoformat(), "end_date": end.isoformat(),
-        "daily": ",".join(DAILY), "timezone": "Asia/Tokyo",
+        "daily": ",".join(DAILY), "timezone": "auto",  # days in the farm's own local time
     })
     with urllib.request.urlopen(f"{ARCHIVE}?{q}", timeout=30) as r:
         d = json.load(r)["daily"]
@@ -65,7 +65,10 @@ def month_weather(root: Path, d: date, refresh: bool = False) -> dict[str, dict]
         return cached
     first = d.replace(day=1)
     last = min(date.today(), (first + timedelta(days=32)).replace(day=1) - timedelta(days=1))
-    cached.update(fetch_range(first, last))
+    site = Site.load(root)
+    if not site.located:
+        raise ValueError("no lat/lon in records/site.md (fieldnotes init)")
+    cached.update(fetch_range(first, last, site.lat, site.lon))
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(cached, ensure_ascii=False, indent=1))
     return cached

@@ -73,7 +73,7 @@ def in_language(system: str) -> str:
     """A system prompt plus the rule to write every free-text value in the
     farmer's language. JSON keys, enum values and scientific names stay as
     they are, so parsing does not change."""
-    return (system + f"\nWrite every free-text value (text, evidence, why, notes) in {LANGUAGES[language()]}. "
+    return (system + f"\nWrite every free-text value (text, evidence, why, notes) and the common names of plants in {LANGUAGES[language()]}. "
             "Keep JSON keys, the allowed enum values and scientific names exactly as specified.")
 
 

@@ -20,6 +20,10 @@ FIELD = "uncut"
 SCI = re.compile(r"\(([A-Z][a-z]+ [a-z][a-z-]+)\)")
 
 
+def _pattern(prompt: str) -> str:
+    return re.escape(prompt).replace(re.escape("<FIELD>"), ".*?").replace(re.escape("<REGION>"), ".*?")
+
+
 class FakeModel:
     """Stands in for every `chat` call; answers by which system prompt it gets.
 
@@ -44,8 +48,9 @@ class FakeModel:
         kinds = {concepts.SYSTEM: "concepts", plants.ECOLOGY_SYSTEM: "ecology", describe.SYSTEM: "describe",
                  describe.COMPARE_SYSTEM: "compare", propose.SYSTEM: "propose",
                  surroundings.SYSTEM: "surroundings"}
-        # prompts may carry a trailing language rule (llm.in_language)
-        kind = next(k for s, k in kinds.items() if system.startswith(s))
+        # prompts carry the farm's place (<FIELD>, <REGION>; site.py) and may
+        # carry a trailing language rule (llm.in_language)
+        kind = next(k for s, k in kinds.items() if re.match(_pattern(s), system))
         self.calls.append(kind)
         self.messages.setdefault(kind, []).append(messages)
         if kind == "concepts":

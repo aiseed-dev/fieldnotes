@@ -1,9 +1,9 @@
-"""The field's surroundings, from GSI map tiles, read once by the model.
+"""The field's surroundings, from map tiles, read once by the model.
 
 What is around a field matters to it: paddies or orchards next door, the river
 and old channels, houses and roads, where weed seed and animals come from, and
-how the land was used decades ago. The 国土地理院 (GSI) tile service has, for
-the same spot:
+how the land was used decades ago. In Japan the 国土地理院 (GSI) tile service
+has, for the same spot:
 
     seamlessphoto  current aerial photo
     gazo1          aerial photo 1974-1978
@@ -12,6 +12,10 @@ the same spot:
     lcmfc2         治水地形分類図 (flood-control landform map: natural levees,
                    old channels, backswamps)
 
+Elsewhere only the OpenStreetMap standard map is used (tile.openstreetmap.org,
+fetched once when the farmer asks, with this app's User-Agent, as the OSMF
+tile policy asks). The farm's place and country come from records/site.md.
+
 `fetch_maps` stitches a 3x3 block of zoom-16 tiles (about 1.5 km square here)
 around the field for each layer, marks the field, and saves the images under
 records/surroundings/. `read_surroundings` gives all of them to the model in
@@ -19,7 +23,8 @@ one request and writes its reading to records/surroundings.md, one hypothesis
 per line, for the farmer to mark right or wrong. site_background() in
 describe.py passes that file on to every later judgment.
 
-Source: 国土地理院 地理院タイル (https://maps.gsi.go.jp/development/ichiran.html).
+Sources: 国土地理院 地理院タイル (https://maps.gsi.go.jp/development/ichiran.html);
+OpenStreetMap tile usage policy (https://operations.osmfoundation.org/policies/tiles/).
 """
 
 from __future__ import annotations
@@ -36,22 +41,26 @@ from PIL import Image, ImageDraw
 from .llm import Backend, chat, conf, in_language, json_value
 from .records import Observation, notes_from_markdown, notes_to_markdown
 from .segment import load_image_as_data_url
-from .weather import FIELD_LAT, FIELD_LON
+from .site import Site
 
-TILE = "https://cyberjapandata.gsi.go.jp/xyz/{layer}/{z}/{x}/{y}.{ext}"
+GSI = "https://cyberjapandata.gsi.go.jp/xyz/{layer}/{z}/{x}/{y}.{ext}"
+OSM = "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+USER_AGENT = "fieldnotes/0.1 (+https://github.com/aiseed-dev/fieldnotes)"
 LAYERS = {
     "seamlessphoto": ("jpg", "current aerial photo"),
     "gazo1": ("jpg", "aerial photo 1974-1978"),
     "ort_old10": ("png", "aerial photo 1961-1969"),
     "std": ("png", "standard map"),
     "lcmfc2": ("png", "治水地形分類図 (flood-control landform map)"),
+    "osm": ("png", "OpenStreetMap standard map"),
 }
-ATTRIBUTION = "出典: 国土地理院 地理院タイル"
+JAPAN = ["seamlessphoto", "gazo1", "ort_old10", "std", "lcmfc2"]
+ATTRIBUTION = {"gsi": "出典: 国土地理院 地理院タイル", "osm": "© OpenStreetMap contributors"}
 DIR = "surroundings"
 ASPECTS = ["land_use", "water", "landform", "history", "seed_source", "animals", "neighbours", "other"]
 
-SYSTEM = """You read the surroundings of one natural-farming field in Tokushima, Japan (no tillage, no fertiliser, no pesticide).
-You get several maps of the same area, about 1.5 km square, with the field marked by a red circle in the centre: current and old aerial photos, a standard map, and a flood-control landform map (natural levees, old river channels, backswamps).
+SYSTEM = """You read the surroundings of <FIELD>.
+You get one or more maps of the same area, about 1.5 km square, with the field marked by a red circle in the centre (each map is named: aerial photos of now and of decades ago, standard maps, landform maps), as far as they exist for this place.
 Say what in the surroundings is likely to matter to this field: land use next to it and around it (paddies, orchards, other fields, houses, roads, abandoned land), water (river, channels, ditches), the landform it sits on, how land use changed between the 1960s, the 1970s and now, where weed seed and animals may come from, and what neighbours' practices (fertiliser, herbicide, burning) could reach it.
 Say only what the maps show or strongly suggest; mark guesses with a low confidence. Name which map each point comes from.
 Answer with JSON only: [{"aspect": one of %s, "text": one sentence, "confidence": 0-1}].""" % ASPECTS
@@ -65,7 +74,15 @@ def tile_xy(lat: float, lon: float, z: int) -> tuple[float, float]:
     return x, y
 
 
-def fetch_mosaic(layer: str, lat: float = FIELD_LAT, lon: float = FIELD_LON, z: int = 16, radius: int = 1) -> Image.Image:
+def layers_for(site: Site) -> list[str]:
+    return JAPAN if site.country == "JP" else ["osm"]
+
+
+def attribution(layers) -> str:
+    return "; ".join(dict.fromkeys(ATTRIBUTION["osm" if layer == "osm" else "gsi"] for layer in layers))
+
+
+def fetch_mosaic(layer: str, lat: float, lon: float, z: int = 16, radius: int = 1) -> Image.Image:
     ext = LAYERS[layer][0]
     fx, fy = tile_xy(lat, lon, z)
     cx, cy = int(fx), int(fy)
@@ -73,9 +90,10 @@ def fetch_mosaic(layer: str, lat: float = FIELD_LAT, lon: float = FIELD_LON, z: 
     img = Image.new("RGB", (size, size), "white")
     for dy in range(-radius, radius + 1):
         for dx in range(-radius, radius + 1):
-            url = TILE.format(layer=layer, z=z, x=cx + dx, y=cy + dy, ext=ext)
+            url = (OSM if layer == "osm" else GSI).format(layer=layer, z=z, x=cx + dx, y=cy + dy, ext=ext)
             try:
-                with urllib.request.urlopen(url, timeout=20) as r:
+                req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+                with urllib.request.urlopen(req, timeout=20) as r:
                     tile = Image.open(io.BytesIO(r.read())).convert("RGB")
             except Exception:
                 continue  # a missing tile stays white
@@ -86,14 +104,18 @@ def fetch_mosaic(layer: str, lat: float = FIELD_LAT, lon: float = FIELD_LON, z: 
     return img
 
 
-def fetch_maps(root: Path, layers: list[str] = list(LAYERS)) -> dict[str, Path]:
+def fetch_maps(root: Path, layers: list[str] | None = None) -> dict[str, Path]:
+    site = Site.load(root)
+    if not site.located:
+        raise ValueError("no lat/lon in records/site.md (fieldnotes init)")
+    layers = layers or layers_for(site)
     out = {}
     d = root / DIR
     d.mkdir(parents=True, exist_ok=True)
     for layer in layers:
         p = d / f"{layer}.jpg"
         if not p.exists():
-            fetch_mosaic(layer).save(p, quality=90)
+            fetch_mosaic(layer, site.lat, site.lon).save(p, quality=90)
         out[layer] = p
     return out
 
@@ -111,7 +133,7 @@ class Surroundings:
 
     def to_markdown(self) -> str:
         front = {"status": "hypothesis", "model": self.model, "written": self.written,
-                 "maps": self.maps, "source": ATTRIBUTION}
+                 "maps": self.maps, "source": attribution(Path(m).stem for m in self.maps)}
         return notes_to_markdown(front, f"Surroundings read from the maps ({self.model or 'none'})", self.notes)
 
     @classmethod
@@ -121,14 +143,14 @@ class Surroundings:
                    maps=list(front.get("maps") or []), notes=notes)
 
 
-def build_messages(maps: dict[str, Path], max_side: int = 768) -> list[dict]:
+def build_messages(maps: dict[str, Path], max_side: int = 768, place: Site | None = None) -> list[dict]:
     content: list[dict] = []
     for layer, p in maps.items():
         content.append({"type": "text", "text": f"--- {LAYERS[layer][1]} ({layer})"})
         url, _, _ = load_image_as_data_url(p, max_side)
         content.append({"type": "image_url", "image_url": {"url": url}})
     content.append({"type": "text", "text": "What around this field is likely to matter to it? JSON only."})
-    return [{"role": "system", "content": in_language(SYSTEM)}, {"role": "user", "content": content}]
+    return [{"role": "system", "content": in_language((place or Site()).fill(SYSTEM))}, {"role": "user", "content": content}]
 
 
 def parse(text: str) -> list[Observation]:
@@ -143,6 +165,6 @@ def read_surroundings(root: Path, backend: Backend) -> Surroundings:
     maps = fetch_maps(root)
     s = Surroundings(model=backend.name, written=date.today().isoformat(),
                      maps=[str(p.relative_to(root)) for p in maps.values()],
-                     notes=parse(chat(backend, build_messages(maps))))
+                     notes=parse(chat(backend, build_messages(maps, place=Site.load(root)))))
     Surroundings.path(root).write_text(s.to_markdown(), encoding="utf-8")
     return s

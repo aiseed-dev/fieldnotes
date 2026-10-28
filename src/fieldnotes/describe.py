@@ -31,6 +31,7 @@ from .llm import Backend, chat, conf, in_language, json_value
 from .plants import ecology, notes_for_prompt, species_in
 from .records import FRONT, Observation, Record, corrected_examples
 from .segment import load_image_as_data_url
+from .site import Site
 
 # Weed barometers: what "up" and "down" mean, how the rough level is given,
 # and how fields are ranked (from which end).
@@ -45,7 +46,7 @@ BAROMETERS = {
 CHANGE_KEYS = ["leaf_colour", "weed_height", "soil", "animal", "other"]
 KEYS = ["overall", "dominant", "crops", *BAROMETERS, *CHANGE_KEYS]
 
-FIELD_CONTEXT = """You observe a natural-farming field in Tokushima, Japan (no tillage, no fertiliser, no pesticide, Fukuoka method).
+FIELD_CONTEXT = """You observe <FIELD>.
 Weeds are ground cover here, not enemies: report them as a condition, not a problem.
 The farmer chooses how many photos and from where; file names may say which part of the field a photo shows.
 Cover percentages from a segmentation model are a rough guide to how the whole moves, not a precise measurement."""
@@ -55,7 +56,7 @@ BAROMETER_RULES = """Weed barometers: the soil's acidity, fertility and dryness,
 - Read from the whole combination of plants and their proportions, not from a single indicator species, and read their state too: leaf colour (yellowing, purple tints), vigour, height, density, flowering, wilting.
 - Check that reading against how the vegetables are growing, against the weather (days since rain) for dryness, and against the site's terrain, geology, soil and surroundings (neighbouring land use, water, seed sources). In the site background, lines marked `data` come from public maps and records; `hypothesis` lines are unchecked readings and `refuted` lines are known to be wrong. When the signs point different ways, say so and lower the confidence.
 - Give a rough level: acidity as %s; fertility as %s; dryness as %s. Never more precise than that.
-- Fertility means what the plants can actually take up, as their growth shows, not how much mineral the soil holds. This soil is mineral-rich schist silt; the question is whether roots and soil life make it available. Rock minerals carry almost no nitrogen and this soil is low in organic matter, so watch nitrogen signs (pale or yellowing older leaves, how legumes do) apart from other minerals.
+- Fertility means what the plants can actually take up, as their growth shows, not how much mineral the soil holds. The question is whether roots and soil life make the minerals available (the site background says what is known of this soil). Rock minerals carry almost no nitrogen, so watch nitrogen signs (pale or yellowing older leaves, how legumes do) apart from other minerals.
 - In "evidence", name which plants (weeds and vegetables) and what about them led you there.
 - If the plants do not tell, use "unclear" and a low confidence rather than guessing.""" % (
     BAROMETERS["acidity"]["level"], BAROMETERS["fertility"]["level"], BAROMETERS["dryness"]["level"])
@@ -67,7 +68,7 @@ You will receive photos of the SAME field from earlier observations and today, o
 
 Answer with a JSON array only, in this order:
 1. {"key": "overall", "text": one or two sentences on how the field looks as a whole today (vigour, colour, the mix of plants, unevenness across the field) and how that whole has shifted since the earlier observations, "confidence": 0-1}. Always present.
-2. {"key": "dominant", "plants": [{"name": Japanese name, "scientific": scientific name, "share": rough share of the field such as "~40%%"}], "confidence"}: the 2 to 4 weeds that dominate today, most dominant first. Always present.
+2. {"key": "dominant", "plants": [{"name": common name, "scientific": scientific name, "share": rough share of the field such as "~40%%"}], "confidence"}: the 2 to 4 weeds that dominate today, most dominant first. Always present.
 3. {"key": "crops", "text": how the vegetables are growing as a whole (vigour, leaf colour, size, evenness, signs of stress), "confidence"}. Omit if no vegetables are in view.
 4. For each of "acidity", "fertility", "dryness": {"key", "level", "direction": "up" | "down" | "same" | "unclear" compared with the most recent earlier observation (up = more acidic / richer / drier), "evidence", "confidence"}. If there is no earlier observation, use "direction": "none".
 5. Then only what CHANGED since the earlier observations: {"key": one of %s, "text": one short sentence, "confidence"}. Omit a key if nothing changed. Say "no new tracks" for animal only if you looked and saw none.
@@ -124,20 +125,20 @@ def _body(p: Path) -> str:
 
 def site_background(records_root: Path) -> str:
     """records/site.md (without its how-to section), plus the surroundings read
-    from the GSI maps (records/surroundings.md) if that has been done."""
+    from the maps (records/surroundings.md) if that has been done."""
     parts = []
     site = records_root / "site.md"
     if site.exists():
         parts.append("Site background (records/site.md):\n" + _body(site).split(SITE_CHECK_HEADING)[0].strip())
     around = records_root / "surroundings.md"
     if around.exists():
-        parts.append("Surroundings, read from GSI maps (hypotheses; lines marked '→ farmer: wrong' are known wrong):\n"
+        parts.append("Surroundings, read from maps (hypotheses; lines marked '→ farmer: wrong' are known wrong):\n"
                      + _body(around))
     return "\n\n".join(parts)
 
 
 def build_messages(today: Record, previous: list[Record], photo_root: Path,
-                   plant_notes: str = "", max_side: int = 1280, site: str = "") -> list[dict]:
+                   plant_notes: str = "", max_side: int = 1280, site: str = "", place: Site | None = None) -> list[dict]:
     """Pure function: records -> chat messages (with images inline). Testable offline."""
     content: list[dict] = []
     for rec in previous + [today]:
@@ -148,11 +149,12 @@ def build_messages(today: Record, previous: list[Record], photo_root: Path,
     content += _text_part(plant_notes)
     content += _corrections_part(previous)
     content.append({"type": "text", "text": "How does the field look as a whole today, which weeds dominate, how are the vegetables growing, what does all that say about acidity, fertility and dryness, and what changed? JSON array only, overall first."})
-    return [{"role": "system", "content": in_language(SYSTEM)}, {"role": "user", "content": content}]
+    return [{"role": "system", "content": in_language((place or Site()).fill(SYSTEM))}, {"role": "user", "content": content}]
 
 
 def build_compare_messages(latest: list[Record], photo_root: Path, history: list[Record] = (),
-                           plant_notes: str = "", max_side: int = 1024, site: str = "") -> list[dict]:
+                           plant_notes: str = "", max_side: int = 1024, site: str = "",
+                           place: Site | None = None) -> list[dict]:
     """latest: one record per field (its newest observation). history: earlier
     comparison records, whose farmer corrections are fed back."""
     content: list[dict] = []
@@ -164,7 +166,8 @@ def build_compare_messages(latest: list[Record], photo_root: Path, history: list
     content += _text_part(plant_notes)
     content += _corrections_part(list(history))
     content.append({"type": "text", "text": "How do these fields differ, and how do they rank on acidity, fertility and dryness? JSON array only, overall first."})
-    return [{"role": "system", "content": in_language(COMPARE_SYSTEM)}, {"role": "user", "content": content}]
+    return [{"role": "system", "content": in_language((place or Site()).fill(COMPARE_SYSTEM))},
+            {"role": "user", "content": content}]
 
 
 def _level(key: str, level) -> str:
@@ -223,8 +226,8 @@ def parse_comparison(text: str, fields: list[str]) -> list[Observation]:
 
 
 def describe(today: Record, previous: list[Record], photo_root: Path, backend: Backend,
-             plant_notes: str = "", site: str = "") -> list[Observation]:
-    text = chat(backend, build_messages(today, previous, photo_root, plant_notes, site=site))
+             plant_notes: str = "", site: str = "", place: Site | None = None) -> list[Observation]:
+    text = chat(backend, build_messages(today, previous, photo_root, plant_notes, site=site, place=place))
     return parse_observations(text, basis=previous[-1].date if previous else None)
 
 
@@ -234,7 +237,8 @@ def observe(today: Record, previous: list[Record], photo_root: Path, records_roo
     model's reading, then a look-up of any newly dominant plant for next time."""
     known = [s for r in previous for s in species_in(r.observations)]
     today.observations = describe(today, previous, photo_root, backend,
-                                  notes_for_prompt(records_root, known), site_background(records_root))
+                                  notes_for_prompt(records_root, known), site_background(records_root),
+                                  Site.load(records_root))
     today.ai_model = backend.name
     for name, sci in species_in(today.observations):
         ecology(name, sci, records_root, backend)  # cached under records/_plants/
@@ -250,7 +254,7 @@ def compare_fields(latest: list[Record], photo_root: Path, records_root: Path, b
     records/_compare/, so the farmer can mark it right or wrong like any other."""
     species = [s for r in latest for s in species_in(r.observations)]
     messages = build_compare_messages(latest, photo_root, history, notes_for_prompt(records_root, species),
-                                      site=site_background(records_root))
+                                      site=site_background(records_root), place=Site.load(records_root))
     return Record(
         field=COMPARE,
         date=max(r.date for r in latest),

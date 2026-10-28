@@ -1,5 +1,6 @@
 """The `fieldnotes` command: run the pipeline and read or mark records from a terminal.
 
+    fieldnotes init --place P --country CC --lat LAT --lon LON   start a farm (records/site.md)
     fieldnotes observe <field> [YYYY-MM-DD]          run the pipeline (default today)
     fieldnotes show <field> [YYYY-MM-DD]             print the record (default the latest)
     fieldnotes mark <field> <date> <key> right|wrong [reason]
@@ -25,7 +26,7 @@ import sys
 from datetime import date
 from pathlib import Path
 
-from . import concepts, pipeline, propose, surroundings
+from . import concepts, pipeline, propose, site, surroundings
 from . import llm
 from .llm import Backend
 from .records import Record
@@ -46,6 +47,14 @@ def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="fieldnotes", description=__doc__.split("\n\n")[0])
     p.add_argument("--root", type=Path, default=pipeline.ROOT, help="folder with photos/ and records/")
     sub = p.add_subparsers(dest="cmd", required=True)
+
+    s = sub.add_parser("init", help="start a new farm: write records/site.md")
+    s.add_argument("--place", required=True, help='e.g. "Tokushima, Japan"')
+    s.add_argument("--country", required=True, help="ISO 3166 two-letter code, e.g. JP, US, KE")
+    s.add_argument("--lat", type=float, required=True)
+    s.add_argument("--lon", type=float, required=True)
+    s.add_argument("--climate", default="", help='e.g. "warm temperate, humid"')
+    s.add_argument("--method", default=site.METHOD, help="how the farm is worked")
 
     s = sub.add_parser("observe", help="run the pipeline on a day's photos")
     s.add_argument("field")
@@ -76,7 +85,7 @@ def build_parser() -> argparse.ArgumentParser:
     s = sub.add_parser("compare", help="rank fields on the barometers")
     s.add_argument("date", nargs="?", type=_day, default=None)
 
-    s = sub.add_parser("surroundings", help="fetch the GSI maps and read them (once)")
+    s = sub.add_parser("surroundings", help="fetch the maps around the farm and read them (once)")
     s.add_argument("--force", action="store_true", help="read again, replacing the farmer's marks")
 
     s = sub.add_parser("app", help="serve the phone app")
@@ -107,7 +116,17 @@ def run(args: argparse.Namespace) -> int:
     root, records = args.root.resolve(), args.root.resolve() / "records"
     today = date.today()
 
-    if args.cmd == "observe":
+    if args.cmd == "init":
+        path = records / site.FILE
+        if path.exists():
+            raise ValueError(f"{path} はもうあります。書き換えるなら手で編集してください")
+        if len(args.country) != 2 or not -90 <= args.lat <= 90 or not -180 <= args.lon <= 180:
+            raise ValueError("--country は2文字、--lat は -90〜90、--lon は -180〜180 です")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(site.template(args.place, args.country, args.lat, args.lon, args.climate, args.method),
+                        encoding="utf-8")
+        _say(f"作りました: {path}。畑ごとの写真は photos/<畑>/<日付>/ に入れて、fieldnotes observe <畑>")
+    elif args.cmd == "observe":
         day = args.date or today
         rec = pipeline.run_observation(args.field, day, root, progress=_say)
         _say(f"保存しました: {Record.path_for(records, rec.field, rec.date)}")

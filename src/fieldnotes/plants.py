@@ -26,14 +26,15 @@ from pathlib import Path
 
 from .llm import Backend, chat, conf, in_language, json_value
 from .records import Observation, notes_from_markdown, notes_to_markdown
+from .site import Site
 
 PLANTS = "_plants"
 ASPECTS = ["soil_ph", "moisture", "fertility", "mowing", "disturbance", "light", "succession", "roots", "other"]
 
-ECOLOGY_SYSTEM = """You explain why a plant becomes dominant in a field, for a natural-farming farmer in Tokushima, Japan (warm, humid; no tillage, no fertiliser, no pesticide; weeds are cut, not pulled).
+ECOLOGY_SYSTEM = """You explain why a plant becomes dominant in a field, for a farmer who tends <FIELD>.
 For the plant named, say what its dominance tells about the place: preferred soil pH, moisture, fertility, how it responds to mowing and to disturbance, light, which stage of succession it marks, and its roots.
-Say only what is commonly reported for this plant as it grows in Japan. Where reports disagree or you are unsure, say so and give a low confidence. Do not invent sources.
-Answer with JSON only: {"name": Japanese name, "scientific": scientific name, "notes": [{"aspect": one of %s, "text": one sentence, "confidence": 0-1}]}.""" % ASPECTS
+Say only what is commonly reported for this plant as it grows in <REGION>. Where reports disagree or you are unsure, say so and give a low confidence. Do not invent sources.
+Answer with JSON only: {"name": common name, "scientific": scientific name, "notes": [{"aspect": one of %s, "text": one sentence, "confidence": 0-1}]}.""" % ASPECTS
 
 SPECIES = re.compile(r"(?P<name>[^;()]+?)\s*\((?P<sci>[A-Z][a-z]+ [a-z][a-z-]+)\)")
 
@@ -81,8 +82,8 @@ def species_in(observations: list[Observation]) -> list[tuple[str, str]]:
     return out
 
 
-def build_ecology_messages(name: str, scientific: str) -> list[dict]:
-    return [{"role": "system", "content": in_language(ECOLOGY_SYSTEM)},
+def build_ecology_messages(name: str, scientific: str, place: Site | None = None) -> list[dict]:
+    return [{"role": "system", "content": in_language((place or Site()).fill(ECOLOGY_SYSTEM))},
             {"role": "user", "content": f"{name} ({scientific}). JSON only."}]
 
 
@@ -101,7 +102,7 @@ def ecology(name: str, scientific: str, root: Path, backend: Backend) -> PlantNo
     p = PlantNote.path_for(root, scientific)
     if p.exists():
         return PlantNote.from_markdown(p.read_text(encoding="utf-8"))
-    note = parse_ecology(chat(backend, build_ecology_messages(name, scientific)), name, scientific, backend.name)
+    note = parse_ecology(chat(backend, build_ecology_messages(name, scientific, Site.load(root))), name, scientific, backend.name)
     note.save(root)
     return note
 

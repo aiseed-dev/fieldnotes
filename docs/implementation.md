@@ -18,6 +18,8 @@ Deadline: 2026-11-05 11:00 JST (submission). Demo video recorded 11-03.
 
 ## Data layout
 
+One folder per farm (`--root`, `$FIELDNOTES_ROOT`); `sample/` is the first farm. The farm's place, country, climate, method and coordinates are the front matter of `records/site.md` (`site.py`, written by `fieldnotes init`); prompts get them through the `<FIELD>` and `<REGION>` tokens, the weather and the maps through `Site.load`. Nothing about a particular farm lives in the code.
+
 ```
 photos/<field>/<YYYY-MM-DD>/<HHMMSS>-<name>.jpg   filed by inbox.file_photo
 photos/<field>/<YYYY-MM-DD>/<HHMMSS>-<name>.wav   voice notes (WP2/WP4)

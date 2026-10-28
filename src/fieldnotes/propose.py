@@ -8,7 +8,7 @@ something forward. The model gets everything the records hold about the field:
   * why the dominant weeds dominate (records/_plants/),
   * the site background and surroundings (site.md, surroundings.md), where the
     farmer's own knowledge lives (e.g. "hairy vetch is too strong here"),
-  * the date, so it proposes what can be sown now in Tokushima,
+  * the date, so it proposes what can be sown now where the farm is,
   * the seeds the farmer has on hand, if given,
   * earlier proposals for this field and the farmer's right/wrong on them,
 
@@ -31,16 +31,17 @@ from .describe import site_background
 from .llm import Backend, chat, conf, in_language, json_value
 from .plants import notes_for_prompt, species_in
 from .records import Observation, Record, corrected_examples, notes_from_markdown, notes_to_markdown
+from .site import Site
 
 PROPOSALS = "_proposals"
 KIND = "cover_crop"
 ROLES = ["root_tillage", "nitrogen", "taproot", "mycorrhiza", "ground_cover", "biomass", "flowers", "other"]
 
-SYSTEM = """You propose a cover-crop (green manure) mix for one field of a natural-farming farm in Tokushima, Japan (warm temperate, humid; no tillage, no fertiliser, no pesticide, Fukuoka method; weeds are cut, not pulled).
+SYSTEM = """You propose a cover-crop (green manure) mix for <FIELD>.
 Everything you know about this field is below: its latest observation, why its dominant weeds dominate, its terrain, geology, soil and surroundings, and the farmer's own knowledge. Base the proposal on THIS field, and say for each choice what in these records it answers.
 Rules:
 - Propose a MIX, not a single species: species that share the work by role (%s). Diversity is the aim, as in regenerative agriculture.
-- Only species that can be sown now, at this date, in Tokushima. If seeds on hand are listed, build the mix from them first and say what, if anything, is worth adding.
+- Only species that can be sown now, at this date, in <REGION>. If seeds on hand are listed, build the mix from them first and say what, if anything, is worth adding.
 - Respect the farmer's knowledge in the site background: never propose what the farmer says does not work here, and say so if you leave something common out for that reason.
 - Remember that brassicas do not host mycorrhizal fungi, that legumes need their rhizobia (say if inoculant is advisable), and that a strong grass can shade out legumes.
 - Give rough shares of the mix, not precise seeding rates.
@@ -48,7 +49,7 @@ Rules:
 - Where you are unsure, give a low confidence rather than guessing.
 Answer with JSON only:
 {"summary": {"text", "confidence"},
- "mix": [{"name": Japanese name, "scientific", "role": one of the roles, "share": e.g. "~30%%", "why": one sentence tied to this field, "confidence"}],
+ "mix": [{"name": common name, "scientific", "role": one of the roles, "share": e.g. "~30%%", "why": one sentence tied to this field, "confidence"}],
  "sowing": {"text": when and how, "confidence"},
  "cautions": [{"text", "confidence"}],
  "watch": [{"text", "confidence"}]}""" % ", ".join(ROLES)
@@ -102,13 +103,15 @@ def build_messages(latest: Record, date: str, records_root: Path, seeds_on_hand:
              f"Latest observation ({latest.date}):\n{obs}",
              site_background(records_root),
              notes_for_prompt(records_root, species_in(latest.observations))]
-    parts.append("Seeds on hand: " + (", ".join(seeds_on_hand) if seeds_on_hand else "not given; propose from what is commonly sold in Japan."))
+    parts.append("Seeds on hand: " + (", ".join(seeds_on_hand) if seeds_on_hand else "not given; propose from what is commonly sold in <REGION>."))
     wrong = corrected_examples([Record(field=p.field, date=p.date, observations=p.notes) for p in earlier])
     if wrong:
         parts.append("The farmer marked these points of earlier proposals for this field wrong; do not repeat them:\n"
                      + "\n".join(f'- {k}: "{t}" was wrong: {r}' for k, t, r in wrong))
     parts.append("Propose a cover-crop mix for this field now. JSON only.")
-    return [{"role": "system", "content": in_language(SYSTEM)}, {"role": "user", "content": "\n\n".join(p for p in parts if p)}]
+    place = Site.load(records_root)
+    return [{"role": "system", "content": in_language(place.fill(SYSTEM))},
+            {"role": "user", "content": place.fill("\n\n".join(p for p in parts if p))}]
 
 
 def parse(text: str) -> list[Observation]:
