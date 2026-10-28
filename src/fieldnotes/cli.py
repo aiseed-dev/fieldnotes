@@ -7,6 +7,9 @@
     fieldnotes propose <field>                       cover-crop proposal from the latest record
     fieldnotes compare [YYYY-MM-DD]                  rank fields (latest record of each)
     fieldnotes surroundings                          fetch maps + read once
+    fieldnotes consent [yes|no]                      may Meta train on what Spark is sent
+    fieldnotes reader [spark|glimmer] [--url URL] [--model NAME] [--check]
+                                                     which model reads the fields
     fieldnotes app [--port 8550]                     the phone app
 
 `--root DIR` (before the subcommand) is the folder that holds photos/ and
@@ -81,6 +84,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     s = sub.add_parser("consent", help="show or set whether Meta may train on what Muse Spark is sent")
     s.add_argument("answer", nargs="?", choices=["yes", "no"])
+    s = sub.add_parser("reader", help="show or choose the model that reads the fields (spark or glimmer)")
+    s.add_argument("name", nargs="?", choices=list(llm.READERS))
+    s.add_argument("--url", help=f"Glimmer server (default {llm.GLIMMER_URL})")
+    s.add_argument("--model", help=f"Glimmer model name on that server (default {llm.GLIMMER_MODEL})")
+    s.add_argument("--check", action="store_true", help="ask the server whether it answers")
     return p
 
 
@@ -117,7 +125,7 @@ def run(args: argparse.Namespace) -> int:
     elif args.cmd == "propose":
         latest = _latest_or_fail(args.field, root)
         seeds = [x.strip() for x in args.seeds.split(",") if x.strip()]
-        prop = propose.propose_cover_crop(latest, today.isoformat(), records, Backend.spark(), seeds)
+        prop = propose.propose_cover_crop(latest, today.isoformat(), records, Backend.default(), seeds)
         _say(f"保存しました: {prop.path_for(records, prop.field, prop.date, prop.kind)}")
         print(prop.to_markdown())
     elif args.cmd == "compare":
@@ -127,7 +135,7 @@ def run(args: argparse.Namespace) -> int:
         if path.exists() and not args.force:
             _say(f"すでに読んであります: {path}（やり直すなら --force。印は消えます）")
         else:
-            surroundings.read_surroundings(records, Backend.spark())
+            surroundings.read_surroundings(records, Backend.default())
             _say(f"保存しました: {path}")
         print(path.read_text(encoding="utf-8"))
     elif args.cmd == "consent":
@@ -138,6 +146,21 @@ def run(args: argparse.Namespace) -> int:
                  True: "同意しています（安いモデル。送ったものが学習に使われることがあります）",
                  False: "同意していません（標準のモデル。学習に使われません）"}[c]
         print(f"AI の学習への利用: {state}\nモデル: {llm.SPARK_CONTRIBUTOR if c else llm.SPARK}")
+    elif args.cmd == "reader":
+        if args.name or args.url or args.model:
+            llm.set_reader(args.name or llm.reader(), args.url, args.model)
+        if llm.reader() == "glimmer":
+            print(f"読む AI: {llm.READERS['glimmer']}\n接続先: {llm.glimmer_url()}\nモデル: {llm.glimmer_model()}")
+        else:
+            model = llm.SPARK_CONTRIBUTOR if llm.training_consent() else llm.SPARK
+            print(f"読む AI: {llm.READERS['spark']}\nモデル: {model}")
+            print(f"（Glimmer の設定: {llm.glimmer_url()}、{llm.glimmer_model()}）")
+        if args.check:
+            try:
+                print("つながりました: " + ", ".join(llm.reachable(llm.Backend.default())))
+            except Exception as e:  # noqa: BLE001 - any failure means "not reachable"
+                print(f"つながりません: {type(e).__name__}")
+                return 1
     elif args.cmd == "app":
         os.environ["FIELDNOTES_ROOT"] = str(root)  # app.py reads it when imported
         from . import app

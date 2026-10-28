@@ -414,6 +414,44 @@ def ask_consent(page: ft.Page, dialogs: Dialogs, first: bool = False):
     ))
 
 
+def ask_reader(page: ft.Page, dialogs: Dialogs):
+    """Choose which model reads the fields: Muse Spark on api.meta.ai, or
+    Muse Glimmer on the house machine (photos never leave the house)."""
+    group = ft.RadioGroup(value=llm.reader(), content=ft.Column(
+        [ft.Radio(value=k, label=label) for k, label in llm.READERS.items()], tight=True))
+    url = ft.TextField(label="Glimmer の接続先", value=llm.glimmer_url(), keyboard_type=ft.KeyboardType.URL)
+    model = ft.TextField(label="Glimmer のモデル名", value=llm.glimmer_model())
+    result = ft.Text("", size=14)
+
+    async def check(e):
+        result.value = "確かめています…"
+        page.update()
+        try:
+            names = await asyncio.to_thread(llm.reachable, llm.Backend.glimmer(url.value.strip(), model.value.strip()))
+            result.value = "つながりました: " + ", ".join(names)
+        except Exception as ex:  # noqa: BLE001 - any failure means "not reachable"
+            result.value = f"つながりません（{type(ex).__name__}）"
+        page.update()
+
+    def save(e):
+        llm.set_reader(group.value, url.value.strip(), model.value.strip())
+        page.pop_dialog()
+        dialogs.say(f"読む AI: {llm.READERS[llm.reader()]}")
+
+    width = min(page.width or 360, 480) - 96
+    page.show_dialog(ft.AlertDialog(
+        title=ft.Text("読む AI", size=18),
+        content=ft.Column([
+            ft.Text("SAM はいつも Meta の API を使います。ここで選ぶのは、畑を読む AI です。", size=14),
+            group, url, model,
+            ft.OutlinedButton("Glimmer につながるか試す", on_click=check, height=48), result,
+        ], tight=True, width=width, spacing=12),
+        actions=[ft.TextButton("やめる", on_click=lambda e: page.pop_dialog(), height=48),
+                 ft.FilledButton("保存", on_click=save, height=48)],
+        inset_padding=16,
+    ))
+
+
 def main(page: ft.Page):
     page.title = "fieldnotes"
     page.theme_mode = ft.ThemeMode.SYSTEM
@@ -439,6 +477,7 @@ def main(page: ft.Page):
                       ft.NavigationBarDestination(icon=ft.Icons.LABEL, label="名詞")],
         selected_index=0, on_change=go)
     page.appbar = ft.AppBar(title=ft.Text("fieldnotes"), actions=[
+        ft.IconButton(ft.Icons.MEMORY, tooltip="読む AI", on_click=lambda e: ask_reader(page, dialogs)),
         ft.IconButton(ft.Icons.SETTINGS, tooltip="AI の学習への利用", on_click=lambda e: ask_consent(page, dialogs))])
     page.add(holder)
     go()

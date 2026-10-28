@@ -37,3 +37,30 @@ def test_readings_are_asked_in_the_farmers_language(tmp_path, monkeypatch):
     (tmp_path / "fieldnotes").mkdir()
     (tmp_path / "fieldnotes" / "settings.json").write_text('{"language": "en"}')
     assert "in English" in llm.in_language("SYS")
+
+
+def test_reader_setting_picks_the_backend(tmp_path, monkeypatch):
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
+    monkeypatch.setenv("MODEL_API_KEY", "test-key")
+    assert llm.reader() == "spark" and llm.Backend.default().base_url == "https://api.meta.ai/v1"
+    llm.set_training_consent(True)
+    llm.set_reader("glimmer", url="http://10.0.0.9:11434/v1/", model="g")
+    b = llm.Backend.default()
+    assert (b.base_url, b.model, b.name) == ("http://10.0.0.9:11434/v1", "g", "g@10.0.0.9")
+    assert llm.training_consent() is True                   # other settings kept
+    llm.set_reader("spark")
+    assert llm.Backend.default().model == llm.SPARK_CONTRIBUTOR
+    assert llm.glimmer_url() == "http://10.0.0.9:11434/v1"  # remembered for next time
+
+
+def test_cli_reader(tmp_path, monkeypatch, capsys):
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
+    monkeypatch.delenv("MODEL_API_KEY", raising=False)     # showing the setting needs no key
+    assert cli.main(["reader"]) == 0
+    assert "Muse Spark" in capsys.readouterr().out
+    assert cli.main(["reader", "glimmer"]) == 0
+    out = capsys.readouterr().out
+    assert llm.GLIMMER_URL in out and llm.GLIMMER_MODEL in out
+    monkeypatch.setattr(llm, "reachable", lambda b, timeout=5: (_ for _ in ()).throw(ConnectionError()))
+    assert cli.main(["reader", "--check"]) == 1
+    assert "つながりません" in capsys.readouterr().out

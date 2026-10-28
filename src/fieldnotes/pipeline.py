@@ -132,7 +132,7 @@ def run_observation(field: str, day: date, root: Path = ROOT, backend: Backend |
     photos = photos_for(field, day_s, root)
     if not photos:
         raise FileNotFoundError(f"no photos in photos/{field}/{day_s}/")
-    backend = backend or Backend.spark()
+    backend = backend or Backend.default()
     rec = Record(field=field, date=day_s, photos=photos)
 
     # 2. weather: a missing day (the archive lags a few days) must not stop the reading
@@ -224,7 +224,7 @@ def compare_latest(day: date | str, root: Path = ROOT, backend: Backend | None =
     latest = [r for f in fields_with_records(root) if (r := latest_record(f, root, day))]
     if len(latest) < 2:
         raise ValueError("need records of at least two fields to compare")
-    backend = backend or Backend.spark()
+    backend = backend or Backend.default()
     history = previous_records(records, describe.COMPARE, _iso(day), n=PREVIOUS)
     rec = describe.compare_fields(latest, root, records, backend, history)
     save_merged(rec, records)

@@ -1,8 +1,10 @@
 """Model backends and small helpers shared by describe and plants.
 
-Muse Spark on api.meta.ai and Muse Glimmer on the MS-S1 MAX (Ollama) both
-speak the OpenAI Chat Completions format, so the same code serves both; only
-`base_url` and `model` differ.
+Muse Spark on api.meta.ai and Muse Glimmer on the MS-S1 MAX (llama-server)
+both speak the OpenAI Chat Completions format, so the same code serves both;
+only `base_url` and `model` differ. Which one reads the field is a setting
+(`reader` in settings.json), changed from the app or `fieldnotes reader`.
+SAM always runs on api.meta.ai.
 """
 
 from __future__ import annotations
@@ -17,6 +19,9 @@ from openai import OpenAI
 
 SPARK = "muse-spark-1.3"
 SPARK_CONTRIBUTOR = "muse-spark-1.3-contributor"  # cheaper; Meta may train on what is sent
+GLIMMER_URL = "http://192.168.100.6:11434/v1"  # llama-server on the MS-S1 MAX
+GLIMMER_MODEL = "muse-glimmer-30B"              # the server's alias (-a)
+READERS = {"spark": "Muse Spark（api.meta.ai）", "glimmer": "Muse Glimmer（自宅のマシン）"}
 
 
 def config_dir() -> Path:
@@ -35,14 +40,24 @@ def api_key() -> str:
     raise RuntimeError(f"no Meta Model API key: set MODEL_API_KEY or write it to {p}")
 
 
+def settings() -> dict:
+    p = config_dir() / "settings.json"
+    return json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
+
+
+def update_settings(**values) -> None:
+    """Change some settings and keep the rest."""
+    p = config_dir() / "settings.json"
+    s = settings() | values
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps(s, ensure_ascii=False, indent=1), encoding="utf-8")
+
+
 def training_consent() -> bool | None:
     """Whether the farmer agreed that what Muse Spark is sent (photos, records)
     may be used by Meta for training, in return for the cheaper contributor
     model. None until asked; the app asks on first launch."""
-    p = config_dir() / "settings.json"
-    if not p.exists():
-        return None
-    return json.loads(p.read_text(encoding="utf-8")).get("training_consent")
+    return settings().get("training_consent")
 
 
 LANGUAGES = {"ja": "Japanese", "en": "English"}
@@ -50,8 +65,7 @@ LANGUAGES = {"ja": "Japanese", "en": "English"}
 
 def language() -> str:
     """The language the farmer reads: "ja" unless settings.json says otherwise."""
-    p = config_dir() / "settings.json"
-    lang = json.loads(p.read_text(encoding="utf-8")).get("language", "ja") if p.exists() else "ja"
+    lang = settings().get("language", "ja")
     return lang if lang in LANGUAGES else "ja"
 
 
@@ -64,11 +78,32 @@ def in_language(system: str) -> str:
 
 
 def set_training_consent(agreed: bool) -> None:
-    p = config_dir() / "settings.json"
-    settings = json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
-    settings["training_consent"] = bool(agreed)
-    p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(json.dumps(settings, ensure_ascii=False, indent=1), encoding="utf-8")
+    update_settings(training_consent=bool(agreed))
+
+
+def reader() -> str:
+    """Which model reads the field: "spark" (default) or "glimmer"."""
+    r = settings().get("reader", "spark")
+    return r if r in READERS else "spark"
+
+
+def glimmer_url() -> str:
+    return settings().get("glimmer_url") or GLIMMER_URL
+
+
+def glimmer_model() -> str:
+    return settings().get("glimmer_model") or GLIMMER_MODEL
+
+
+def set_reader(name: str, url: str | None = None, model: str | None = None) -> None:
+    if name not in READERS:
+        raise ValueError(f"reader must be one of {', '.join(READERS)}, not {name!r}")
+    values = {"reader": name}
+    if url:
+        values["glimmer_url"] = url.rstrip("/")
+    if model:
+        values["glimmer_model"] = model
+    update_settings(**values)
 
 
 @dataclass
@@ -85,8 +120,22 @@ class Backend:
         return cls(model, "https://api.meta.ai/v1", model, api_key())
 
     @classmethod
-    def glimmer(cls, host: str = "192.168.100.6", model: str = "muse-glimmer") -> "Backend":
-        return cls(f"muse-glimmer@{host}", f"http://{host}:11434/v1", model, "ollama")
+    def glimmer(cls, url: str | None = None, model: str | None = None) -> "Backend":
+        """Muse Glimmer on a llama-server in the house (no key needed on the LAN)."""
+        url, model = url or glimmer_url(), model or glimmer_model()
+        host = url.split("//", 1)[-1].split("/", 1)[0].split(":", 1)[0]
+        return cls(f"{model}@{host}", url, model, "none")
+
+    @classmethod
+    def default(cls) -> "Backend":
+        """The reader the farmer chose in the settings."""
+        return cls.glimmer() if reader() == "glimmer" else cls.spark()
+
+
+def reachable(backend: Backend, timeout: float = 5) -> list[str]:
+    """The model names the server offers; raises when it cannot be reached."""
+    client = OpenAI(base_url=backend.base_url, api_key=backend.api_key, timeout=timeout, max_retries=0)
+    return [m.id for m in client.models.list()]
 
 
 def chat(backend: Backend, messages: list[dict]) -> str:

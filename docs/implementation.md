@@ -85,6 +85,12 @@ Muse Spark has a cheaper contributor model (`muse-spark-1.3-contributor`), and M
 
 The farmer's view is that this app should be trained on: if AI learns natural-farming fields, the next farmer gets better readings. So 同意する is the recommended button, but the choice stays with each user.
 
+## Which model reads (2026-10-28)
+
+SAM always runs on api.meta.ai. The reading (describe, plants, propose, surroundings) goes to the model the farmer picks: Muse Spark on api.meta.ai (default), or Muse Glimmer on the house machine, so photos need not leave the house. The setting is `reader` in `settings.json` with `glimmer_url` and `glimmer_model` (defaults `http://192.168.100.6:11434/v1`, `muse-glimmer-30B`). `Backend.default()` follows it. The app changes it from the chip icon in the top right (with a 「つながるか試す」 button); the CLI with `fieldnotes reader [spark|glimmer] [--url] [--model] [--check]`.
+
+Glimmer runs on the MS-S1 MAX as llama.cpp `llama-server` (ROCm build, gfx1151) with the official GGUF from `meta-models/Muse-Glimmer-30B-GGUF` (Q4_K_M plus the `mmproj` for images), alias `muse-glimmer-30B`, on port 11434.
+
 ## Voice (WP2)
 
 `voice.transcribe(wav: Path, vocabulary: list[str] = (), language="ja") -> str` uses Muse Voice Transcribe (`muse-voice-transcribe-1.0`): `POST /v1/asr/transcribe`, multipart with a request JSON plus the WAV (at most 10 min, at most 32 MB), PUSH_TO_TALK mode, language bias Japanese, vocabulary biasing. **Read the API reference on dev.meta.ai before writing the request; do not guess field names.**

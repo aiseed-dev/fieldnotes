@@ -41,7 +41,7 @@ Everything in this repository: `src/fieldnotes/` (segment, describe, verify, rec
 |---|---|---|
 | Segment | `sam-3.1` | Meta Model API, one concept per request, masks → cover % (`src/fieldnotes/segment.py`) |
 | Describe | `muse-spark-1.3` | Meta Model API, several days' photos in one request, JSON out (`src/fieldnotes/describe.py`) |
-| Describe (local) | Muse Glimmer 30B | Ollama on a Ryzen AI Max+ 395 box in the house; same code, different `base_url` (`scripts/setup-glimmer-server.sh`) |
+| Describe (local) | Muse Glimmer 30B | llama.cpp `llama-server` on a Ryzen AI Max+ 395 box in the house; same code, different `base_url`. Switch with `fieldnotes reader glimmer` or the app's 読む AI setting |
 | Verify | `muse-voice-transcribe-1.0` | Japanese, with vocabulary biasing for crop names |
 | Development | Muse Code | used for parts noted in commit messages |
 
