@@ -162,7 +162,7 @@ Reuse `propose.py` as it is shaped: `Proposal` already has `kind` and `path_for(
 
 The farmer and the buyer use the AI they already have. fieldnotes serves its functions as MCP tools; the Flet app stays the way photos and voice get in. **9a** (the farmer's tools, `say`, the README section) is this hackathon's work. **9b** (`export`, `--buyer`) is the selling side and is held: it goes to a Claude hackathon if there is one, else into 11-02.
 
-- Dependency: `mcp` (the Python MCP SDK, `FastMCP`) in `pyproject.toml`. Module `src/fieldnotes/mcp_server.py` (not `mcp.py`). CLI `fieldnotes mcp [--http [--port 8551]] [--buyer]`: stdio by default; `--http` serves Streamable HTTP on the LAN; `--buyer` registers the read-only tools only. `--root` applies as everywhere.
+- Dependency: `mcp>=2.3` (the Python MCP SDK; in 2.x `FastMCP` is named `MCPServer`) in `pyproject.toml`. Module `src/fieldnotes/mcp_server.py` (not `mcp.py`). CLI `fieldnotes mcp [--http [--port 8551]] [--buyer]`: stdio by default; `--http` serves Streamable HTTP on the LAN; `--buyer` registers the read-only tools only. `--root` applies as everywhere.
 - Tools (each a thin call of an existing function; return Markdown, since the records already are):
   - `fields()` → each field with its record dates and the farm's place (`pipeline.fields_with_records`, `pipeline.record_dates`, `Site.load`).
   - `read(field, day=None)` → the record (`Record.load` / `pipeline.latest_record`).
@@ -183,12 +183,12 @@ The farmer and the buyer use the AI they already have. fieldnotes serves its fun
   6. Photos and cover per date (paths, SAM coverage), weather in one line per date.
   7. Sources.
 - Tests (offline): the tool functions on the `root` fixture; one test that lists the tools through an in-memory client session of the SDK (and in `--buyer` mode once 9b exists); for 9b, `export` on a record with right / wrong / unmarked lines and a `hypothesis` line in site.md that must not appear as fact.
-- Real check: `claude mcp add fieldnotes -- <abs>/.venv/bin/fieldnotes --root <abs>/sample mcp`, then ask Claude Code to list the fields and read `uncut` (for 9b later: a `--buyer` run that asks "was fertiliser used?"). README section "From your own AI" with the config for Claude Desktop (`claude_desktop_config.json`) and Claude Code; check on dev.meta.ai whether Muse Code can take an MCP server and, if so, add its config (the farmer asked).
+- Real check: `claude mcp add fieldnotes -- <abs>/.venv/bin/fieldnotes --root <abs>/sample mcp`, then ask Claude Code to list the fields and read `uncut` (for 9b later: a `--buyer` run that asks "was fertiliser used?"). README section "From your own AI" with the config for Claude Desktop (`claude_desktop_config.json`), Claude Code and Muse Code. Muse Code takes MCP servers (dev.meta.ai, muse-code/extending): `mcp_servers` in `~/.config/muse/settings.json` (`"schema_version": 1`), transport `stdio` (command, args, env) or `streamable_http` (url, headers), plus `enabled` and `mode`.
 - Done: tests pass, the real check with Claude Code done once, README section, committed.
 
 ## WP7: the demo — timeline, README, script
 
-- `timeline.py`: `timeline(field, records_root, photo_root, since=None) -> str`, Markdown, one block per date (oldest first): the photos (relative paths), weather in one line, the `overall` line with its verdict, the `work` and `seen` lines, the count of ✓ / ✗, any proposal of that day (its `summary` line and verdict). CLI `fieldnotes timeline <field> [--since DATE]`. The MCP `timeline` tool calls the same function. An app view only if time remains.
+- `timeline.py` (minimal form done in 2a07572): `timeline(field, records_root, photo_root, since=None) -> str`, Markdown, one block per date (oldest first): the photos (relative paths), weather in one line, the `overall` line with its verdict, the `work` and `seen` lines, the count of ✓ / ✗, any proposal of that day (its `summary` line and verdict). CLI `fieldnotes timeline <field> [--since DATE]`. The MCP `timeline` tool calls the same function. An app view only if time remains.
 - README (the planning session writes the structure, the implementing session adds the command lines of WP8 / WP9): who it is for and which problem (the table above, marked as hypotheses), "from your own AI", which specialist model does what, the names of the actual modules (`voice.py`, `propose.py`, `timeline.py`, `export.py`, `mcp_server.py`), Muse Code's use only where a commit says `Written with Muse Code`.
 - `docs/demo.md` (planning session): the three-minute script, in this order: the problem (a plot that looks like abandoned land; no advisor; selling) → from the AI you already use, connect to fieldnotes → "read this plot" (SAM + Spark) → "where do I cut first?" (WP8) → the cut → answering by voice → the timeline a few days later → (only if 9b is built) the buyer's AI connects read-only: "really no fertiliser?" → the ✓ lines with their sources → close (specialist models do the work, you keep your own AI, the records stay at home). No chat screen. Respect story.md's cautions: never say "depletion", say "a plot that came to look like abandoned land", never say "restored" after nine days.
 
@@ -204,7 +204,7 @@ The farmer and the buyer use the AI they already have. fieldnotes serves its fun
 | 6 | real runs on the farmer's photos daily; SAM nouns and prompts tuned; second farm (Niihama) from `init`; Glimmer language checked | 1 | Opus + farmer | daily to 11-02 |
 | 7 | timeline, README, demo script | 1, 6, 8, 9 | Opus (timeline) / planning session (README, demo.md) | 11-01 – 11-02 |
 | 8 | cut proposal | 1 | Opus | done, cf490d7 (real run: `sample/records/_proposals/uncut/2026-10-29-cut.md`; the farmer's ✓/✗ and the cut follow on 10-30) |
-| 9a | MCP server for the farmer's own AI: `fields`, `read`, `observe`, `say`, `mark`, `propose`, `timeline`, `site`; README "From your own AI" | 1, 2, 8 | Opus | started 10-29 |
+| 9a | MCP server for the farmer's own AI: `fields`, `read`, `observe`, `say`, `mark`, `propose`, `timeline`, `site`; README "From your own AI" | 1, 2, 8 | Opus | done, 2a07572 (real: stdio and `--http` with the SDK client; a Claude Code session itself still needs the farmer's sign-in) |
 | 9b | `export`, `--buyer` (selling) | 9a | Opus | **held**: Claude hackathon, else 11-02 |
 | – | Muse Code review (docs/muse-code.md Task 2) | – | farmer runs `muse` | by 11-02 |
 
