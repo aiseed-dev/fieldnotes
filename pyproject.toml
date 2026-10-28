@@ -14,6 +14,16 @@ dependencies = [
   "flet[all]==1.0.5",
 ]
 
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[project.scripts]
+fieldnotes = "fieldnotes.cli:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
 [build-system]
 requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"

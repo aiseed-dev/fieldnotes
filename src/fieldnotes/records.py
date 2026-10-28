@@ -15,8 +15,14 @@ Layout (see docs/design.md §3):
     ## AI observation (<model>)
     - key: text  → farmer: right | wrong (reason)
 
+    ## Earlier AI lines
+    - key: text  → farmer: wrong (reason)
+
     ## Farmer note (<model>, ja)
     free text
+
+"Earlier AI lines" holds lines the farmer marked that a re-run of the same day
+replaced with different text (pipeline.merge_rerun); it is absent otherwise.
 
 Both halves are written so that a person, a spreadsheet, or another model can
 read them later without this code.
@@ -34,6 +40,7 @@ FRONT = re.compile(r"\A---\n(.*?)\n---\n(.*)\Z", re.S)
 OBS_LINE = re.compile(
     r"^- (?P<key>[a-z_]+): (?P<text>.*?)(?:\s+→ farmer: (?P<verdict>right|wrong)(?: \((?P<reason>.*)\))?)?$"
 )
+EARLIER_HEADING = "## Earlier AI lines"
 
 
 @dataclass
@@ -61,6 +68,7 @@ class Record:
     coverage: dict[str, float] = field(default_factory=dict)  # concept -> % of frame
     ai_model: str = ""
     observations: list[Observation] = field(default_factory=list)
+    earlier: list[Observation] = field(default_factory=list)  # marked lines a re-run replaced
     note_model: str = ""
     farmer_note: str = ""
 
@@ -82,6 +90,10 @@ class Record:
         out.append(f"## AI observation ({self.ai_model or 'none'})")
         out += [o.to_line() for o in self.observations] or ["(none)"]
         out.append("")
+        if self.earlier:
+            out.append(EARLIER_HEADING)
+            out += [o.to_line() for o in self.earlier]
+            out.append("")
         out.append(f"## Farmer note ({self.note_model or 'none'}, ja)")
         out.append(self.farmer_note or "(none)")
         out.append("")
@@ -104,6 +116,9 @@ class Record:
         section = None
         note_lines: list[str] = []
         for line in body.splitlines():
+            if line.startswith(EARLIER_HEADING):
+                section = "earlier"
+                continue
             if line.startswith("## AI observation"):
                 section = "ai"
                 rec.ai_model = line[len("## AI observation") :].strip(" ()")
@@ -112,10 +127,10 @@ class Record:
                 section = "note"
                 rec.note_model = line[len("## Farmer note") :].strip(" ()").split(",")[0]
                 continue
-            if section == "ai":
+            if section in ("ai", "earlier"):
                 om = OBS_LINE.match(line)
                 if om:
-                    rec.observations.append(Observation(**{k: v for k, v in om.groupdict().items()}))
+                    (rec.observations if section == "ai" else rec.earlier).append(Observation(**om.groupdict()))
             elif section == "note":
                 note_lines.append(line)
         rec.farmer_note = "\n".join(note_lines).strip()

@@ -53,7 +53,24 @@ python -m venv .venv && .venv/bin/pip install -e .
 # or keep it in ~/.config/fieldnotes/model_api_key (chmod 600), which is read when the variable is unset.
 ```
 
-(CLI and daily pipeline: see `docs/design.md` while this is under construction.)
+Daily use (photos are filed under `photos/<field>/<date>/` by the phone app, or put there by hand):
+
+```bash
+fieldnotes observe uncut 2026-10-28      # weather → SAM → Muse Spark → records/uncut/2026-10-28.md (+ overlays)
+fieldnotes show uncut                    # the latest record
+fieldnotes mark uncut 2026-10-28 dominant right
+fieldnotes mark uncut 2026-10-28 overall wrong "it is uneven, not even"
+fieldnotes concept uncut goldenrod wrong "finds ogi too" --replace "yellow flowers"
+fieldnotes propose uncut --seeds "crimson clover, rye"
+fieldnotes compare                       # rank fields by the newest record of each
+fieldnotes surroundings                  # read the GSI maps once (--force to redo)
+fieldnotes app --port 8550               # the phone app
+```
+
+`--root DIR` (before the subcommand) points at the folder that holds `photos/` and `records/`; the default is `$FIELDNOTES_ROOT`, else the current folder. If the `fieldnotes` command is not found, `.venv/bin/python -m fieldnotes ...` does the same (re-run `pip install -e .` to get the command).
+Running `observe` again on the same day replaces the AI lines but keeps your right/wrong marks and note; a marked line whose wording changed moves under `## Earlier AI lines`.
+
+Tests run offline: `.venv/bin/pip install -e ".[dev]" && .venv/bin/pytest`.
 
 ## Licence
 

@@ -230,7 +230,9 @@ def mark(root: Path, field: str, noun: str, verdict: str, reason: str | None = N
     tallied in the shared library."""
     shared = shared or SharedConcepts.load()
     fc = FieldConcepts.load(root, field)
-    target = next(c.target for c in fc.items if c.noun == noun and c.active)
+    target = next((c.target for c in fc.items if c.noun == noun and c.active), None)
+    if target is None:
+        raise KeyError(f"no active concept {noun!r} in {field}")
     fc.mark(noun, verdict, reason, replacement)
     fc.save(root)
     shared.tally(noun, plant_key(target), verdict, reason)
