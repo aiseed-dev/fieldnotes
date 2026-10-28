@@ -91,6 +91,8 @@ The farmer's knowledge and the AI's guesses are treated the same way.
 - `hypothesis` In detail the geology differs, but both soils come from rocks of the Sambagawa belt. — farmer, 2026-10-28.
   - At 大平, the 1:200,000 map puts 緑色片岩 (green schist, a metamorphic unit) 1.3 km from the town's point. 安山岩質岩石 lies at 0.2 km, 砂岩・頁岩互層 at the point itself, and 礫岩・砂岩・頁岩（始新統） at 3.7 km. The farm's exact position is unknown. — MLIT 土地分類基本調査 愛媛県 GIS, 2026-10-28.
   - Here, the map gives only 泥 (mud). The farmer reads it as silt from black schist. Green and black schist are both crystalline schists of the kind the Sambagawa belt is made of.
+  - 大平 lies south of the Median Tectonic Line. The MTL fault zone runs along the southern edge of the Matsuyama plain as the 伊予断層 (地震調査研究推進本部「中央構造線断層帯の長期評価（第二版）」2017, https://jishin.go.jp/main/chousa/katsudansou_pdf/20171219_mtl.pdf). Its trench sites are at 伊予市市場 (33.738, 132.698) and 三秋 (33.715, 132.680). 大平 (33.717, 132.705) is on the southeast side of the line through them. The farmer pointed this out on a map, 2026-10-28.
+  - A 600 m grid over 大平 on the same MLIT map gives 砂岩・頁岩互層 in the north half and 緑色片岩 and 安山岩質岩石 in the south half (30 / 9 / 8 of 49 points).
   - Not yet checked against a map that names geological units (GSJ seamless map; under maintenance on 2026-10-28).
 
 ## How a hypothesis is checked
