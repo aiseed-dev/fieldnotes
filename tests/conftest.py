@@ -11,7 +11,7 @@ import numpy as np
 import pytest
 from PIL import Image
 
-from fieldnotes import concepts, describe, llm, plants, propose, segment, surroundings, weather
+from fieldnotes import around, concepts, describe, llm, plants, propose, segment, surroundings, weather
 from fieldnotes.llm import Backend
 from fieldnotes.segment import ConceptResult, Instance, SegmentResult
 
@@ -47,7 +47,7 @@ class FakeModel:
         text = user if isinstance(user, str) else "\n".join(p["text"] for p in user if p["type"] == "text")
         kinds = {concepts.SYSTEM: "concepts", plants.ECOLOGY_SYSTEM: "ecology", describe.SYSTEM: "describe",
                  describe.COMPARE_SYSTEM: "compare", propose.SYSTEM: "propose",
-                 surroundings.SYSTEM: "surroundings"}
+                 surroundings.SYSTEM: "surroundings", around.SYSTEM: "around"}
         # prompts carry the farm's place (<FIELD>, <REGION>; site.py) and may
         # carry a trailing language rule (llm.in_language)
         kind = next(k for s, k in kinds.items() if re.match(_pattern(s), system))
@@ -118,7 +118,7 @@ def offline(monkeypatch, tmp_path):
 @pytest.fixture
 def model(monkeypatch):
     fake = FakeModel()
-    for mod in (llm, describe, concepts, plants, propose, surroundings):
+    for mod in (llm, describe, concepts, plants, propose, surroundings, around):
         monkeypatch.setattr(mod, "chat", fake)
     return fake
 

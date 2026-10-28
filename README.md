@@ -68,6 +68,10 @@ fieldnotes init --place "Nakuru, Kenya" --country KE --lat -0.30 --lon 36.07 --c
 
 `sample/` is the first farm: a natural-farming field in Tokushima, Japan, just south of the Median Tectonic Line, with its site profile, photos and records (fields `row1`, `mix1`, `uncut`). Try the commands on it with `--root sample`, or read it as an example of what a farm folder becomes.
 
+### The neighbourhood
+
+Now and then, photograph around the fields too: the neighbours' fields and verges (herbicide, tillage), the river bank, abandoned land that sends seed, old walls. In the app choose 「近所（畑のまわり）」 when sending; `fieldnotes observe _around` reads them (no SAM), each point marked right or wrong, and the newest reading goes to every later reading of the fields. Fields and verges show land, not houses or people.
+
 ### Daily use
 
 Photos are filed under `photos/<field>/<date>/` by the phone app, or put there by hand. Run these inside the farm folder (or with `--root DIR`):

@@ -21,8 +21,8 @@ from collections.abc import Callable
 from datetime import date
 from pathlib import Path
 
-from . import concepts, describe, segment, weather
-from .inbox import DATED, valid_field
+from . import around, concepts, describe, segment, weather
+from .inbox import AROUND, DATED, valid_field
 from .llm import Backend
 from .plants import species_in
 from .records import Observation, Record, previous_records
@@ -42,7 +42,7 @@ def _iso(day: date | str) -> str:
 
 
 def _check_field(field: str) -> None:
-    if not (valid_field(field) or field == describe.COMPARE):
+    if not (valid_field(field) or field in (describe.COMPARE, AROUND)):
         raise ValueError(f"bad field name {field!r}")
 
 
@@ -133,6 +133,10 @@ def run_observation(field: str, day: date, root: Path = ROOT, backend: Backend |
     if not photos:
         raise FileNotFoundError(f"no photos in photos/{field}/{day_s}/")
     backend = backend or Backend.default()
+    if field == AROUND:  # the neighbourhood: one reading of the photos, no SAM or weather
+        say("近所の写真を読んでいます")
+        save_merged(around.read_around(root, day_s, photos, backend), records)
+        return Record.load(records, field, day_s)
     rec = Record(field=field, date=day_s, photos=photos)
 
     # 2. weather: a missing day (the archive lags a few days) must not stop the reading

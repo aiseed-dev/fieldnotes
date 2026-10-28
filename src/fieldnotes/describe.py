@@ -27,6 +27,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from .around import latest_text as around_text
 from .llm import Backend, chat, conf, in_language, json_value
 from .plants import ecology, notes_for_prompt, species_in
 from .records import FRONT, Observation, Record, corrected_examples
@@ -125,8 +126,9 @@ def _body(p: Path) -> str:
 
 def site_background(records_root: Path) -> str:
     """records/site.md (without its how-to section), plus the public data
-    looked up (records/lookup.md) and the surroundings read from the maps
-    (records/surroundings.md) where those have been done."""
+    looked up (records/lookup.md), the surroundings read from the maps
+    (records/surroundings.md) and from the newest neighbourhood photos
+    (records/_around/), where those have been done."""
     parts = []
     site = records_root / "site.md"
     if site.exists():
@@ -135,11 +137,12 @@ def site_background(records_root: Path) -> str:
     if looked.exists():
         parts.append("Public data looked up for the farm (records/lookup.md; world maps are coarse, "
                      "`reference` lines are only names of places nearby):\n" + _body(looked))
-    around = records_root / "surroundings.md"
-    if around.exists():
+    maps = records_root / "surroundings.md"
+    if maps.exists():
         parts.append("Surroundings, read from maps (hypotheses; lines marked '→ farmer: wrong' are known wrong):\n"
-                     + _body(around))
-    return "\n\n".join(parts)
+                     + _body(maps))
+    parts.append(around_text(records_root))
+    return "\n\n".join(p for p in parts if p)
 
 
 def build_messages(today: Record, previous: list[Record], photo_root: Path,

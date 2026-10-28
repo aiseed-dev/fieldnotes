@@ -29,6 +29,14 @@ def valid_field(name: str) -> bool:
     return bool(FIELD_NAME.match(name))
 
 
+AROUND = "_around"  # photos of the neighbourhood, not of a field (around.py)
+
+
+def photo_place(name: str) -> bool:
+    """Where photos may be filed: a field, or the neighbourhood."""
+    return valid_field(name) or name == AROUND
+
+
 DATED = re.compile(r"^\d{4}-\d{2}-\d{2}(\.md)?$")
 
 
@@ -55,7 +63,7 @@ def taken_at(img: Image.Image) -> datetime | None:
 
 def file_photo(src: Path, field: str, chosen: date, photos_root: Path) -> Path:
     """Move one uploaded photo into place and return its new path."""
-    if not valid_field(field):
+    if not photo_place(field):
         raise ValueError(f"bad field name {field!r}")
     with Image.open(src) as img:
         when = taken_at(img)

@@ -26,7 +26,7 @@ from pathlib import Path
 import flet as ft
 
 from . import appdata, concepts, llm, pipeline
-from .inbox import file_photo, list_fields, valid_field
+from .inbox import AROUND, file_photo, list_fields, valid_field
 from .records import Observation, Record
 
 ROOT = Path(os.environ.get("FIELDNOTES_ROOT", ".")).resolve()
@@ -41,7 +41,8 @@ def send_view(page: ft.Page) -> ft.Control:
     fields = list_fields(PHOTOS, RECORDS)
     field_dd = ft.Dropdown(
         label="畑",
-        options=[ft.DropdownOption(key=f, text=f) for f in fields] + [ft.DropdownOption(key=NEW, text="＋ 新しい畑")],
+        options=[ft.DropdownOption(key=f, text=f) for f in fields] + [
+            ft.DropdownOption(key=AROUND, text=appdata.AROUND_LABEL), ft.DropdownOption(key=NEW, text="＋ 新しい畑")],
         value=fields[0] if fields else NEW,
         expand=True,
     )
@@ -61,7 +62,7 @@ def send_view(page: ft.Page) -> ft.Control:
 
     def chosen_field() -> str | None:
         name = (new_field.value or "").strip() if field_dd.value == NEW else field_dd.value
-        return name if name and valid_field(name) else None
+        return name if name and (valid_field(name) or name == AROUND) else None
 
     def chosen_day() -> date | None:
         try:
@@ -202,7 +203,7 @@ def read_view(page: ft.Page, dialogs: Dialogs):
     def refresh(e=None):
         """Re-scan photos/ (the 送る view may have added some) and redraw."""
         fields = appdata.photo_fields(PHOTOS)
-        field_dd.options = [ft.DropdownOption(key=f, text=f) for f in fields]
+        field_dd.options = [ft.DropdownOption(key=f, text=appdata.place_label(f)) for f in fields]
         if field_dd.value not in fields:
             field_dd.value = fields[0] if fields else None
         fill_days()

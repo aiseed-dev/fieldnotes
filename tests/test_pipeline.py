@@ -206,3 +206,21 @@ def test_compare_needs_two_fields(root, model, sam, wx, backend):
     pipeline.run_observation(FIELD, DAY, root, backend)
     with pytest.raises(ValueError):
         pipeline.compare_latest(DAY, root, backend)
+
+
+# ---- the neighbourhood --------------------------------------------------
+
+def test_neighbourhood_photos_are_read_and_become_background(root, model, sam, wx, backend):
+    from fieldnotes import appdata
+    from fieldnotes.inbox import AROUND
+    add_photos(root, field=AROUND)
+    rec = pipeline.run_observation(AROUND, DAY, root, backend)
+    assert [o.key for o in rec.observations] == ["land_use"]
+    assert sam.calls == [] and model.calls == ["around"]  # no SAM, no field reading
+    pipeline.mark(AROUND, DAY, "land_use", "wrong", "the paddies are north", root=root)
+    background = describe.site_background(root / "records")
+    assert "paddies to the south" in background and "the paddies are north" in background
+    # the app lists it, under its own name; it is never ranked as a field
+    assert AROUND in appdata.photo_fields(root / "photos")
+    assert appdata.place_label(AROUND) == appdata.AROUND_LABEL
+    assert AROUND not in pipeline.fields_with_records(root)

@@ -14,7 +14,7 @@ from pathlib import Path
 
 from PIL import Image, ImageOps
 
-from .inbox import DATED, valid_field
+from .inbox import AROUND, DATED, photo_place
 
 PHOTO_SUFFIXES = {".jpg", ".jpeg"}
 OVERLAY = re.compile(r"^(?P<day>\d{4}-\d{2}-\d{2})-overlay-(?P<n>\d+)\.jpg$")
@@ -32,7 +32,19 @@ KEY_LABELS = {
     "soil": "土",
     "animal": "動物",
     "other": "その他",
+    # the neighbourhood (around.py)
+    "land_use": "土地の使われ方",
+    "neighbours": "近所の様子",
+    "water": "水",
+    "seed_source": "種の出どころ",
+    "animals": "動物",
+    "history": "昔の使われ方",
 }
+AROUND_LABEL = "近所（畑のまわり）"
+
+
+def place_label(name: str) -> str:
+    return AROUND_LABEL if name == AROUND else name
 
 
 def day_photos(photos_root: Path, field: str, day: str) -> list[Path]:
@@ -56,7 +68,7 @@ def photo_fields(photos_root: Path) -> list[str]:
     """Fields that have at least one day with photos, most recently used first."""
     if not photos_root.is_dir():
         return []
-    fields = [d for d in photos_root.iterdir() if d.is_dir() and valid_field(d.name) and photo_days(photos_root, d.name)]
+    fields = [d for d in photos_root.iterdir() if d.is_dir() and photo_place(d.name) and photo_days(photos_root, d.name)]
     return [d.name for d in sorted(fields, key=lambda d: d.stat().st_mtime, reverse=True)]
 
 
