@@ -118,7 +118,9 @@ Muse Spark has a cheaper contributor model (`muse-spark-1.3-contributor`), and M
 
 ## Which model reads (2026-10-28)
 
-SAM always runs on api.meta.ai. The reading (describe, plants, propose, surroundings, voice sorting) goes to the model the farmer picks: Muse Spark on api.meta.ai (default), or Muse Glimmer on the house machine, so photos need not leave the house. Setting `reader` in `settings.json` with `glimmer_url` and `glimmer_model` (defaults `http://192.168.100.6:11434/v1`, `muse-glimmer-30B`). `Backend.default()` follows it. Glimmer runs as llama.cpp `llama-server` (ROCm, `scripts/setup-glimmer-server.sh`). First real reading 2026-10-28: 267 s, sensible, but in English despite the language rule; **check once more after 77c491d** (WP6).
+SAM always runs on api.meta.ai. The reading (describe, plants, propose, surroundings, voice sorting) goes to the model the farmer picks: Muse Spark on api.meta.ai (default), or Muse Glimmer on the house machine, so photos need not leave the house. Setting `reader` in `settings.json` with `glimmer_url` and `glimmer_model` (defaults `http://192.168.100.6:11434/v1`, `muse-glimmer-30B`). `Backend.default()` follows it. Glimmer runs as llama.cpp `llama-server` (ROCm, `scripts/setup-glimmer-server.sh`). First real reading 2026-10-28: 267 s, sensible, but in English despite the language rule. Checked again 2026-10-29 on a scratch copy of `sample` (`uncut` 10-28, one photo): 212 s in all (SAM 3 s, Glimmer about 209 s); **still English** in every free-text line, only the plant names came back in Japanese, so the `in_language` rule at the end of the system prompt is not enough for Glimmer (Spark follows it). The re-run kept the farmer's marks (moved under "Earlier AI lines" because the wording changed), the voice lines and the note, and Glimmer used the voice lines.
+
+Open item (WP6, scheduled 11-02 unless the farmer wants it earlier; the demo uses Spark): put the language rule at the **start** of the system prompt and repeat it at the end of the user message; one real Glimmer run to confirm; if still English, say so in the README under Glimmer rather than adding a second model call.
 
 ## Voice (WP2 + WP4, done 2026-10-29, commit 6ac6d09)
 
@@ -188,7 +190,7 @@ The farmer and the buyer use the AI they already have. fieldnotes serves its fun
 
 ## WP7: the demo — timeline, README, script
 
-- `timeline.py` (minimal form done in 2a07572): `timeline(field, records_root, photo_root, since=None) -> str`, Markdown, one block per date (oldest first): the photos (relative paths), weather in one line, the `overall` line with its verdict, the `work` and `seen` lines, the count of ✓ / ✗, any proposal of that day (its `summary` line and verdict). CLI `fieldnotes timeline <field> [--since DATE]`. The MCP `timeline` tool calls the same function. An app view only if time remains.
+- `timeline.py` (minimal form done in 2a07572, tests in ef2cbf3): `timeline(field, records_root, photo_root, since=None) -> str`, Markdown, one block per date (oldest first): the photos (relative paths), weather in one line, the `overall` line with its verdict, the `work` and `seen` lines, the count of ✓ / ✗, any proposal of that day (its `summary` line and verdict). CLI `fieldnotes timeline <field> [--since DATE]`. The MCP `timeline` tool calls the same function. An app view only if time remains.
 - README (the planning session writes the structure, the implementing session adds the command lines of WP8 / WP9): who it is for and which problem (the table above, marked as hypotheses), "from your own AI", which specialist model does what, the names of the actual modules (`voice.py`, `propose.py`, `timeline.py`, `export.py`, `mcp_server.py`), Muse Code's use only where a commit says `Written with Muse Code`.
 - `docs/demo.md` (planning session): the three-minute script, in this order: the problem (a plot that looks like abandoned land; no advisor; selling) → from the AI you already use, connect to fieldnotes → "read this plot" (SAM + Spark) → "where do I cut first?" (WP8) → the cut → answering by voice → the timeline a few days later → (only if 9b is built) the buyer's AI connects read-only: "really no fertiliser?" → the ✓ lines with their sources → close (specialist models do the work, you keep your own AI, the records stay at home). No chat screen. Respect story.md's cautions: never say "depletion", say "a plot that came to look like abandoned land", never say "restored" after nine days.
 
@@ -201,7 +203,7 @@ The farmer and the buyer use the AI they already have. fieldnotes serves its fun
 | 3 | app views 読む, 名詞 | 1 | Sonnet session | done |
 | 4 | voice in the app (声を送る / 声で答える) | 2, 3 | Opus | done, 6ac6d09 |
 | 5 | native capture app | – | – | **dropped** |
-| 6 | real runs on the farmer's photos daily; SAM nouns and prompts tuned; second farm (Niihama) from `init`; Glimmer language checked | 1 | Opus + farmer | daily to 11-02 |
+| 6 | real runs on the farmer's photos daily; SAM nouns and prompts tuned; second farm (Niihama) from `init`; Glimmer language checked (10-29: still English, fix queued) | 1 | Opus + farmer | daily to 11-02 |
 | 7 | timeline, README, demo script | 1, 6, 8, 9 | Opus (timeline) / planning session (README, demo.md) | 11-01 – 11-02 |
 | 8 | cut proposal | 1 | Opus | done, cf490d7 (real run: `sample/records/_proposals/uncut/2026-10-29-cut.md`; the farmer's ✓/✗ and the cut follow on 10-30) |
 | 9a | MCP server for the farmer's own AI: `fields`, `read`, `observe`, `say`, `mark`, `propose`, `timeline`, `site`; README "From your own AI" | 1, 2, 8 | Opus | done, 2a07572 (real: stdio and `--http` with the SDK client; a Claude Code session itself still needs the farmer's sign-in) |
