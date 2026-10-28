@@ -10,7 +10,10 @@ SAM always runs on api.meta.ai.
 from __future__ import annotations
 
 import json
+import locale
 import os
+import re
+from contextvars import ContextVar
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -60,20 +63,68 @@ def training_consent() -> bool | None:
     return settings().get("training_consent")
 
 
-LANGUAGES = {"ja": "Japanese", "en": "English"}
+# code -> (name for the model, name the farmer reads)
+LANGUAGES = {
+    "ja": ("Japanese", "日本語"), "en": ("English", "English"), "zh": ("Chinese", "中文"),
+    "ko": ("Korean", "한국어"), "es": ("Spanish", "Español"), "pt": ("Portuguese", "Português"),
+    "fr": ("French", "Français"), "de": ("German", "Deutsch"), "it": ("Italian", "Italiano"),
+    "id": ("Indonesian", "Bahasa Indonesia"), "vi": ("Vietnamese", "Tiếng Việt"), "th": ("Thai", "ไทย"),
+    "hi": ("Hindi", "हिन्दी"),
+}
+AUTO = "auto"
+
+# The language of the phone or PC the farmer is using, set by the app for
+# each reading (the browser's or the device's first locale). Unset in the CLI,
+# which uses this machine's locale instead.
+device_language: ContextVar[str | None] = ContextVar("device_language", default=None)
+
+
+def language_code(value: str | None) -> str | None:
+    """The primary language subtag of a locale: "ja_JP.UTF-8", "ja-JP", "Japanese_Japan" -> "ja"."""
+    head = re.split(r"[_.@:-]", (value or "").strip())[0]
+    if head.lower() in ("", "c", "posix", "und"):
+        return None
+    by_name = {name.lower(): code for code, (name, _) in LANGUAGES.items()}
+    return by_name.get(head.lower(), head.lower())
+
+
+def system_language() -> str | None:
+    """This machine's language, from the locale."""
+    for var in ("LC_ALL", "LC_MESSAGES", "LANG", "LANGUAGE"):
+        if code := language_code(os.environ.get(var)):
+            return code
+    return language_code(locale.getlocale()[0])
+
+
+def language_setting() -> str:
+    """"auto" (the default: each phone's or PC's own language) or a fixed code."""
+    return language_code(settings().get("language")) or AUTO
+
+
+def set_language(code: str) -> None:
+    code = language_code(code) or AUTO
+    update_settings(language=code)
 
 
 def language() -> str:
-    """The language the farmer reads: "ja" unless settings.json says otherwise."""
-    lang = settings().get("language", "ja")
-    return lang if lang in LANGUAGES else "ja"
+    """The language the AI writes in: the setting, or else the device's, or else this machine's; English if none is known."""
+    s = language_setting()
+    return s if s != AUTO else device_language.get() or system_language() or "en"
+
+
+def language_label(code: str) -> str:
+    return LANGUAGES[code][1] if code in LANGUAGES else code
+
+
+def _language_name(code: str) -> str:
+    return LANGUAGES[code][0] if code in LANGUAGES else f"the language with the ISO 639 code '{code}'"
 
 
 def in_language(system: str) -> str:
     """A system prompt plus the rule to write every free-text value in the
     farmer's language. JSON keys, enum values and scientific names stay as
     they are, so parsing does not change."""
-    return (system + f"\nWrite every free-text value (text, evidence, why, notes) and the common names of plants in {LANGUAGES[language()]}. "
+    return (system + f"\nWrite every free-text value (text, evidence, why, notes) and the common names of plants in {_language_name(language())}. "
             "Keep JSON keys, the allowed enum values and scientific names exactly as specified.")
 
 

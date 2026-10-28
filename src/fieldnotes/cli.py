@@ -12,6 +12,7 @@
     fieldnotes search <words> [--save]               look for a name near the farm
     fieldnotes consent [yes|no]                      may Meta train on what Spark is sent
     fieldnotes reader [spark|glimmer] [--url URL] [--model NAME] [--check]
+    fieldnotes language [auto|ja|en|...]
                                                      which model reads the fields
     fieldnotes app [--port 8550]                     the phone app
 
@@ -106,6 +107,9 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--url", help=f"Glimmer server (default {llm.GLIMMER_URL})")
     s.add_argument("--model", help=f"Glimmer model name on that server (default {llm.GLIMMER_MODEL})")
     s.add_argument("--check", action="store_true", help="ask the server whether it answers")
+
+    s = sub.add_parser("language", help="show or set the language the AI writes in (auto: each phone's or PC's own)")
+    s.add_argument("code", nargs="?", help="auto, or a language code such as ja or en")
     return p
 
 
@@ -185,6 +189,14 @@ def run(args: argparse.Namespace) -> int:
                  True: "同意しています（安いモデル。送ったものが学習に使われることがあります）",
                  False: "同意していません（標準のモデル。学習に使われません）"}[c]
         print(f"AI の学習への利用: {state}\nモデル: {llm.SPARK_CONTRIBUTOR if c else llm.SPARK}")
+    elif args.cmd == "language":
+        if args.code:
+            llm.set_language(args.code)
+        lang = llm.language_label(llm.language())
+        if llm.language_setting() == llm.AUTO:
+            print(f"AI が書く言語: 自動（それぞれのスマホや PC の言語。この PC では {lang}）")
+        else:
+            print(f"AI が書く言語: {lang}（どの端末でも）")
     elif args.cmd == "reader":
         if args.name or args.url or args.model:
             llm.set_reader(args.name or llm.reader(), args.url, args.model)

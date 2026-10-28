@@ -33,10 +33,40 @@ def test_cli_consent(tmp_path, monkeypatch, capsys):
 
 def test_readings_are_asked_in_the_farmers_language(tmp_path, monkeypatch):
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
-    assert "in Japanese" in llm.in_language("SYS")          # default ja
-    (tmp_path / "fieldnotes").mkdir()
-    (tmp_path / "fieldnotes" / "settings.json").write_text('{"language": "en"}')
-    assert "in English" in llm.in_language("SYS")
+    monkeypatch.setenv("LANG", "ja_JP.UTF-8")
+    monkeypatch.delenv("LC_ALL", raising=False)
+    monkeypatch.delenv("LC_MESSAGES", raising=False)
+    assert llm.language_setting() == llm.AUTO
+    assert "in Japanese" in llm.in_language("SYS")          # auto: this machine's locale
+    token = llm.device_language.set("en")                    # the phone's own language wins
+    try:
+        assert "in English" in llm.in_language("SYS")
+    finally:
+        llm.device_language.reset(token)
+    llm.set_language("fr-FR")                                # a fixed language for every device
+    assert llm.language_setting() == "fr" and "in French" in llm.in_language("SYS")
+    llm.set_language("sw")                                   # not in the list: named by its code
+    assert "'sw'" in llm.in_language("SYS")
+    llm.set_language("auto")
+    assert llm.language_setting() == llm.AUTO
+
+
+def test_language_codes():
+    assert llm.language_code("ja_JP.UTF-8") == "ja"
+    assert llm.language_code("en-US") == "en"
+    assert llm.language_code("Japanese_Japan") == "ja"      # Windows locale names
+    assert llm.language_code("C.UTF-8") is None and llm.language_code("und") is None
+
+
+def test_cli_language(tmp_path, monkeypatch, capsys):
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
+    monkeypatch.setenv("LANG", "ja_JP.UTF-8")
+    monkeypatch.delenv("LC_ALL", raising=False)
+    monkeypatch.delenv("LC_MESSAGES", raising=False)
+    assert cli.main(["language"]) == 0
+    assert "自動" in capsys.readouterr().out
+    assert cli.main(["language", "en"]) == 0
+    assert "English（どの端末でも）" in capsys.readouterr().out
 
 
 def test_reader_setting_picks_the_backend(tmp_path, monkeypatch):

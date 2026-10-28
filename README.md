@@ -86,6 +86,7 @@ fieldnotes propose uncut --seeds "crimson clover, rye"
 fieldnotes compare                       # rank fields by the newest record of each
 fieldnotes surroundings                  # read the maps around the farm once (--force to redo)
 fieldnotes reader glimmer --check        # read with Muse Glimmer at home instead of Muse Spark
+fieldnotes language en                   # the AI writes in English everywhere; `auto` (default): each phone's or PC's own language
 fieldnotes app --port 8550               # the phone app
 ```
 

@@ -298,6 +298,7 @@ def read_view(page: ft.Page, dialogs: Dialogs):
         busy.visible = True
         status.value = ""
         t0 = time.monotonic()
+        llm.device_language.set(await device_language(page))  # the task and its thread inherit it
         task = asyncio.create_task(asyncio.to_thread(pipeline.run_observation, field, date.fromisoformat(day), ROOT))
         while not task.done():  # the worker thread does the reading; this loop only keeps the screen alive
             busy.controls[1].value = f"読んでいます… {int(time.monotonic() - t0)} 秒（数分かかることがあります）"
@@ -415,6 +416,45 @@ def ask_consent(page: ft.Page, dialogs: Dialogs, first: bool = False):
     ))
 
 
+async def device_language(page: ft.Page) -> str | None:
+    """The phone's or PC's own language: the browser's (navigator.language) or the device's first locale."""
+    try:
+        info = await page.get_device_info()
+    except Exception:  # noqa: BLE001 - unknown; llm.language falls back
+        return None
+    if info is None:
+        return None
+    first = info.locales[0] if info.locales else None
+    return llm.language_code(getattr(info, "language", None)) or (llm.language_code(first.language_code) if first else None)
+
+
+async def ask_language(page: ft.Page, dialogs: Dialogs):
+    """Choose the language the AI writes in; by default each phone's or PC's own."""
+    here = await device_language(page)
+    here_label = llm.language_label(here) if here else "わかりません"
+    width = min(page.width or 360, 480) - 96
+    choice = ft.Dropdown(label="AI が書く言語", value=llm.language_setting(), width=width, options=[
+        ft.DropdownOption(key=llm.AUTO, text=f"自動（この端末: {here_label}）"),
+        *[ft.DropdownOption(key=code, text=label) for code, (_, label) in llm.LANGUAGES.items()]])
+
+    def save(e):
+        llm.set_language(choice.value or llm.AUTO)
+        page.pop_dialog()
+        lang = llm.language_setting()
+        dialogs.say("AI が書く言語: " + ("自動（それぞれの端末の言語）" if lang == llm.AUTO else llm.language_label(lang)))
+
+    page.show_dialog(ft.AlertDialog(
+        title=ft.Text("言語", size=18),
+        content=ft.Column([
+            ft.Text("AI の読みや提案を書く言語です。自動にすると、読ませたスマホや PC の言語で書きます。", size=14),
+            choice,
+        ], tight=True, width=width, spacing=12),
+        actions=[ft.TextButton("やめる", on_click=lambda e: page.pop_dialog(), height=48),
+                 ft.FilledButton("保存", on_click=save, height=48)],
+        inset_padding=16,
+    ))
+
+
 def ask_reader(page: ft.Page, dialogs: Dialogs):
     """Choose which model reads the fields: Muse Spark on api.meta.ai, or
     Muse Glimmer on the house machine (photos never leave the house)."""
@@ -477,7 +517,11 @@ def main(page: ft.Page):
                       ft.NavigationBarDestination(icon=ft.Icons.VISIBILITY, label="読む"),
                       ft.NavigationBarDestination(icon=ft.Icons.LABEL, label="名詞")],
         selected_index=0, on_change=go)
+    async def open_language(e):
+        await ask_language(page, dialogs)
+
     page.appbar = ft.AppBar(title=ft.Text("fieldnotes"), actions=[
+        ft.IconButton(ft.Icons.TRANSLATE, tooltip="言語", on_click=open_language),
         ft.IconButton(ft.Icons.MEMORY, tooltip="読む AI", on_click=lambda e: ask_reader(page, dialogs)),
         ft.IconButton(ft.Icons.SETTINGS, tooltip="AI の学習への利用", on_click=lambda e: ask_consent(page, dialogs))])
     page.add(holder)
