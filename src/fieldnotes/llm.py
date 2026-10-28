@@ -15,17 +15,42 @@ from pathlib import Path
 from openai import OpenAI
 
 
+SPARK = "muse-spark-1.3"
+SPARK_CONTRIBUTOR = "muse-spark-1.3-contributor"  # cheaper; Meta may train on what is sent
+
+
+def config_dir() -> Path:
+    return Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config") / "fieldnotes"
+
+
 def api_key() -> str:
     """The Meta Model API key: $MODEL_API_KEY if set, else the file
     $XDG_CONFIG_HOME/fieldnotes/model_api_key (default ~/.config/...),
     which should be readable only by the user (chmod 600)."""
     if os.environ.get("MODEL_API_KEY"):
         return os.environ["MODEL_API_KEY"]
-    config = Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config")
-    p = config / "fieldnotes" / "model_api_key"
+    p = config_dir() / "model_api_key"
     if p.exists():
         return p.read_text(encoding="utf-8").strip()
     raise RuntimeError(f"no Meta Model API key: set MODEL_API_KEY or write it to {p}")
+
+
+def training_consent() -> bool | None:
+    """Whether the farmer agreed that what Muse Spark is sent (photos, records)
+    may be used by Meta for training, in return for the cheaper contributor
+    model. None until asked; the app asks on first launch."""
+    p = config_dir() / "settings.json"
+    if not p.exists():
+        return None
+    return json.loads(p.read_text(encoding="utf-8")).get("training_consent")
+
+
+def set_training_consent(agreed: bool) -> None:
+    p = config_dir() / "settings.json"
+    settings = json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
+    settings["training_consent"] = bool(agreed)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps(settings, ensure_ascii=False, indent=1), encoding="utf-8")
 
 
 @dataclass
@@ -37,7 +62,9 @@ class Backend:
 
     @classmethod
     def spark(cls) -> "Backend":
-        return cls("muse-spark-1.3", "https://api.meta.ai/v1", "muse-spark-1.3", api_key())
+        """Standard Muse Spark, or the contributor model only if the farmer agreed."""
+        model = SPARK_CONTRIBUTOR if training_consent() else SPARK
+        return cls(model, "https://api.meta.ai/v1", model, api_key())
 
     @classmethod
     def glimmer(cls, host: str = "192.168.100.6", model: str = "muse-glimmer") -> "Backend":

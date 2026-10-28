@@ -23,6 +23,7 @@ from datetime import date
 from pathlib import Path
 
 from . import concepts, pipeline, propose, surroundings
+from . import llm
 from .llm import Backend
 from .records import Record
 
@@ -77,6 +78,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     s = sub.add_parser("app", help="serve the phone app")
     s.add_argument("--port", type=int, default=8550)
+
+    s = sub.add_parser("consent", help="show or set whether Meta may train on what Muse Spark is sent")
+    s.add_argument("answer", nargs="?", choices=["yes", "no"])
     return p
 
 
@@ -126,6 +130,14 @@ def run(args: argparse.Namespace) -> int:
             surroundings.read_surroundings(records, Backend.spark())
             _say(f"保存しました: {path}")
         print(path.read_text(encoding="utf-8"))
+    elif args.cmd == "consent":
+        if args.answer:
+            llm.set_training_consent(args.answer == "yes")
+        c = llm.training_consent()
+        state = {None: "まだ決めていません（標準のモデルを使います）",
+                 True: "同意しています（安いモデル。送ったものが学習に使われることがあります）",
+                 False: "同意していません（標準のモデル。学習に使われません）"}[c]
+        print(f"AI の学習への利用: {state}\nモデル: {llm.SPARK_CONTRIBUTOR if c else llm.SPARK}")
     elif args.cmd == "app":
         os.environ["FIELDNOTES_ROOT"] = str(root)  # app.py reads it when imported
         from . import app

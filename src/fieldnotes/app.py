@@ -25,7 +25,7 @@ from pathlib import Path
 
 import flet as ft
 
-from . import appdata, concepts, pipeline
+from . import appdata, concepts, llm, pipeline
 from .inbox import file_photo, list_fields, valid_field
 from .records import Observation, Record
 
@@ -386,6 +386,34 @@ def nouns_view(page: ft.Page, dialogs: Dialogs):
     return view, refresh
 
 
+CONSENT_TEXT = (
+    "畑の写真と記録は、読み取りのために Meta の AI（Muse Spark）に送られます。\n\n"
+    "同意すると、送った写真と記録を Meta が AI の学習に使うことがあります。"
+    "自然農の畑を AI が学べば、次に使う人の読みもよくなります。費用も安いモデルで済みます（おすすめ）。\n"
+    "同意しない場合は、学習に使われない標準のモデルを使います（費用は少し高くなります）。\n\n"
+    "あとから右上の歯車でいつでも変えられます。"
+)
+
+
+def ask_consent(page: ft.Page, dialogs: Dialogs, first: bool = False):
+    """The farmer decides, before anything is sent, whether Meta may train on it."""
+    def choose(agreed: bool):
+        llm.set_training_consent(agreed)
+        page.pop_dialog()
+        dialogs.say("学習に使ってもらう設定にしました" if agreed else "学習に使われない設定にしました")
+
+    current = llm.training_consent()
+    now = "" if current is None else ("\n\n今の設定: " + ("同意している" if current else "同意していない"))
+    page.show_dialog(ft.AlertDialog(
+        modal=first,
+        title=ft.Text("AI の学習への利用", size=18),
+        content=ft.Text(CONSENT_TEXT + now, size=15),
+        actions=[ft.TextButton("同意しない", on_click=lambda e: choose(False), height=48),
+                 ft.FilledButton("同意する", on_click=lambda e: choose(True), height=48)],
+        inset_padding=16,
+    ))
+
+
 def main(page: ft.Page):
     page.title = "fieldnotes"
     page.theme_mode = ft.ThemeMode.SYSTEM
@@ -410,8 +438,12 @@ def main(page: ft.Page):
                       ft.NavigationBarDestination(icon=ft.Icons.VISIBILITY, label="読む"),
                       ft.NavigationBarDestination(icon=ft.Icons.LABEL, label="名詞")],
         selected_index=0, on_change=go)
+    page.appbar = ft.AppBar(title=ft.Text("fieldnotes"), actions=[
+        ft.IconButton(ft.Icons.SETTINGS, tooltip="AI の学習への利用", on_click=lambda e: ask_consent(page, dialogs))])
     page.add(holder)
     go()
+    if llm.training_consent() is None:
+        ask_consent(page, dialogs, first=True)
 
 
 def run(host: str = "0.0.0.0", port: int = 8550):

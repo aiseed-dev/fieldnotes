@@ -79,6 +79,12 @@ fieldnotes app [--port 8550]                     the phone app
 
 Keep it usable on a phone at 375 px wide: large tap targets, no horizontal scroll.
 
+## Consent to training (2026-10-28)
+
+Muse Spark has a cheaper contributor model (`muse-spark-1.3-contributor`), and Meta may train on what is sent to it. The app asks the farmer on first launch, before anything is sent, and the gear in the top right changes the answer later. The CLI does the same with `fieldnotes consent [yes|no]`. The answer is kept in `~/.config/fieldnotes/settings.json` (`llm.training_consent`). `Backend.spark()` uses the contributor model only after a yes; until then it uses the standard model.
+
+The farmer's view is that this app should be trained on: if AI learns natural-farming fields, the next farmer gets better readings. So 同意する is the recommended button, but the choice stays with each user.
+
 ## Voice (WP2)
 
 `voice.transcribe(wav: Path, vocabulary: list[str] = (), language="ja") -> str` uses Muse Voice Transcribe (`muse-voice-transcribe-1.0`): `POST /v1/asr/transcribe`, multipart with a request JSON plus the WAV (at most 10 min, at most 32 MB), PUSH_TO_TALK mode, language bias Japanese, vocabulary biasing. **Read the API reference on dev.meta.ai before writing the request; do not guess field names.**
