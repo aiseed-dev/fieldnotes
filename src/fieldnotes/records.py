@@ -18,7 +18,7 @@ Layout (see docs/design.md §3):
     ## Earlier AI lines
     - key: text  → farmer: wrong (reason)
 
-    ## Farmer note (<model>, ja)
+    ## Farmer note (<model>, <language>)
     free text
 
 "Earlier AI lines" holds lines the farmer marked that a re-run of the same day
@@ -35,6 +35,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 import yaml
+
+from . import llm
 
 FRONT = re.compile(r"\A---\n(.*?)\n---\n(.*)\Z", re.S)
 OBS_LINE = re.compile(
@@ -70,6 +72,7 @@ class Record:
     observations: list[Observation] = field(default_factory=list)
     earlier: list[Observation] = field(default_factory=list)  # marked lines a re-run replaced
     note_model: str = ""
+    note_language: str = ""  # the language the note is in; the setting when new
     farmer_note: str = ""
 
     # ---- paths --------------------------------------------------------
@@ -94,7 +97,7 @@ class Record:
             out.append(EARLIER_HEADING)
             out += [o.to_line() for o in self.earlier]
             out.append("")
-        out.append(f"## Farmer note ({self.note_model or 'none'}, ja)")
+        out.append(f"## Farmer note ({self.note_model or 'none'}, {self.note_language or llm.language()})")
         out.append(self.farmer_note or "(none)")
         out.append("")
         return "\n".join(out)
@@ -125,7 +128,9 @@ class Record:
                 continue
             if line.startswith("## Farmer note"):
                 section = "note"
-                rec.note_model = line[len("## Farmer note") :].strip(" ()").split(",")[0]
+                head = [x.strip() for x in line[len("## Farmer note") :].strip(" ()").split(",")]
+                rec.note_model = head[0]
+                rec.note_language = head[1] if len(head) > 1 else ""
                 continue
             if section in ("ai", "earlier"):
                 om = OBS_LINE.match(line)

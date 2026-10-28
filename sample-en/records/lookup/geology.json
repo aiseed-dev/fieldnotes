@@ -1,0 +1,36 @@
+{
+ "success": {
+  "v": 2,
+  "license": "CC-BY 4.0",
+  "data": [
+   {
+    "map_id": 3189408,
+    "source_id": 154,
+    "name": "Paleozoic-Mesozoic sedimentary rocks",
+    "strat_name": "",
+    "lith": "sedimentary rocks",
+    "descrip": "",
+    "comments": "",
+    "macro_units": [],
+    "strat_names": [],
+    "liths": [
+     111
+    ],
+    "t_int_id": 63,
+    "t_int_age": 201.4,
+    "t_int_name": "Triassic",
+    "b_int_id": 993,
+    "b_int_age": 358.86,
+    "b_int_name": "Late Paleozoic",
+    "color": "#9AD9DD",
+    "t_age": 201.3,
+    "b_age": 358.9,
+    "best_int_name": "Phanerozoic",
+    "scale": "tiny"
+   }
+  ],
+  "refs": {
+   "154": "Chorlton, L.B. Generalized geology of the world: bedrock domains and major faults in GIS format: a small-scale world geology map with an extended geological attribute database. doi: 10.4095/223767. Geological Survey of Canada, Open File 5529. "
+  }
+ }
+}

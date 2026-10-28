@@ -1,0 +1,65 @@
+{
+ "version": 0.6,
+ "generator": "Overpass API 0.7.62.11 87bfad18",
+ "osm3s": {
+  "timestamp_osm_base": "2026-10-28T07:54:51Z",
+  "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+ },
+ "elements": [
+  {
+   "type": "node",
+   "id": 8463027003,
+   "lat": 34.092311,
+   "lon": 134.462882,
+   "tags": {
+    "addr:full": "徳島県徳島市国府町芝原",
+    "description:url": "https://tankaru.github.io/Japan-GSI-Import/data.html#id36201-002",
+    "hazard:name": "慶応2年寅の大水（1866年9月15日）",
+    "hazard:type": "flood",
+    "historic": "memorial",
+    "memorial": "hazard_memorial",
+    "name": "慶応2年洪水痕跡",
+    "start_date": "1995"
+   }
+  },
+  {
+   "type": "node",
+   "id": 9568179123,
+   "lat": 34.054089,
+   "lon": 134.4394195,
+   "tags": {
+    "historic": "wayside_shrine",
+    "name": "前山峰のお地蔵さん",
+    "religion": "shinto"
+   }
+  },
+  {
+   "type": "way",
+   "id": 303327770,
+   "center": {
+    "lat": 34.0867221,
+    "lon": 134.4424186
+   },
+   "tags": {
+    "building": "yes",
+    "historic": "yes",
+    "name": "武知家の藍寝床"
+   }
+  },
+  {
+   "type": "way",
+   "id": 303327771,
+   "center": {
+    "lat": 34.0901966,
+    "lon": 134.4464784
+   },
+   "tags": {
+    "building": "yes",
+    "historic": "yes",
+    "name": "田中家住宅",
+    "wikidata": "Q116156152",
+    "wikipedia": "ja:田中家住宅 (石井町)"
+   }
+  }
+ ]
+}

@@ -142,7 +142,7 @@ def test_merge_rerun_unit():
 
 def test_record_round_trip_with_earlier():
     rec = Record(FIELD, "2026-10-28", ai_model="x", observations=[Observation("overall", "now")],
-                 earlier=[Observation("overall", "then", "wrong", "no (really)")], note_model="m", farmer_note="note")
+                 earlier=[Observation("overall", "then", "wrong", "no (really)")], note_model="m", note_language="en", farmer_note="note")
     back = Record.from_markdown(rec.to_markdown())
     assert back == rec
     assert "## Earlier AI lines" not in Record(FIELD, "2026-10-28").to_markdown()

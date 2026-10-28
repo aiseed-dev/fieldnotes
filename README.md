@@ -28,7 +28,7 @@ I photograph the same spots regularly with my phone and look at them together wi
 
 ## What was built during the hackathon
 
-Everything in this repository: `src/fieldnotes/` (segment, describe, verify, records, report), `scripts/`, `docs/`, and the sample farm's records under `sample/`.
+Everything in this repository: `src/fieldnotes/` (segment, describe, verify, records, report), `scripts/`, `docs/`, and the sample farm's records under `sample/` (Japanese) and `sample-en/` (the same farm read in English).
 
 ## What existed before the hackathon
 
@@ -66,7 +66,7 @@ fieldnotes init --place "Nakuru, Kenya" --country KE --lat -0.30 --lon 36.07 --c
 
 ### The sample farm
 
-`sample/` is the first farm: a natural-farming field in Tokushima, Japan, just south of the Median Tectonic Line, with its site profile, photos and records (fields `row1`, `mix1`, `uncut`). Try the commands on it with `--root sample`, or read it as an example of what a farm folder becomes.
+`sample/` is the first farm: a natural-farming field in Tokushima, Japan, just south of the Median Tectonic Line, with its site profile, photos and records (fields `row1`, `mix1`, `uncut`). Try the commands on it with `--root sample`, or read it as an example of what a farm folder becomes. Its readings are in Japanese, the farmer's language. `sample-en/` is the same farm, same photos, read again by Muse Spark with the language set to English (`fieldnotes language en`), not translated: try `fieldnotes --root sample-en app`.
 
 ### The neighbourhood
 
