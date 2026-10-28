@@ -15,36 +15,14 @@ from pathlib import Path
 from PIL import Image, ImageOps
 
 from .inbox import AROUND, DATED, photo_place
+from .ui import Words
 
 PHOTO_SUFFIXES = {".jpg", ".jpeg"}
 OVERLAY = re.compile(r"^(?P<day>\d{4}-\d{2}-\d{2})-overlay-(?P<n>\d+)\.jpg$")
 CONF = re.compile(r"\s*\[(?P<conf>[0-9.]+)\]\s*$")
 
-KEY_LABELS = {
-    "overall": "畑全体",
-    "dominant": "優勢な草",
-    "crops": "野菜",
-    "acidity": "酸度",
-    "fertility": "肥沃さ",
-    "dryness": "乾き",
-    "leaf_colour": "葉の色",
-    "weed_height": "草の高さ",
-    "soil": "土",
-    "animal": "動物",
-    "other": "その他",
-    # the neighbourhood (around.py)
-    "land_use": "土地の使われ方",
-    "neighbours": "近所の様子",
-    "water": "水",
-    "seed_source": "種の出どころ",
-    "animals": "動物",
-    "history": "昔の使われ方",
-}
-AROUND_LABEL = "近所（畑のまわり）"
-
-
-def place_label(name: str) -> str:
-    return AROUND_LABEL if name == AROUND else name
+def place_label(name: str, w: Words = Words("ja")) -> str:
+    return w("around") if name == AROUND else name
 
 
 def day_photos(photos_root: Path, field: str, day: str) -> list[Path]:
@@ -97,15 +75,16 @@ def split_conf(text: str) -> tuple[str, str | None]:
     return (text[: m.start()], m["conf"]) if m else (text, None)
 
 
-def key_label(key: str) -> str:
-    return KEY_LABELS.get(key, key)
+def key_label(key: str, w: Words = Words("ja")) -> str:
+    """A record line's title on screen: 'dominant' -> '優勢な草' / 'Dominant plants'."""
+    return w("key." + key) if w.has("key." + key) else key
 
 
-def last_label(last: str) -> str:
-    """A concept's last SAM result, in Japanese: '2026-10-28 no match' -> '2026-10-28 見つからず'."""
+def last_label(last: str, w: Words = Words("ja")) -> str:
+    """A concept's last SAM result on screen: '2026-10-28 no match' -> '2026-10-28 見つからず'."""
     if last in ("", "-"):
-        return "まだ使っていない"
-    return last.replace("no match", "見つからず").replace("objects", "個")
+        return w("last.never")
+    return last.replace("no match", w("last.no_match")).replace("objects", w("last.objects"))
 
 
 @lru_cache(maxsize=64)

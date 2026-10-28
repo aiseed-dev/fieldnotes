@@ -24,7 +24,7 @@ SPARK = "muse-spark-1.3"
 SPARK_CONTRIBUTOR = "muse-spark-1.3-contributor"  # cheaper; Meta may train on what is sent
 GLIMMER_URL = "http://192.168.100.6:11434/v1"  # llama-server on the MS-S1 MAX
 GLIMMER_MODEL = "muse-glimmer-30B"              # the server's alias (-a)
-READERS = {"spark": "Muse Spark（api.meta.ai）", "glimmer": "Muse Glimmer（自宅のマシン）"}
+READERS = ("spark", "glimmer")  # names; ui.py has the labels
 
 
 def config_dir() -> Path:
@@ -106,10 +106,10 @@ def set_language(code: str) -> None:
     update_settings(language=code)
 
 
-def language() -> str:
+def language(device: str | None = None) -> str:
     """The language the AI writes in: the setting, or else the device's, or else this machine's; English if none is known."""
     s = language_setting()
-    return s if s != AUTO else device_language.get() or system_language() or "en"
+    return s if s != AUTO else device or device_language.get() or system_language() or "en"
 
 
 def language_label(code: str) -> str:

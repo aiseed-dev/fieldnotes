@@ -106,6 +106,11 @@ def offline(monkeypatch, tmp_path):
     monkeypatch.chdir(tmp_path)
     monkeypatch.setenv("MODEL_API_KEY", "test-key")
     monkeypatch.setenv("FIELDNOTES_ROOT", str(tmp_path))
+    # not the farmer's own settings.json; Japanese screen unless a test says otherwise
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "config"))
+    monkeypatch.setenv("LANG", "ja_JP.UTF-8")
+    for var in ("LC_ALL", "LC_MESSAGES", "LANGUAGE"):
+        monkeypatch.delenv(var, raising=False)
 
     def no_network(*a, **k):
         raise AssertionError("network used in an offline test")

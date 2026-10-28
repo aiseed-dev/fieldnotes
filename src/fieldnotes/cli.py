@@ -33,13 +33,14 @@ from . import concepts, lookup, pipeline, propose, site, surroundings
 from . import llm
 from .llm import Backend
 from .records import Record
+from .ui import words
 
 
 def _day(text: str) -> date:
     try:
         return date.fromisoformat(text)
     except ValueError:
-        raise argparse.ArgumentTypeError(f"日付は YYYY-MM-DD で: {text!r}") from None
+        raise argparse.ArgumentTypeError(words()("cli.bad_date", text=repr(text))) from None
 
 
 def _reason(words: list[str]) -> str | None:
@@ -120,28 +121,29 @@ def _say(msg: str) -> None:
 def _latest_or_fail(field: str, root: Path, day: date | None = None) -> Record:
     rec = pipeline.latest_record(field, root, day)
     if rec is None:
-        raise FileNotFoundError(f"{field} の記録がありません。先に fieldnotes observe {field}")
+        raise FileNotFoundError(words()("cli.no_record", field=field))
     return rec
 
 
 def run(args: argparse.Namespace) -> int:
     root, records = args.root.resolve(), args.root.resolve() / "records"
+    w = words()
     today = date.today()
 
     if args.cmd == "init":
         path = records / site.FILE
         if path.exists():
-            raise ValueError(f"{path} はもうあります。書き換えるなら手で編集してください")
+            raise ValueError(w("cli.exists", path=path))
         if len(args.country) != 2 or not -90 <= args.lat <= 90 or not -180 <= args.lon <= 180:
-            raise ValueError("--country は2文字、--lat は -90〜90、--lon は -180〜180 です")
+            raise ValueError(w("cli.bad_place"))
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(site.template(args.place, args.country, args.lat, args.lon, args.climate, args.method),
                         encoding="utf-8")
-        _say(f"作りました: {path}。畑ごとの写真は photos/<畑>/<日付>/ に入れて、fieldnotes observe <畑>")
+        _say(w("cli.created", path=path))
     elif args.cmd == "observe":
         day = args.date or today
         rec = pipeline.run_observation(args.field, day, root, progress=_say)
-        _say(f"保存しました: {Record.path_for(records, rec.field, rec.date)}")
+        _say(w("cli.saved", path=Record.path_for(records, rec.field, rec.date)))
         print(rec.to_markdown())
     elif args.cmd == "show":
         rec = Record.load(records, args.field, args.date.isoformat()) if args.date else _latest_or_fail(args.field, root)
@@ -157,60 +159,56 @@ def run(args: argparse.Namespace) -> int:
         latest = _latest_or_fail(args.field, root)
         seeds = [x.strip() for x in args.seeds.split(",") if x.strip()]
         prop = propose.propose_cover_crop(latest, today.isoformat(), records, Backend.default(), seeds)
-        _say(f"保存しました: {prop.path_for(records, prop.field, prop.date, prop.kind)}")
+        _say(w("cli.saved", path=prop.path_for(records, prop.field, prop.date, prop.kind)))
         print(prop.to_markdown())
     elif args.cmd == "compare":
         print(pipeline.compare_latest(args.date or today, root).to_markdown())
     elif args.cmd == "surroundings":
         path = surroundings.Surroundings.path(records)
         if path.exists() and not args.force:
-            _say(f"すでに読んであります: {path}（やり直すなら --force。印は消えます）")
+            _say(w("cli.already", path=path))
         else:
             surroundings.read_surroundings(records, Backend.default())
-            _say(f"保存しました: {path}")
+            _say(w("cli.saved", path=path))
         print(path.read_text(encoding="utf-8"))
     elif args.cmd == "lookup":
-        _say("公開データを調べています（標高、地質、土壌、近くの歴史）")
+        _say(w("cli.looking_up"))
         print(lookup.lookup(records).read_text(encoding="utf-8"))
     elif args.cmd == "search":
-        words = " ".join(args.words)
-        found = lookup.search(records, words)
-        print("\n".join(found) or "見つかりませんでした")
+        query = " ".join(args.words)
+        found = lookup.search(records, query)
+        print("\n".join(found) or w("cli.nothing"))
         if args.save and found:
             path = records / lookup.FILE
             with path.open("a", encoding="utf-8") as f:
-                f.write(f"\n## Search: {words} ({today.isoformat()})\n\n" + "\n".join(found) + "\n")
-            _say(f"追記しました: {path}")
+                f.write(f"\n## Search: {query} ({today.isoformat()})\n\n" + "\n".join(found) + "\n")
+            _say(w("cli.appended", path=path))
     elif args.cmd == "consent":
         if args.answer:
             llm.set_training_consent(args.answer == "yes")
         c = llm.training_consent()
-        state = {None: "まだ決めていません（標準のモデルを使います）",
-                 True: "同意しています（安いモデル。送ったものが学習に使われることがあります）",
-                 False: "同意していません（標準のモデル。学習に使われません）"}[c]
-        print(f"AI の学習への利用: {state}\nモデル: {llm.SPARK_CONTRIBUTOR if c else llm.SPARK}")
+        state = w({None: "cli.consent_none", True: "cli.consent_yes", False: "cli.consent_no"}[c])
+        print(w("cli.consent", state=state, model=llm.SPARK_CONTRIBUTOR if c else llm.SPARK))
     elif args.cmd == "language":
         if args.code:
             llm.set_language(args.code)
+        w = words()  # the new setting may change the language
         lang = llm.language_label(llm.language())
-        if llm.language_setting() == llm.AUTO:
-            print(f"AI が書く言語: 自動（それぞれのスマホや PC の言語。この PC では {lang}）")
-        else:
-            print(f"AI が書く言語: {lang}（どの端末でも）")
+        print(w("cli.lang_auto" if llm.language_setting() == llm.AUTO else "cli.lang_fixed", lang=lang))
     elif args.cmd == "reader":
         if args.name or args.url or args.model:
             llm.set_reader(args.name or llm.reader(), args.url, args.model)
         if llm.reader() == "glimmer":
-            print(f"読む AI: {llm.READERS['glimmer']}\n接続先: {llm.glimmer_url()}\nモデル: {llm.glimmer_model()}")
+            print(w("cli.reader_glimmer", name=w("reader.glimmer"), url=llm.glimmer_url(), model=llm.glimmer_model()))
         else:
             model = llm.SPARK_CONTRIBUTOR if llm.training_consent() else llm.SPARK
-            print(f"読む AI: {llm.READERS['spark']}\nモデル: {model}")
-            print(f"（Glimmer の設定: {llm.glimmer_url()}、{llm.glimmer_model()}）")
+            print(w("cli.reader", name=w("reader.spark"), model=model))
+            print(w("cli.glimmer_setting", url=llm.glimmer_url(), model=llm.glimmer_model()))
         if args.check:
             try:
-                print("つながりました: " + ", ".join(llm.reachable(llm.Backend.default())))
+                print(w("reader.ok", names=", ".join(llm.reachable(llm.Backend.default()))))
             except Exception as e:  # noqa: BLE001 - any failure means "not reachable"
-                print(f"つながりません: {type(e).__name__}")
+                print(w("reader.ng", e=type(e).__name__))
                 return 1
     elif args.cmd == "app":
         os.environ["FIELDNOTES_ROOT"] = str(root)  # app.py reads it when imported
@@ -224,7 +222,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         return run(args)
     except (FileNotFoundError, ValueError, KeyError, RuntimeError) as e:
-        _say(f"エラー: {e.args[0] if isinstance(e, KeyError) and e.args else e}")
+        _say(words()("cli.error", e=e.args[0] if isinstance(e, KeyError) and e.args else e))
         return 1
 
 

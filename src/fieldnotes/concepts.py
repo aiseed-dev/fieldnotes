@@ -39,6 +39,7 @@ from pathlib import Path
 from .llm import Backend, chat, json_value
 from .records import Observation, Record, notes_from_markdown, notes_to_markdown
 from .site import Site
+from .ui import words
 
 CONCEPTS = "_concepts"
 SHARED = Path("shared/sam_concepts.md")
@@ -46,7 +47,7 @@ SHARED = Path("shared/sam_concepts.md")
 # SAM finds plain visible parts ("leaf": 9 in a sown row, 55 in a mixed patch;
 # "flower cluster": 7 goldenrod heads in a head-high stand) but not species
 # names ("goldenrod", "chickweed") nor "seedling", "weed" or "bare soil".
-BASE = [("leaf", "葉（作物も草も）"), ("flower cluster", "花の房"), ("bare soil", "裸地")]
+BASE = [("leaf", "base.leaf"), ("flower cluster", "base.flower"), ("bare soil", "base.soil")]  # targets: ui.py
 SCI = re.compile(r"\(([A-Z][a-z]+ [a-z][a-z-]+)\)")
 
 SYSTEM = """You choose the text prompts for SAM 3.1, a segmentation model, for photos of <FIELD>.
@@ -95,11 +96,11 @@ class FieldConcepts:
     def load(cls, root: Path, field: str) -> "FieldConcepts":
         p = cls.path_for(root, field)
         if not p.exists():
-            return cls(field, [Concept(noun, target, by="default") for noun, target in BASE])
+            return cls(field, [Concept(noun, words()(target), by="default") for noun, target in BASE])
         front, notes = notes_from_markdown(p.read_text(encoding="utf-8"))
         fc = cls(front.get("field", field), [Concept.from_obs(o) for o in notes if o.key == "concept"])
         known = {c.noun for c in fc.items}  # a base noun the farmer marked wrong stays wrong
-        fc.items += [Concept(noun, target, by="default") for noun, target in BASE if noun not in known]
+        fc.items += [Concept(noun, words()(target), by="default") for noun, target in BASE if noun not in known]
         return fc
 
     def save(self, root: Path) -> Path:

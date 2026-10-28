@@ -26,6 +26,7 @@ from .inbox import AROUND, DATED, valid_field
 from .llm import Backend
 from .plants import species_in
 from .records import Observation, Record, previous_records
+from .ui import words
 
 ROOT = Path(os.environ.get("FIELDNOTES_ROOT", ".")).resolve()
 PHOTO_SUFFIXES = {".jpg", ".jpeg"}
@@ -120,11 +121,12 @@ def run_observation(field: str, day: date, root: Path = ROOT, backend: Backend |
                     progress: Progress | None = None) -> Record:
     """Read the photos of `field` on `day` and save records/<field>/<day>.md.
 
-    `progress`, if given, is called with a short Japanese line before each
-    step (the app shows it while the work runs in a thread).
+    `progress`, if given, is called with a short line before each step, in
+    the screen's language (ui.py).
     """
     _check_field(field)
     say = progress or (lambda _msg: None)
+    w = words()
     records = root / "records"
     day_s = _iso(day)
 
@@ -134,29 +136,29 @@ def run_observation(field: str, day: date, root: Path = ROOT, backend: Backend |
         raise FileNotFoundError(f"no photos in photos/{field}/{day_s}/")
     backend = backend or Backend.default()
     if field == AROUND:  # the neighbourhood: one reading of the photos, no SAM or weather
-        say("近所の写真を読んでいます")
+        say(w("step.around"))
         save_merged(around.read_around(root, day_s, photos, backend), records)
         return Record.load(records, field, day_s)
     rec = Record(field=field, date=day_s, photos=photos)
 
     # 2. weather: a missing day (the archive lags a few days) must not stop the reading
-    say("天気を調べています")
+    say(w("step.weather"))
     try:
         rec.weather = weather.daily_weather(date.fromisoformat(day_s), records)
     except (KeyError, OSError, ValueError) as e:
-        say(f"天気は取れませんでした（{e}）")
+        say(w("step.no_weather", e=e))
 
     # 3. previous
     previous = previous_records(records, field, day_s, n=PREVIOUS)
 
     # 4. SAM prompts for the plants that dominated before
-    say("SAM に聞く名詞を用意しています")
+    say(w("step.nouns"))
     shared = concepts.SharedConcepts.load(root / concepts.SHARED)
     concepts.ensure(records, field, species_in([o for r in previous for o in r.observations]), backend, shared)
 
     # 5. segmentation, one overlay per photo
     def segment_and_overlay():
-        say(f"SAM で {len(photos)} 枚を分けています")
+        say(w("step.segment", n=len(photos)))
         results = concepts.segment_field(rec, photo_root=root, records_root=records)
         for old in overlay_paths(field, day_s, root):
             old.unlink()  # a re-run with fewer photos must not leave stale overlays
@@ -167,11 +169,11 @@ def run_observation(field: str, day: date, root: Path = ROOT, backend: Backend |
     segment_and_overlay()
 
     # 6. reading
-    say("Muse Spark が畑を読んでいます")
+    say(w("step.read", model=backend.name))
     describe.observe(rec, previous, photo_root=root, records_root=records, backend=backend)
 
     # 7. prompts for next time
-    say("次回の SAM の名詞を用意しています")
+    say(w("step.next"))
     concepts.ensure(records, field, species_in(rec.observations), backend, shared)
 
     # On a field's first days SAM had little to look for (only the defaults);
@@ -181,7 +183,7 @@ def run_observation(field: str, day: date, root: Path = ROOT, backend: Backend |
         segment_and_overlay()
 
     # 8. save, keeping the farmer's verdicts and note from an earlier run of this day
-    say("記録を保存しています")
+    say(w("step.save"))
     save_merged(rec, records)
     return Record.load(records, field, day_s)
 

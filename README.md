@@ -101,7 +101,7 @@ Tests run offline: `.venv/bin/pip install -e ".[dev]" && .venv/bin/pytest`.
 fieldnotes --root ~/myfarm app           # http://<this machine>:8550, open it on the phone
 ```
 
-Three views at the bottom: 送る (send photos into `photos/`), 読む (run the observation for a field and day, look at the SAM overlays, mark each AI line ✓ or ✗ with a reason) and 名詞 (the SAM noun phrases of a field, ✓ or ✗ with a replacement). Everything it shows or saves is a plain-text record under `FIELDNOTES_ROOT` (default: the current directory).
+Three views at the bottom: Send (photos into `photos/`), Read (run the observation for a field and day, look at the SAM overlays, mark each AI line ✓ or ✗ with a reason) and Nouns (the SAM noun phrases of a field, ✓ or ✗ with a replacement). The screen and the CLI are in English, or in Japanese when the language is Japanese; the language is each phone's or PC's own unless set with the 文A button or `fieldnotes language`. Everything it shows or saves is a plain-text record under `FIELDNOTES_ROOT` (default: the current directory).
 
 ## Licence
 

@@ -66,7 +66,7 @@ def test_cli_language(tmp_path, monkeypatch, capsys):
     assert cli.main(["language"]) == 0
     assert "自動" in capsys.readouterr().out
     assert cli.main(["language", "en"]) == 0
-    assert "English（どの端末でも）" in capsys.readouterr().out
+    assert "English (on every device)" in capsys.readouterr().out  # the CLI now speaks English too
 
 
 def test_reader_setting_picks_the_backend(tmp_path, monkeypatch):

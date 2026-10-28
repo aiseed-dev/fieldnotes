@@ -222,5 +222,5 @@ def test_neighbourhood_photos_are_read_and_become_background(root, model, sam, w
     assert "paddies to the south" in background and "the paddies are north" in background
     # the app lists it, under its own name; it is never ranked as a field
     assert AROUND in appdata.photo_fields(root / "photos")
-    assert appdata.place_label(AROUND) == appdata.AROUND_LABEL
+    assert appdata.place_label(AROUND) == "近所（畑のまわり）"
     assert AROUND not in pipeline.fields_with_records(root)
