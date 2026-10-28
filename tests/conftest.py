@@ -53,7 +53,7 @@ class FakeModel:
         system, user = messages[0]["content"], messages[1]["content"]
         text = user if isinstance(user, str) else "\n".join(p["text"] for p in user if p["type"] == "text")
         kinds = {concepts.SYSTEM: "concepts", plants.ECOLOGY_SYSTEM: "ecology", describe.SYSTEM: "describe",
-                 describe.COMPARE_SYSTEM: "compare", propose.SYSTEM: "propose",
+                 describe.COMPARE_SYSTEM: "compare", propose.SYSTEM: "propose", propose.CUT_SYSTEM: "cut",
                  surroundings.SYSTEM: "surroundings", around.SYSTEM: "around", voice.SYSTEM: "voice"}
         # prompts carry the farm's place (<FIELD>, <REGION>; site.py) and may
         # carry a trailing language rule (llm.in_language)
@@ -82,6 +82,16 @@ class FakeModel:
                                         "confidence": 0.6}],
                                "sowing": {"text": "sow in November", "confidence": 0.5},
                                "cautions": [], "watch": [{"text": "clover leaves by December"}]})
+        if kind == "cut":
+            return json.dumps({
+                "summary": {"text": "Cut the south edge first, a 2 m strip, at 20 cm.", "confidence": 0.6},
+                "basis": {"text": "SAM cover: goldenrod 50%; the plot is a slightly raised ground.", "confidence": 0.5},
+                "where": {"text": "the south edge along the path, 2 m wide", "confidence": 0.6},
+                "height": {"text": "20 cm, above the root crowns", "confidence": 0.5},
+                "leave": [{"text": "the ogi stand on the north side, as a windbreak", "confidence": 0.5}],
+                "method": {"text": "sickle, lay the stems on the strip", "confidence": 0.6},
+                "watch": [{"text": "green regrowth at the base within a week", "confidence": 0.4}],
+                "cautions": []})
         if kind == "voice":
             return json.dumps(self.sorted)
         return json.dumps([{"aspect": "land_use", "text": "paddies to the south", "confidence": 0.6}])

@@ -4,9 +4,9 @@
     fieldnotes observe <field> [YYYY-MM-DD]          run the pipeline (default today)
     fieldnotes show <field> [YYYY-MM-DD]             print the record (default the latest)
     fieldnotes voice <field> <recording> [YYYY-MM-DD]  what you did and saw, or right/wrong, said aloud
-    fieldnotes mark <field> <date> <key> right|wrong [reason]
+    fieldnotes mark <field> <date> <key> right|wrong [reason] [--proposal cut|cover_crop]
     fieldnotes concept <field> <noun> right|wrong [reason] [--replace NOUN]
-    fieldnotes propose <field>                       cover-crop proposal from the latest record
+    fieldnotes propose <field> [--cut]               cover-crop proposal (or where to cut first) from the latest record
     fieldnotes compare [YYYY-MM-DD]                  rank fields (latest record of each)
     fieldnotes surroundings                          fetch maps + read once
     fieldnotes lookup                                geology, soil, history from open data
@@ -82,6 +82,8 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("key", help="line key, e.g. dominant; key#2 for the second line with that key")
     s.add_argument("verdict", choices=pipeline.VERDICTS)
     s.add_argument("reason", nargs="*")
+    s.add_argument("--proposal", choices=[propose.KIND, propose.KIND_CUT],
+                   help="mark a line of that day's proposal instead of the record")
 
     s = sub.add_parser("concept", help="mark a SAM noun right or wrong")
     s.add_argument("field")
@@ -92,7 +94,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     s = sub.add_parser("propose", help="cover-crop proposal from the latest record")
     s.add_argument("field")
-    s.add_argument("--seeds", default="", help="seeds on hand, comma separated")
+    s.add_argument("--seeds", default="", help="seeds on hand, comma separated (cover crop)")
+    s.add_argument("--cut", action="store_true", help="where to cut first and how high, instead of a cover crop")
 
     s = sub.add_parser("compare", help="rank fields on the barometers")
     s.add_argument("date", nargs="?", type=_day, default=None)
@@ -164,6 +167,10 @@ def run(args: argparse.Namespace) -> int:
         _say(w("cli.heard", text=text))
         for o in changed:
             print(o.to_line())
+    elif args.cmd == "mark" and args.proposal:
+        line = propose.mark(records, args.field, args.date.isoformat(), args.proposal, args.key, args.verdict,
+                            _reason(args.reason))
+        print(line.to_line())
     elif args.cmd == "mark":
         line = pipeline.mark(args.field, args.date, args.key, args.verdict, _reason(args.reason), root=root)
         print(line.to_line())
@@ -173,8 +180,11 @@ def run(args: argparse.Namespace) -> int:
         print(f"{args.noun}: {args.verdict}" + (f" → {args.replace}" if args.replace else ""))
     elif args.cmd == "propose":
         latest = _latest_or_fail(args.field, root)
-        seeds = [x.strip() for x in args.seeds.split(",") if x.strip()]
-        prop = propose.propose_cover_crop(latest, today.isoformat(), records, Backend.default(), seeds)
+        if args.cut:
+            prop = propose.propose_cut(latest, today.isoformat(), records, Backend.default())
+        else:
+            seeds = [x.strip() for x in args.seeds.split(",") if x.strip()]
+            prop = propose.propose_cover_crop(latest, today.isoformat(), records, Backend.default(), seeds)
         _say(w("cli.saved", path=prop.path_for(records, prop.field, prop.date, prop.kind)))
         print(prop.to_markdown())
     elif args.cmd == "compare":

@@ -94,6 +94,8 @@ fieldnotes mark uncut 2026-10-28 dominant right
 fieldnotes mark uncut 2026-10-28 overall wrong "it is uneven, not even"
 fieldnotes concept uncut goldenrod wrong "finds ogi too" --replace "yellow flowers"
 fieldnotes propose uncut --seeds "crimson clover, rye"
+fieldnotes propose uncut --cut           # where to cut first and how high → records/_proposals/uncut/<date>-cut.md
+fieldnotes mark uncut 2026-10-29 height wrong "too high: goldenrod seeds anyway" --proposal cut
 fieldnotes compare                       # rank fields by the newest record of each
 fieldnotes surroundings                  # read the maps around the farm once (--force to redo)
 fieldnotes reader glimmer --check        # read with Muse Glimmer at home instead of Muse Spark
