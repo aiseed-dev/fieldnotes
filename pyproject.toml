@@ -13,6 +13,7 @@ dependencies = [
   "pillow-heif",
   "httpx",
   "av",  # decodes the phone's voice recordings (voice.py)
+  "mcp>=2.3",  # the tools for the farmer's own AI (mcp_server.py)
   "flet[all]==1.0.5",
 ]
 

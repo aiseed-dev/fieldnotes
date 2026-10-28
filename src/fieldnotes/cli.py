@@ -8,6 +8,7 @@
     fieldnotes concept <field> <noun> right|wrong [reason] [--replace NOUN]
     fieldnotes propose <field> [--cut]               cover-crop proposal (or where to cut first) from the latest record
     fieldnotes compare [YYYY-MM-DD]                  rank fields (latest record of each)
+    fieldnotes timeline <field> [--since DATE]       one field day by day
     fieldnotes surroundings                          fetch maps + read once
     fieldnotes lookup                                geology, soil, history from open data
     fieldnotes search <words> [--save]               look for a name near the farm
@@ -16,6 +17,7 @@
                                                      which model reads the fields
     fieldnotes language [auto|ja|en|...]             the language the AI writes in
     fieldnotes app [--port 8550]                     the phone app
+    fieldnotes mcp [--http [--port 8551]]            the tools for the farmer's own AI (MCP)
 
 `--root DIR` (before the subcommand) is the folder that holds photos/ and
 records/; it defaults to $FIELDNOTES_ROOT, else the current folder.
@@ -32,7 +34,7 @@ import tempfile
 from datetime import date
 from pathlib import Path
 
-from . import concepts, lookup, pipeline, propose, site, surroundings, voice
+from . import concepts, lookup, pipeline, propose, site, surroundings, timeline, voice
 from . import llm
 from .llm import Backend
 from .records import Record
@@ -111,6 +113,15 @@ def build_parser() -> argparse.ArgumentParser:
 
     s = sub.add_parser("app", help="serve the phone app")
     s.add_argument("--port", type=int, default=8550)
+
+    s = sub.add_parser("timeline", help="one field day by day: photos, readings, work, marks, proposals")
+    s.add_argument("field")
+    s.add_argument("--since", type=_day, default=None)
+
+    s = sub.add_parser("mcp", help="serve the tools to the farmer's own AI (Claude, ChatGPT, Muse Code ...) over MCP")
+    s.add_argument("--http", action="store_true", help="Streamable HTTP on the LAN instead of stdio")
+    s.add_argument("--port", type=int, default=8551)
+    s.add_argument("--buyer", action="store_true", help="read-only tools for a buyer's AI (planned)")
 
     s = sub.add_parser("consent", help="show or set whether Meta may train on what Muse Spark is sent")
     s.add_argument("answer", nargs="?", choices=["yes", "no"])
@@ -236,6 +247,13 @@ def run(args: argparse.Namespace) -> int:
             except Exception as e:  # noqa: BLE001 - any failure means "not reachable"
                 print(w("reader.ng", e=type(e).__name__))
                 return 1
+    elif args.cmd == "timeline":
+        print(timeline.timeline(args.field, records, args.since.isoformat() if args.since else None), end="")
+    elif args.cmd == "mcp":
+        from . import mcp_server  # the MCP SDK loads only when serving
+        if args.buyer:
+            raise RuntimeError("--buyer is planned and not built yet")
+        mcp_server.run(root, http=args.http, port=args.port)
     elif args.cmd == "app":
         os.environ["FIELDNOTES_ROOT"] = str(root)  # app.py reads it when imported
         from . import app

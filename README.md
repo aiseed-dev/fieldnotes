@@ -116,6 +116,37 @@ fieldnotes --root ~/myfarm app           # http://<this machine>:8550, open it o
 
 Three views at the bottom: Send (photos and voice recordings into `photos/`), Read (run the observation for a field and day, look at the SAM overlays, mark each AI line ✓ or ✗ with a reason, by tap or by voice) and Nouns (the SAM noun phrases of a field, ✓ or ✗ with a replacement). The screen and the CLI are in English, or in Japanese when the language is Japanese; the language is each phone's or PC's own unless set with the 文A button or `fieldnotes language`. Everything it shows or saves is a plain-text record under `FIELDNOTES_ROOT` (default: the current directory).
 
+### From your own AI
+
+fieldnotes has no chat screen. You talk to the AI you already use (Claude, ChatGPT, Muse Code ...), and it calls fieldnotes over MCP; Meta's specialist models (SAM 3.1, Muse Spark or Glimmer, Muse Voice Transcribe) do the reading behind it. Photos and voice recordings still come in through the phone app.
+
+The tools: `fields`, `read`, `observe` (takes minutes), `say` (what you tell your AI about a field, kept word for word and sorted into work, seen and right/wrong), `mark` (only what you say), `propose` (`cut` or `cover_crop`), `timeline`, `site`. Lines marked `→ farmer: right/wrong` are yours; lines without a mark are only the AI's reading, and the server tells your AI to keep the two apart.
+
+Claude Code:
+
+```bash
+claude mcp add fieldnotes -- /path/to/fieldnotes/.venv/bin/fieldnotes --root /path/to/myfarm mcp
+```
+
+Claude Desktop (`claude_desktop_config.json`):
+
+```json
+{"mcpServers": {"fieldnotes": {"command": "/path/to/fieldnotes/.venv/bin/fieldnotes",
+                               "args": ["--root", "/path/to/myfarm", "mcp"]}}}
+```
+
+Muse Code (`~/.config/muse/settings.json`; see [Extending: MCP servers](https://dev.meta.ai/docs/muse-code/extending)):
+
+```json
+{"schema_version": 1,
+ "mcp_servers": {"fieldnotes": {"transport": "stdio", "command": "/path/to/fieldnotes/.venv/bin/fieldnotes",
+                                "args": ["--root", "/path/to/myfarm", "mcp"], "mode": "optional"}}}
+```
+
+`fieldnotes mcp --http` serves the same tools over Streamable HTTP on port 8551 (`http://<this machine>:8551/mcp`), for an AI on another machine in the house. It has no sign-in, like the phone app: keep it on the home network.
+
+`fieldnotes timeline uncut` prints the same day-by-day view as the `timeline` tool.
+
 ## Licence
 
 AGPL-3.0-or-later.

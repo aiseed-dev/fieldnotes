@@ -201,15 +201,27 @@ def file_voice(src: Path, field: str, day: date, root: Path, backend: Backend | 
         dest = dest_dir / f"{now:%H%M%S}-voice-{n}{suffix}"
     src.replace(dest)
 
+    text = transcriber(data, vocabulary(field, root / "records"), language())
+    return text, file_text(text, field, day, root, backend, source=dest.name, heard_by=MODEL)
+
+
+def file_text(text: str, field: str, day: date, root: Path, backend: Backend | None = None, *,
+              source: str = "", heard_by: str = "") -> list[Observation]:
+    """What the farmer said, already written down (by Muse Voice Transcribe, or
+    by the farmer's own AI through MCP), into the day's record: word for word
+    under the farmer note, sorted into work / seen / verdicts. Returns what changed."""
+    if not photo_place(field):
+        raise ValueError(f"bad field name {field!r}")
     records = root / "records"
-    text = transcriber(data, vocabulary(field, records), language())
     path = Record.path_for(records, field, day.isoformat())
     rec = Record.load(records, field, day.isoformat()) if path.exists() else Record(field=field, date=day.isoformat())
-    rec.farmer_note = "\n".join(x for x in (rec.farmer_note, f"{now:%H:%M} {_one_line(text)} ({dest.name})") if x)
-    rec.note_model, rec.note_language = MODEL, rec.note_language or language()
+    line = f"{datetime.now():%H:%M} {_one_line(text)}" + (f" ({source})" if source else "")
+    rec.farmer_note = "\n".join(x for x in (rec.farmer_note, line) if x)
+    rec.note_model = heard_by or rec.note_model
+    rec.note_language = rec.note_language or language()
     changed = []
-    if text:
+    if _one_line(text):
         backend = backend or Backend.default()
         changed = apply(rec, sort_speech(text, rec, backend), backend.name)
     rec.save(records)
-    return text, changed
+    return changed
