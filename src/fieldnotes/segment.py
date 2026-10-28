@@ -19,7 +19,6 @@ from __future__ import annotations
 
 import asyncio
 import base64
-import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -33,6 +32,8 @@ from meta_sam_parser import (
 )
 from openai import AsyncOpenAI
 from PIL import Image, ImageOps
+
+from .llm import api_key
 
 MODEL = "sam-3.1"
 BASE_URL = "https://api.meta.ai/v1"
@@ -93,7 +94,7 @@ def load_image_as_data_url(path: Path, max_side: int = 2048) -> tuple[str, int, 
 
 
 def _client() -> AsyncOpenAI:
-    return AsyncOpenAI(base_url=BASE_URL, api_key=os.environ["MODEL_API_KEY"])
+    return AsyncOpenAI(base_url=BASE_URL, api_key=api_key())
 
 
 async def _segment_one(client: AsyncOpenAI, concept: str, image_url: str, width: int, height: int,

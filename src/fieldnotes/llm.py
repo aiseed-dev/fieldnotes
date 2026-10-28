@@ -10,8 +10,22 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import dataclass
+from pathlib import Path
 
 from openai import OpenAI
+
+
+def api_key() -> str:
+    """The Meta Model API key: $MODEL_API_KEY if set, else the file
+    $XDG_CONFIG_HOME/fieldnotes/model_api_key (default ~/.config/...),
+    which should be readable only by the user (chmod 600)."""
+    if os.environ.get("MODEL_API_KEY"):
+        return os.environ["MODEL_API_KEY"]
+    config = Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config")
+    p = config / "fieldnotes" / "model_api_key"
+    if p.exists():
+        return p.read_text(encoding="utf-8").strip()
+    raise RuntimeError(f"no Meta Model API key: set MODEL_API_KEY or write it to {p}")
 
 
 @dataclass
@@ -23,7 +37,7 @@ class Backend:
 
     @classmethod
     def spark(cls) -> "Backend":
-        return cls("muse-spark-1.3", "https://api.meta.ai/v1", "muse-spark-1.3", os.environ["MODEL_API_KEY"])
+        return cls("muse-spark-1.3", "https://api.meta.ai/v1", "muse-spark-1.3", api_key())
 
     @classmethod
     def glimmer(cls, host: str = "192.168.100.6", model: str = "muse-glimmer") -> "Backend":

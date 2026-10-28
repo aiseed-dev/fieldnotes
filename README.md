@@ -49,7 +49,8 @@ Everything in this repository: `src/fieldnotes/` (segment, describe, verify, rec
 
 ```bash
 python -m venv .venv && .venv/bin/pip install -e .
-export MODEL_API_KEY=...        # from dev.meta.ai → API keys
+# Meta Model API key (dev.meta.ai → API keys): either set MODEL_API_KEY,
+# or keep it in ~/.config/fieldnotes/model_api_key (chmod 600), which is read when the variable is unset.
 ```
 
 (CLI and daily pipeline: see `docs/design.md` while this is under construction.)
