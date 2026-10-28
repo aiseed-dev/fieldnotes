@@ -10,6 +10,8 @@ dependencies = [
   "pillow",
   "numpy",
   "pyyaml",
+  "pillow-heif",
+  "flet[all]==1.0.5",
 ]
 
 [build-system]

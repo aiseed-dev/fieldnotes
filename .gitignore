@@ -4,3 +4,5 @@ __pycache__/
 .env
 # raw phone photos are large; aligned copies and overlays are kept
 photos/**/*.HEIC
+# phone uploads land here before being filed into photos/
+uploads/
