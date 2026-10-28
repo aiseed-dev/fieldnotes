@@ -1,6 +1,6 @@
 # Tasks for Muse Code
 
-Muse Code (Meta's terminal coding agent) runs in a terminal in this repository (`muse`), next to the Claude Code sessions. It has two jobs: to build the part closest to Meta's own API, and to check the code that the other agents wrote. Every commit it makes says so in its message (`Written with Muse Code`), so the README can show which parts it did.
+Muse Code (Meta's terminal coding agent) runs in a terminal in this repository (`muse`), next to the Claude Code sessions. It has two jobs: to build the part closest to Meta's own API, and to check the code that the other agents wrote. Every commit it makes says so in its message (`Written with Muse Code`), so the README can show which parts it did. **The README claims Muse Code's work only for commits that carry that line.**
 
 Start it from the repository root:
 
@@ -10,7 +10,9 @@ cd ~/dev/fieldnotes && muse
 
 Then paste one of the tasks below.
 
-## Task 1: voice (WP2)
+## Task 1: voice (WP2) — done by the Claude Opus session instead
+
+Muse Code was not running on 2026-10-29, so the Opus session implemented `voice.py` (commit 6ac6d09, no `Written with Muse Code` line). The task below is kept for the record; do not run it again.
 
 ```
 Read docs/implementation.md (rules, and the "Voice (WP2)" section). Implement src/fieldnotes/voice.py:
@@ -22,10 +24,10 @@ Add offline pytest tests (fake HTTP). Then one real call on a short Japanese WAV
 Commit on a new branch named muse/voice, message ending with "Written with Muse Code". Do not push.
 ```
 
-## Task 2: check the code (review only)
+## Task 2: check the code (review only) — open, by 11-02
 
 ```
-Review src/fieldnotes/pipeline.py, cli.py, app.py, appdata.py, concepts.py and records.py against
+Review src/fieldnotes/pipeline.py, cli.py, app.py, appdata.py, concepts.py, records.py and voice.py against
 docs/implementation.md. Look for real bugs: wrong file paths, lost farmer verdicts on re-run, lines marked
 on the wrong record, crashes on empty or missing files, the API key leaking into logs, and blocking calls
 in the Flet UI thread. Do not change code. Write the findings, most serious first, each with file:line and a
