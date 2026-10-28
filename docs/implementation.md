@@ -203,8 +203,8 @@ The farmer and the buyer use the AI they already have. fieldnotes serves its fun
 | 5 | native capture app | – | – | **dropped** |
 | 6 | real runs on the farmer's photos daily; SAM nouns and prompts tuned; second farm (Niihama) from `init`; Glimmer language checked | 1 | Opus + farmer | daily to 11-02 |
 | 7 | timeline, README, demo script | 1, 6, 8, 9 | Opus (timeline) / planning session (README, demo.md) | 11-01 – 11-02 |
-| 8 | cut proposal | 1 | Opus | **10-29** |
-| 9a | MCP server for the farmer's own AI: `fields`, `read`, `observe`, `say`, `mark`, `propose`, `timeline`, `site`; README "From your own AI" | 1, 2, 8 | Opus | 10-30 – 10-31 |
+| 8 | cut proposal | 1 | Opus | done, cf490d7 (real run: `sample/records/_proposals/uncut/2026-10-29-cut.md`; the farmer's ✓/✗ and the cut follow on 10-30) |
+| 9a | MCP server for the farmer's own AI: `fields`, `read`, `observe`, `say`, `mark`, `propose`, `timeline`, `site`; README "From your own AI" | 1, 2, 8 | Opus | started 10-29 |
 | 9b | `export`, `--buyer` (selling) | 9a | Opus | **held**: Claude hackathon, else 11-02 |
 | – | Muse Code review (docs/muse-code.md Task 2) | – | farmer runs `muse` | by 11-02 |
 
