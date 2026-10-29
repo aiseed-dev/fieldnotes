@@ -205,6 +205,25 @@ The farmer and the buyer use the AI they already have. fieldnotes serves its fun
 - Real check: `claude mcp add fieldnotes -- <abs>/.venv/bin/fieldnotes --root <abs>/sample mcp`, then ask Claude Code to list the fields and read `uncut` (for 9b later: a `--buyer` run that asks "was fertiliser used?"). README section "From your own AI" with the config for Claude Desktop (`claude_desktop_config.json`), Claude Code and Muse Code. Muse Code takes MCP servers (dev.meta.ai, muse-code/extending): `mcp_servers` in `~/.config/muse/settings.json` (`"schema_version": 1`), transport `stdio` (command, args, env) or `streamable_http` (url, headers), plus `enabled` and `mode`.
 - Done: tests pass, the real check with Claude Code done once, README section, committed.
 
+## WP10: lookup, Japanese primary data (GSI) — 2026-10-30
+
+**Why.** `lookup` feeds `site_background`, which every reading and the cut proposal rest on. For the second farm (新居浜市萩生, 33.9124, 133.2641) the world sources failed: the GSJ seamless geology API was in maintenance, Macrostrat answered "intrusive rock" (wrong: it is the Izumi Group, Tsutsumi et al. 2003), SoilGrids had no value. Opus's test on 10-30 (coordinates only, before any photo; answers scored against primary sources) showed that both models guess the soil wrong, Opus with confident names, Muse with cautious emptiness, and that five items settle the place, all fetchable from the coordinates alone. Better data in `lookup` improves both readers directly, and it is the product's line: a specialist source, not the general model's guess.
+
+**Scope, Japan only (`site.country == "JP"`), four sources, each a `data` line in `records/lookup.md` with its source URL and the raw answer kept as `records/lookup/<key>.json`, in the form the existing lines use (`- \`data\` ... — 国土地理院 <API or tile>, <url>`):**
+
+1. `address_jp`: 国土地理院 reverse geocoder → the 大字 (e.g. 萩生). New section "Place", first.
+2. `elevation_jp`: 国土地理院 標高API → elevation (1 m laser DEM where it exists; the answer says which DEM). Keep the Open-Meteo line too; two lines, two sources.
+3. `landform_jp`: 国土地理院 vector tile 地形分類 (`experimental_landformclassification1`, z14 GeoJSON) → the class of the polygon the point falls in (e.g. 台地・段丘, 更新世段丘). Point-in-polygon; fetch the neighbouring tiles when the point is near a tile edge.
+4. `hazard_jp`: 国土地理院 活断層図 tiles (afm) and ハザードマップポータル tiles (disaportaldata): distance and direction to the nearest active fault line, and to the nearest 土砂災害警戒区域 and 洪水浸水想定区域, with "the field is inside / outside" said plainly. New section "Faults and hazards". The nearest fault's name when the data carries it.
+
+Not in this package: 5, the 農研機構 日本土壌インベントリー (no point API; whether tiles or a download serve it is unknown). Write what was found about how to fetch it in the commit, and leave a `hypothesis` line in lookup.md naming the source so the farmer can check the map by hand. No change to non-Japan lookups, to weather, or to the reading prompts: `site_background` already takes every `data` line of lookup.md, so the readers get these without code.
+
+**Rules.** A source that is down gives the existing "(not reached on <date>...)" line, never an exception out of `lookup`; timeouts short (10 s) so a slow tile server does not stall `init`. Attribution as the terms require: 国土地理院 content with 「出典：国土地理院」 (and the API or tile name), hazard portal tiles with 「出典：ハザードマップポータルサイト」; one line in the README's data-sources list each. Distances in m under 1 km, km above.
+
+**Tests, offline:** fixtures recorded from the real answers of 10-30 for the Niihama point (address 萩生, elevation 97.1 m, landform 台地・段丘, 石鎚断層 ~200 m S, 岡村断層 ~1.1 km N, 土石流警戒区域 154 m, 洪水浸水想定 298 m, both outside); point-in-polygon and nearest-line distance checked on those fixtures, including a point near a tile edge; a down source. Then one real run on `sample` (Ishii) and one on the Niihama farm; commit `sample/records/lookup.md` and the raw JSON with the run noted in the commit.
+
+**Budget and order.** Half a day. Today (10-30) in the idle time, after whatever comes first: the farmer's ✓/✗ on the cut proposal, and the real-voice check and `init` of the second farm when the Niihama recordings and photos arrive. Hard stop: the evening of 10-31. Before WP7 (which is mostly the planner's docs). The Glimmer language fix stays on 11-02; 9b is decided by the farmer today.
+
 ## WP7: the demo — timeline, README, script
 
 - `timeline.py` (minimal form done in 2a07572, tests in ef2cbf3): `timeline(field, records_root, photo_root, since=None) -> str`, Markdown, one block per date (oldest first): the photos (relative paths), weather in one line, the `overall` line with its verdict, the `work` and `seen` lines, the count of ✓ / ✗, any proposal of that day (its `summary` line and verdict). CLI `fieldnotes timeline <field> [--since DATE]`. The MCP `timeline` tool calls the same function. An app view only if time remains.
@@ -225,6 +244,7 @@ The farmer and the buyer use the AI they already have. fieldnotes serves its fun
 | 8 | cut proposal | 1 | Opus | done, cf490d7, basis per plant 1b22108 (real run: `sample/records/_proposals/uncut/2026-10-29-cut.md`; the farmer's ✓/✗ and the cut follow on 10-30) |
 | 9a | MCP server for the farmer's own AI: `fields`, `read`, `observe`, `say`, `mark`, `propose`, `timeline`, `site`; README "From your own AI" | 1, 2, 8 | Opus | done, 2a07572 (real: stdio and `--http` with the SDK client; a Claude Code session itself still needs the farmer's sign-in) |
 | 9b | `export`, `--buyer` (selling) | 9a | Opus | **held**: Claude hackathon, else 11-02 |
+| 10 | `lookup` for Japan: 国土地理院 address, 1 m elevation, landform class, fault and hazard distances; NARO soil deferred | 1 | Opus | 10-30 – 10-31 (brief above) |
 | – | Muse Code review (docs/muse-code.md Task 2) | – | farmer runs `muse` | by 11-02 |
 
 Done for each package means: tests pass offline, one short real run when the package calls the API, the README section updated, and the work committed on main (or a branch) with a summary of what was and was not verified.
@@ -234,8 +254,8 @@ Done for each package means: tests pass offline, one short real run when the pac
 | Day | Implementation (Opus) | Farmer |
 |---|---|---|
 | 10-29 Thu | WP8 cut proposal, tests, one real run on `uncut` | Niihama farm visit: photos, voice notes (the first real Japanese recording), three questions (who advises you, how do you sell, what would you pay to have solved). Evening on the LAN: `init` the second farm, send, `observe`, `voice` |
-| 10-30 Fri | WP9 MCP server | morning: `fieldnotes propose uncut --cut` on the new photos; cut, or reject with a reason; daily photos |
-| 10-31 Sat | WP9a: `say`, README "From your own AI", real check with Claude Code | cut if not yet; photos of the cut plot |
+| 10-30 Fri | real-voice check and second farm `init` when the Niihama recordings arrive; WP10 lookup JP in the idle time | morning: ✓/✗ on the cut proposal; cut, or reject with a reason; a stick of known length in the before photo; daily photos; decide 9b |
+| 10-31 Sat | WP10 done (hard stop in the evening); daily runs | cut if not yet; photos of the cut plot; the 1 m pin pole arrives: mark its spot and the standing spot |
 | 11-01 Sun | WP7 timeline | photos; planning session: `docs/demo.md`, README structure |
 | 11-02 Mon | README final, code tidy, nova's fork checked for parts to merge; WP9b only if selling stays in this hackathon | Muse Code Task 2 review; photos |
 | 11-03 Tue | – | video: field footage, screen recording from the own AI, edit |
