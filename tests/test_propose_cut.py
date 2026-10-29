@@ -39,6 +39,20 @@ def test_basis_says_when_sam_found_nothing():
     assert propose.cover_basis(rec).startswith("Cover measured by SAM 3.1")
 
 
+def test_basis_names_the_plants_sam_did_not_find(tmp_path):
+    from fieldnotes.concepts import Concept, FieldConcepts
+    fc = FieldConcepts.load(tmp_path, FIELD)
+    fc.items += [Concept("silvergrass", "オギ (Miscanthus sacchariflorus)"),
+                 Concept("yellow flower clusters", "セイタカアワダチソウ (Solidago altissima)")]
+    fc.save(tmp_path)
+    rec = Record(FIELD, "2026-10-28", coverage={"silvergrass": 0.0, "yellow flower clusters": 7.2},
+                 observations=[Observation("dominant", "オギ (Miscanthus sacchariflorus) ~60%; "
+                                                       "セイタカアワダチソウ (Solidago altissima) ~30% [0.80]")])
+    basis = propose.cover_basis(rec, tmp_path)
+    assert 'セイタカアワダチソウ (Solidago altissima) by "yellow flower clusters" 7.2%' in basis
+    assert "no phrase for オギ (Miscanthus sacchariflorus): their shares come only from the AI's own reading" in basis
+
+
 def test_parse_cut_keeps_every_line_markable():
     text = json.dumps({"summary": {"text": "Cut the edge.", "confidence": 0.5},
                        "leave": [{"text": "ogi", "confidence": 0.4}, {"text": "the wet corner"}],

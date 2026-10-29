@@ -47,13 +47,16 @@ SHARED = Path("shared/sam_concepts.md")
 # SAM finds plain visible parts ("leaf": 9 in a sown row, 55 in a mixed patch;
 # "flower cluster": 7 goldenrod heads in a head-high stand) but not species
 # names ("goldenrod", "chickweed") nor "seedling", "weed" or "bare soil".
+# On 2026-10-29, 40 phrases on that stand: "yellow flower clusters" 20 heads,
+# "vegetation" one mask over all the plants (92 %); nothing found ogi
+# (grass, reed, plume, silver grass, miscanthus, long leaves ...).
 BASE = [("leaf", "base.leaf"), ("flower cluster", "base.flower"), ("bare soil", "base.soil")]  # targets: ui.py
 SCI = re.compile(r"\(([A-Z][a-z]+ [a-z][a-z-]+)\)")
 
 SYSTEM = """You choose the text prompts for SAM 3.1, a segmentation model, for photos of <FIELD>.
 SAM 3.1 takes ONE short English noun phrase per request and returns every matching object. It cannot take commas, lists, "or", negation, or positions ("left", "behind"). Zero matches is a normal answer.
 For each plant given, propose the single noun phrase most likely to make SAM find that plant in a field photo.
-What works: plain names of a visible part or shape that SAM can outline one by one ("leaf", "flower cluster", "seed head", "grass blade", "clover leaf"). What fails on these photos: species names ("goldenrod", "chickweed"), and words for a mass rather than objects ("weed", "grass", "seedling"). So describe what the plant looks like in the photo, not what it is called.
+What works: plain names of a visible part or shape that SAM can outline one by one, with its colour when that sets it apart, plural ("yellow flower clusters" found 20 goldenrod heads in a head-high stand where "goldenrod" found none; "leaf", "flower cluster"). What fails on these photos: species names ("goldenrod", "silvergrass", "miscanthus"), and words for a mass rather than objects ("weed", "grass", "tall grass", "seedling", "plants"). So describe what the plant looks like in the photo, not what it is called.
 Do not reuse any phrase the farmer marked wrong.
 Answer with JSON only: [{"scientific": as given, "noun": the phrase, "confidence": 0-1}]."""
 

@@ -31,7 +31,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from .concepts import BASE
+from .concepts import BASE, FieldConcepts
 from .describe import site_background
 from .llm import Backend, chat, conf, in_language, json_value
 from .plants import notes_for_prompt, species_in
@@ -180,22 +180,31 @@ Answer with JSON only:
 CUT_LINES = ("summary", "basis", "where", "height", "leave", "method", "watch", "cautions")
 
 
-def cover_basis(latest: Record) -> str:
-    """The cover of the plot and where it comes from. SAM's shares when it found
-    any of the plants; otherwise say plainly that the shares are the AI's own
-    reading of the photos (the dominant line)."""
+def cover_basis(latest: Record, records_root: Path | None = None) -> str:
+    """The cover of the plot and where it comes from: per plant, SAM's share
+    when one of its phrases found it, else say plainly that the share is the
+    AI's own reading of the photos (the dominant line)."""
     base = {noun for noun, _ in BASE}
-    plants = {k: v for k, v in latest.coverage.items() if k not in base}
     sam = ", ".join(f"{k} {v}%" for k, v in latest.coverage.items()) or "none"
     dominant = "; ".join(o.text for o in latest.observations if o.key == "dominant") or "not given"
-    if any(v > 0 for v in plants.values()):
-        return f"Cover measured by SAM 3.1 on {latest.date} (% of the photo): {sam}."
-    return (f"SAM 3.1 found none of the plants on {latest.date} ({sam}), so there is no measured cover. "
-            f"The shares come only from the AI's own reading of the photos: {dominant}. Say so in basis.")
+    found = {k: v for k, v in latest.coverage.items() if k not in base and v > 0}
+    if not found:
+        return (f"SAM 3.1 found none of the plants on {latest.date} ({sam}), so there is no measured cover. "
+                f"The shares come only from the AI's own reading of the photos: {dominant}. Say so in basis.")
+    targets = {c.noun: c.target for c in FieldConcepts.load(records_root, latest.field).items} if records_root else {}
+    measured = "; ".join(f'{targets.get(k, k)} by "{k}" {v}%' for k, v in found.items())
+    out = (f"Cover measured by SAM 3.1 on {latest.date} (% of the photo each phrase outlined): {sam}. "
+           f"Found: {measured}. A phrase for a part (flowers, leaves) measures that part, not the plant's whole share.")
+    unmeasured = [f"{n} ({s})" for n, s in species_in([o for o in latest.observations if o.key == "dominant"])
+                  if not any(s in targets.get(k, "") for k in found)]
+    if targets and unmeasured:
+        out += (f" SAM found no phrase for {', '.join(unmeasured)}: their shares come only from the AI's own "
+                f"reading of the photos: {dominant}.")
+    return out + " Say in basis which numbers SAM measured and which are the AI's reading."
 
 
 def build_cut_messages(latest: Record, date: str, records_root: Path, earlier: list[Proposal] = ()) -> list[dict]:
-    parts = _context(latest, date, records_root) + [cover_basis(latest)] + _wrong_part(earlier)
+    parts = _context(latest, date, records_root) + [cover_basis(latest, records_root)] + _wrong_part(earlier)
     parts.append("Where should the farmer cut first, and how high? JSON only.")
     return _messages(CUT_SYSTEM, parts, records_root)
 

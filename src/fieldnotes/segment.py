@@ -167,10 +167,12 @@ def save_overlay(result: SegmentResult, out: Path, colours: dict[str, tuple[int,
     base = np.asarray(im).astype(np.float32)
     palette = colours or {}
     default = [(220, 40, 40), (40, 160, 40), (40, 80, 220), (220, 160, 40), (160, 40, 200)]
-    for i, (name, c) in enumerate(result.concepts.items()):
+    colour = {name: palette.get(name, default[i % len(default)]) for i, name in enumerate(result.concepts)}
+    # largest first, so small objects (flower heads) stay visible on a mask that covers the whole field
+    for name, c in sorted(result.concepts.items(), key=lambda kv: -kv[1].coverage):
         if c.union is None or not c.union.any():
             continue
-        rgb = np.array(palette.get(name, default[i % len(default)]), dtype=np.float32)
+        rgb = np.array(colour[name], dtype=np.float32)
         m = c.union.astype(bool)
         base[m] = base[m] * 0.5 + rgb * 0.5
     out.parent.mkdir(parents=True, exist_ok=True)
