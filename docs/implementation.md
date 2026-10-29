@@ -172,7 +172,7 @@ Reuse `propose.py` as it is shaped: `Proposal` already has `kind` and `path_for(
 - Marking: `propose.mark(records_root, field, date, kind, key, verdict, reason=None) -> Observation`; CLI `fieldnotes mark <field> <date> <key> right|wrong [reason] --proposal cut|cover_crop`. The farmer's ✗ with a reason is the record of a rejected proposal.
 - CLI: `fieldnotes propose <field> --cut` (prints the proposal; `--seeds` stays for the cover crop). `fieldnotes show` is unchanged.
 - Tests (offline): add a `cut` kind to `FakeModel` (match `propose.CUT_SYSTEM`), check path and front matter, `parse_cut`, the basis sentence when SAM shares are 0 vs. when they are not, the wrong-marked earlier cut point excluded, and `propose.mark` on a proposal line. One real run on `sample` `uncut` (the 10-28 record, or 10-29's if the photos arrive); commit the proposal file with the run noted in the commit.
-- WP6 companion: retry SAM nouns for `uncut` on the next photos (`fieldnotes concept uncut goldenrod wrong "no match" --replace "yellow flowers"`, "tall grass", ...), so the basis can become SAM later.
+- WP6 companion, done 10-29 (1b22108): 40 phrases tried on the 10-28 uncut photo. "yellow flower clusters" outlines the goldenrod heads (7.2 %), "vegetation" one mask over all plants (91.8 %); no phrase finds ogi (grass, reed, plume, silver grass, miscanthus, long leaves ...). Both added to uncut's nouns, the record re-measured (AI lines unchanged), the noun prompt told what worked. The basis line now says per plant what SAM measured and which shares are only the AI's reading; the proposal was re-run. Still open: a phrase for ogi, to try on the next photos.
 - Done: tests pass, `sample/records/_proposals/uncut/<date>-cut.md` exists from a real run, README "Daily use" gets the two lines, committed. Then the farmer cuts.
 
 ## WP9: connect from your own AI (MCP server)
@@ -218,9 +218,9 @@ The farmer and the buyer use the AI they already have. fieldnotes serves its fun
 | 3 | app views 読む, 名詞 | 1 | Sonnet session | done |
 | 4 | voice in the app (声を送る / 声で答える) | 2, 3 | Opus | done, 6ac6d09 |
 | 5 | native capture app | – | – | **dropped** |
-| 6 | real runs on the farmer's photos daily; SAM nouns and prompts tuned; second farm (Niihama) from `init`; Glimmer language checked (10-29: still English, fix queued) | 1 | Opus + farmer | daily to 11-02 |
+| 6 | real runs on the farmer's photos daily; SAM nouns and prompts tuned (10-29, 1b22108: goldenrod found by "yellow flower clusters", ogi by nothing yet); second farm (Niihama) from `init`; Glimmer language checked (10-29: still English, fix queued) | 1 | Opus + farmer | daily to 11-02 |
 | 7 | timeline, README, demo script | 1, 6, 8, 9 | Opus (timeline) / planning session (README, demo.md) | 11-01 – 11-02 |
-| 8 | cut proposal | 1 | Opus | done, cf490d7 (real run: `sample/records/_proposals/uncut/2026-10-29-cut.md`; the farmer's ✓/✗ and the cut follow on 10-30) |
+| 8 | cut proposal | 1 | Opus | done, cf490d7, basis per plant 1b22108 (real run: `sample/records/_proposals/uncut/2026-10-29-cut.md`; the farmer's ✓/✗ and the cut follow on 10-30) |
 | 9a | MCP server for the farmer's own AI: `fields`, `read`, `observe`, `say`, `mark`, `propose`, `timeline`, `site`; README "From your own AI" | 1, 2, 8 | Opus | done, 2a07572 (real: stdio and `--http` with the SDK client; a Claude Code session itself still needs the farmer's sign-in) |
 | 9b | `export`, `--buyer` (selling) | 9a | Opus | **held**: Claude hackathon, else 11-02 |
 | – | Muse Code review (docs/muse-code.md Task 2) | – | farmer runs `muse` | by 11-02 |
