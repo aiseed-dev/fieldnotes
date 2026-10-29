@@ -35,7 +35,7 @@ How members get in (checked 2026-10-29 on support.claude.com): the admin invites
 
 Nothing here changes what is built by 11-05. Checks that wait until after the deadline: Anthropic's commercial terms (effective 2025-06-17) let a Customer offer the Services to its own "Users" (A.1) but forbid reselling them "except as expressly approved by Anthropic" (D.4(a)), so ask Anthropic before the first box goes out; whether a custom desktop extension (`fieldnotes mcp`, stdio) uploaded by the Team admin reaches every member's Claude Desktop (the help article says owners manage which extensions members can use and can upload custom ones); Team prices in Japan.
 
-**Scope decision (the farmer, 2026-10-29):** what matters most is selling the produce. This Meta hackathon goes as far as **production**: read the field, propose, cut, record, verify. **Selling** (a buyer's AI reading the records) goes to a Claude hackathon if the farmer can enter one; if not, it is squeezed into the end of this one (11-02). So WP9a (the farmer's own AI connecting) is in; WP9b (`export`, `--buyer`) is **held** until that is decided.
+**Scope decision (the farmer, 2026-10-29):** what matters most is selling the produce. This Meta hackathon goes as far as **production**: read the field, propose, cut, record, verify. **Selling** (a buyer's AI reading the records) goes to a Claude hackathon if the farmer can enter one; if not, it is squeezed into the end of this one (11-02). So WP9a (the farmer's own AI connecting) is in; WP9b (`export`, `--buyer`) is **held** until that is decided (the farmer decides on 10-30).
 
 ## Rules for every package
 
