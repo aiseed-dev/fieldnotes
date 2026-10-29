@@ -18,6 +18,21 @@ So fieldnotes is **a back-office service that reads a field**, not a chat. Speci
 
 Nine days show the start of a result, not a sale. Nothing in the README or the demo claims more.
 
+### How it is paid for (the farmer, 2026-10-29, on the train)
+
+> To be used it has to be free. The question is how to cover the running costs under that. And something that sells still has to be made.
+
+The line runs where a server is needed.
+
+- **Free, to be used:** the software in the public repository, run at the farmer's home, records as plain text there, the Meta API key the farmer's own (they pay Meta for what they use; the house Glimmer costs nothing per call). We run no server, so there is no running cost to cover. The design makes the free layer free.
+- **Paid, to cover the running costs (hypotheses, written as such in the README):**
+  1. **The buyer's window:** a public, read-only, HTTPS endpoint where a buyer's AI reads one farm's records (`--buyer`). A domain and a host; a small monthly fee per farm; the reason to pay is selling produce with a record. This is the second half of WP9b and needs hosting; a box at home sits behind NAT and cannot serve it.
+  2. **A box with support:** a PC with fieldnotes and Claude set up, rented with support. Support is the product (an answer for the farmer who has no advisor); the PC is how it is delivered without touching the farmer's own computer. Records stay in the farmer's house and leave with them when they stop. The phone stays the camera, over the LAN as now; Claude Desktop connects to `fieldnotes mcp` inside the same box, so no server, HTTPS or domain is needed. **Decision (the farmer, 2026-10-29): Claude on a Team plan.** The renter's organisation is the admin; each farm is one named seat; the seat is passed through at cost, the API at cost. Checked 2026-10-29 on claude.com/pricing and the Team plan help article: Standard seat $25 per member per month billed monthly ($20 annual), minimum two members, up to 150, "each seat is for one named individual", "admin controls for remote and local connectors", the desktop app and desktop extensions listed for Team, no training on content by default; US prices, may differ by region. Hardware: SAM and Spark through the API need only a cheap mini PC; running Glimmer in the box needs a large machine and is slow (212 s per photo on `halo`). The limit of this business is support time, which grows with the number of farms and competes with time in the field.
+  3. **A cut report:** the WP8 proposal as a one-off paid report to owners of abandoned plots and municipalities.
+- **What sells, for the farmer themselves:** produce with a record. The buyer's window is what makes the record believable.
+
+Nothing here changes what is built by 11-05. Checks that wait until after the deadline: Anthropic's commercial terms (effective 2025-06-17) let a Customer offer the Services to its own "Users" (A.1) but forbid reselling them "except as expressly approved by Anthropic" (D.4(a)), so ask Anthropic before the first box goes out; whether a custom desktop extension (`fieldnotes mcp`, stdio) uploaded by the Team admin reaches every member's Claude Desktop (the help article says owners manage which extensions members can use and can upload custom ones); Team prices in Japan.
+
 **Scope decision (the farmer, 2026-10-29):** what matters most is selling the produce. This Meta hackathon goes as far as **production**: read the field, propose, cut, record, verify. **Selling** (a buyer's AI reading the records) goes to a Claude hackathon if the farmer can enter one; if not, it is squeezed into the end of this one (11-02). So WP9a (the farmer's own AI connecting) is in; WP9b (`export`, `--buyer`) is **held** until that is decided.
 
 ## Rules for every package
