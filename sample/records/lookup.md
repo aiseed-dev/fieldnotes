@@ -28,7 +28,7 @@ places with a name near the farm, worth reading about. Mark or correct them like
 
 ## Faults and hazards
 
-- `data` Active faults: nearest fault line 3.1 km SW (searched 4.1 km round; the map tiles carry no fault names). — 出典：国土地理院 活断層図（都市圏活断層図）, https://cyberjapandata.gsi.go.jp/xyz/afm/{z}/{x}/{y}.png
+- `data` Active faults: nearest fault line 3.1 km SW (an estimate: red lines read by colour from the map image, searched 4.1 km round; the tiles carry no fault names). — 出典：国土地理院 活断層図（都市圏活断層図）, https://cyberjapandata.gsi.go.jp/xyz/afm/{z}/{x}/{y}.png
 - `data` 土砂災害警戒区域: the field is outside; none within 1.0 km. — 出典：ハザードマップポータルサイト, https://disaportaldata.gsi.go.jp/raster/05_dosekiryukeikaikuiki/{z}/{x}/{y}.png
 - `data` 洪水浸水想定区域: the field is INSIDE one (想定最大規模). — 出典：ハザードマップポータルサイト, https://disaportaldata.gsi.go.jp/raster/01_flood_l2_shinsuishin_data/{z}/{x}/{y}.png
 

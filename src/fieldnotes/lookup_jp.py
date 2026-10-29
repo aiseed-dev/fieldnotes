@@ -293,7 +293,7 @@ def faults(site: Site):
     said = f"nearest fault line {distance(hits[0][0])} {hits[0][1]}"
     if len(hits) > 1:
         said += f"; on the other side {distance(hits[1][0])} {hits[1][1]}"
-    return [f"- `data` Active faults: {said} (searched {reach} round; the map tiles carry no fault names). {src}"], raw
+    return [f"- `data` Active faults: {said} (an estimate: red lines read by colour from the map image, searched {reach} round; the tiles carry no fault names). {src}"], raw
 
 
 def _zone(site: Site, layers: list[tuple[str, str]], what: str):

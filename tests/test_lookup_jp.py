@@ -131,4 +131,4 @@ def test_no_fault_close_by_looks_wider(monkeypatch):
     monkeypatch.setattr(lookup_jp, "get_bytes", lambda url: png(line) if url.endswith(north) else png(blank))
     lines, raw = lookup_jp.faults(NIIHAMA)
     assert [s["zoom"] for s in raw["searched"]] == [15, 14]
-    assert "nearest fault line" in lines[0] and "3.1 km N (searched 4.1 km round" in lines[0]
+    assert "nearest fault line" in lines[0] and "3.1 km N (an estimate: red lines read by colour from the map image, searched 4.1 km round" in lines[0]
