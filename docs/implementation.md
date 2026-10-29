@@ -207,6 +207,8 @@ The farmer and the buyer use the AI they already have. fieldnotes serves its fun
 
 ## WP10: lookup, Japanese primary data (GSI) — 2026-10-30
 
+**Done 2026-10-30, ba2615b** (`lookup_jp.py`, `tests/test_lookup_jp.py` with recorded fixtures, 78 tests). Departures from the brief, accepted: faults are their own key `faults_jp` so the 活断層図 and the hazard portal fail independently; the 活断層図 tiles are a scanned raster without names, so the red lines are found by colour (nearest line, and the nearest on the other side; 2 km at z15, else 4 km at z14; the line says how far was searched); the landform raw JSON keeps only the polygon the point falls in. Real runs: Ishii (高川原, 7 m on the 1 m laser DEM, 氾濫平野, nearest fault 3.1 km SW, outside the 土砂災害警戒区域, **inside** the 洪水浸水想定区域 at 想定最大規模) and Niihama (萩生, 97.1 m, 更新世段丘, faults 210 m S and 1.1 km N, both zones outside; matches the hand check). GSJ seamless still in maintenance. README lists both 出典 lines. The Niihama farm folder exists only in Opus's scratchpad until the farmer says where it lives (outside the public repo unless the owner allows publication).
+
 **Why.** `lookup` feeds `site_background`, which every reading and the cut proposal rest on. For the second farm (新居浜市萩生, 33.9124, 133.2641) the world sources failed: the GSJ seamless geology API was in maintenance, Macrostrat answered "intrusive rock" (wrong: it is the Izumi Group, Tsutsumi et al. 2003), SoilGrids had no value. Opus's test on 10-30 (coordinates only, before any photo; answers scored against primary sources) showed that both models guess the soil wrong, Opus with confident names, Muse with cautious emptiness, and that five items settle the place, all fetchable from the coordinates alone. Better data in `lookup` improves both readers directly, and it is the product's line: a specialist source, not the general model's guess.
 
 **Scope, Japan only (`site.country == "JP"`), four sources, each a `data` line in `records/lookup.md` with its source URL and the raw answer kept as `records/lookup/<key>.json`, in the form the existing lines use (`- \`data\` ... — 国土地理院 <API or tile>, <url>`):**
@@ -244,7 +246,7 @@ Not in this package: 5, the 農研機構 日本土壌インベントリー (no p
 | 8 | cut proposal | 1 | Opus | done, cf490d7, basis per plant 1b22108 (real run: `sample/records/_proposals/uncut/2026-10-29-cut.md`; the farmer's ✓/✗ and the cut follow on 10-30) |
 | 9a | MCP server for the farmer's own AI: `fields`, `read`, `observe`, `say`, `mark`, `propose`, `timeline`, `site`; README "From your own AI" | 1, 2, 8 | Opus | done, 2a07572 (real: stdio and `--http` with the SDK client; a Claude Code session itself still needs the farmer's sign-in) |
 | 9b | `export`, `--buyer` (selling) | 9a | Opus | **held**: Claude hackathon, else 11-02 |
-| 10 | `lookup` for Japan: 国土地理院 address, 1 m elevation, landform class, fault and hazard distances; NARO soil deferred | 1 | Opus | 10-30 – 10-31 (brief above) |
+| 10 | `lookup` for Japan: 国土地理院 address, 1 m elevation, landform class, fault and hazard distances; NARO soil deferred | 1 | Opus | done, ba2615b (real runs: Ishii and Niihama; 78 tests) |
 | – | Muse Code review (docs/muse-code.md Task 2) | – | farmer runs `muse` | by 11-02 |
 
 Done for each package means: tests pass offline, one short real run when the package calls the API, the README section updated, and the work committed on main (or a branch) with a summary of what was and was not verified.
