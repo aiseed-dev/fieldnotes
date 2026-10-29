@@ -11,6 +11,8 @@ tell where every line came from:
                 and, in Japan, the GSJ 20万分の1日本シームレス地質図 V2 legend API
     soil        ISRIC SoilGrids 2.0 (pH, organic carbon, clay, sand; 250 m model;
                 no value where the map is masked, e.g. built-up land)
+    Japan       国土地理院 (address, 1 m elevation, landform, active faults) and the
+                ハザードマップポータルサイト (sediment-disaster and flood zones): lookup_jp.py
     history     Wikipedia articles with coordinates near the farm (in the
                 country's language) and OpenStreetMap features tagged
                 `historic` (castles, archaeological sites, flood memorials ...)
@@ -35,6 +37,7 @@ import urllib.request
 from datetime import date
 from pathlib import Path
 
+from . import lookup_jp
 from .site import Site
 
 USER_AGENT = "fieldnotes/0.1 (+https://github.com/aiseed-dev/fieldnotes)"
@@ -180,11 +183,18 @@ def history_osm(site: Site):
 
 
 NAMES = {"elevation": "Open-Meteo elevation", "geology": "Macrostrat", "geology_jp": "GSJ シームレス地質図",
-         "soil": "ISRIC SoilGrids", "wikipedia": "Wikipedia", "historic": "OpenStreetMap"}
-SOURCES = {"elevation": elevation, "geology": geology_world, "geology_jp": geology_japan,
-           "soil": soil, "wikipedia": wiki_nearby, "historic": history_osm}
-SECTIONS = [("Terrain", ["elevation"]), ("Geology", ["geology_jp", "geology"]), ("Soil", ["soil"]),
-            ("History and places nearby", ["historic", "wikipedia"])]
+         "soil": "ISRIC SoilGrids", "wikipedia": "Wikipedia", "historic": "OpenStreetMap",
+         "address_jp": "国土地理院 逆ジオコーダ", "elevation_jp": "国土地理院 標高API",
+         "landform_jp": "国土地理院 地形分類", "faults_jp": "国土地理院 活断層図",
+         "hazard_jp": "ハザードマップポータルサイト", "soil_jp": "日本土壌インベントリー"}
+SOURCES = {"address_jp": lookup_jp.address, "elevation_jp": lookup_jp.elevation, "elevation": elevation,
+           "landform_jp": lookup_jp.landform, "geology": geology_world, "geology_jp": geology_japan,
+           "faults_jp": lookup_jp.faults, "hazard_jp": lookup_jp.hazards,
+           "soil": soil, "soil_jp": lookup_jp.soil_hint, "wikipedia": wiki_nearby, "historic": history_osm}
+JAPAN_ONLY = {k for k in SOURCES if k.endswith("_jp")}
+SECTIONS = [("Place", ["address_jp"]), ("Terrain", ["elevation_jp", "elevation", "landform_jp"]),
+            ("Geology", ["geology_jp", "geology"]), ("Faults and hazards", ["faults_jp", "hazard_jp"]),
+            ("Soil", ["soil", "soil_jp"]), ("History and places nearby", ["historic", "wikipedia"])]
 
 
 def lookup(records_root: Path) -> Path:
@@ -197,7 +207,7 @@ def lookup(records_root: Path) -> Path:
     raw_dir.mkdir(parents=True, exist_ok=True)
     got: dict[str, list[str]] = {}
     for key, fn in SOURCES.items():
-        if key == "geology_jp" and site.country != "JP":
+        if key in JAPAN_ONLY and site.country != "JP":
             continue
         try:
             lines, raw = fn(site)

@@ -1,0 +1,72 @@
+{
+ "searched": [
+  {
+   "zoom": 15,
+   "tiles": [
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/15/28619/13078.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/15/28619/13079.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/15/28619/13080.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/15/28619/13081.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/15/28619/13082.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/15/28620/13078.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/15/28620/13079.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/15/28620/13080.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/15/28620/13081.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/15/28620/13082.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/15/28621/13078.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/15/28621/13079.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/15/28621/13080.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/15/28621/13081.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/15/28621/13082.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/15/28622/13078.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/15/28622/13079.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/15/28622/13080.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/15/28622/13081.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/15/28622/13082.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/15/28623/13078.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/15/28623/13079.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/15/28623/13080.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/15/28623/13081.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/15/28623/13082.png"
+   ],
+   "reach_m": 2026
+  },
+  {
+   "zoom": 14,
+   "tiles": [
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/14/14308/6538.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/14/14308/6539.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/14/14308/6540.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/14/14308/6541.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/14/14308/6542.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/14/14309/6538.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/14/14309/6539.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/14/14309/6540.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/14/14309/6541.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/14/14309/6542.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/14/14310/6538.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/14/14310/6539.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/14/14310/6540.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/14/14310/6541.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/14/14310/6542.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/14/14311/6538.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/14/14311/6539.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/14/14311/6540.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/14/14311/6541.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/14/14311/6542.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/14/14312/6538.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/14/14312/6539.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/14/14312/6540.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/14/14312/6541.png",
+    "https://cyberjapandata.gsi.go.jp/xyz/afm/14/14312/6542.png"
+   ],
+   "reach_m": 4052
+  }
+ ],
+ "nearest": [
+  {
+   "m": 3070,
+   "direction": "SW"
+  }
+ ]
+}

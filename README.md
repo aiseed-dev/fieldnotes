@@ -62,7 +62,13 @@ mkdir ~/myfarm && cd ~/myfarm
 fieldnotes init --place "Nakuru, Kenya" --country KE --lat -0.30 --lon 36.07 --climate "highland, two rainy seasons"
 ```
 
-`fieldnotes lookup` then fetches public data for the spot into `records/lookup.md`, each line with its source: elevation, bedrock (Macrostrat; in Japan also the GSJ seamless geological map), soil (ISRIC SoilGrids), and history nearby (Wikipedia articles with coordinates, OpenStreetMap castles, archaeological sites and flood memorials). `fieldnotes search 城 --save` looks for any word near the farm. Then add what you know about the land to `records/site.md` (terrain, soil, history, what works there), each line marked `data`, `record` or `hypothesis`. Hypotheses are things to check, not premises. Maps: Japan gets the GSI aerial photos (now and the 1960s–70s) and landform maps; elsewhere the OpenStreetMap standard map.
+`fieldnotes lookup` then fetches public data for the spot into `records/lookup.md`, each line with its source: elevation, bedrock (Macrostrat; in Japan also the GSJ seamless geological map), soil (ISRIC SoilGrids), and history nearby (Wikipedia articles with coordinates, OpenStreetMap castles, archaeological sites and flood memorials). In Japan it also asks the national sources, which settle what the world maps only guess: the address (大字), the elevation from the 1 m laser DEM, the landform class (段丘, 扇状地, 氾濫平野 ...), the distance and direction to the nearest active fault line, and whether the field is inside a 土砂災害警戒区域 or 洪水浸水想定区域 and how far the nearest one is. The soil type it leaves as a line to check by hand on the 農研機構 日本土壌インベントリー map, which has no point API. `fieldnotes search 城 --save` looks for any word near the farm. Then add what you know about the land to `records/site.md` (terrain, soil, history, what works there), each line marked `data`, `record` or `hypothesis`. Hypotheses are things to check, not premises. Maps: Japan gets the GSI aerial photos (now and the 1960s–70s) and landform maps; elsewhere the OpenStreetMap standard map.
+
+Data sources used by `lookup` (each line in `records/lookup.md` names its own):
+
+* Open-Meteo elevation API (Copernicus DEM); Macrostrat (CC BY 4.0); 産総研 地質調査総合センター シームレス地質図 V2; ISRIC SoilGrids 2.0; Wikipedia; OpenStreetMap (ODbL).
+* 出典：国土地理院（逆ジオコーダ、標高API、ベクトルタイル「地形分類」、活断層図（都市圏活断層図）） — Japan only.
+* 出典：ハザードマップポータルサイト（土砂災害警戒区域、洪水浸水想定区域（想定最大規模）） — Japan only.
 
 ### The sample farm
 

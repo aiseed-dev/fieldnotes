@@ -2,7 +2,7 @@
 place: Ishii, Tokushima, Japan
 lat: 34.0801
 lon: 134.4454
-fetched: 2026-10-28
+fetched: 2026-10-30
 ---
 
 # Public data looked up for this farm
@@ -11,18 +11,31 @@ Fetched from open services by `fieldnotes lookup`; raw answers in records/lookup
 `data` lines are measurements or maps (world maps are coarse); `reference` lines are
 places with a name near the farm, worth reading about. Mark or correct them like any other line.
 
+## Place
+
+- `data` Address: 徳島県石井町 高川原 (市区町村コード 36341). — 出典：国土地理院 逆ジオコーダ, https://mreversegeocoder.gsi.go.jp/reverse-geocoder/LonLatToAddress?lat=34.0801&lon=134.4454
+
 ## Terrain
 
+- `data` Elevation 7 m (DEM: 1m（レーザ）). — 出典：国土地理院 標高API, https://cyberjapandata2.gsi.go.jp/general/dem/scripts/getelevation.php?lon=134.4454&lat=34.0801&outtype=JSON
 - `data` Elevation 5 m. — Open-Meteo elevation API (Copernicus DEM), https://api.open-meteo.com/v1/elevation?latitude=34.0801&longitude=134.4454
+- `data` Landform: 氾濫平野・海岸平野 (氾濫平野; code 3030101). — 出典：国土地理院 ベクトルタイル「地形分類（自然地形）」, https://cyberjapandata.gsi.go.jp/xyz/experimental_landformclassification1/14/14310/6540.geojson
 
 ## Geology
 
-- (GSJ シームレス地質図: not reached on 2026-10-28, JSONDecodeError; run lookup again later)
+- (GSJ シームレス地質図: not reached on 2026-10-30, JSONDecodeError; run lookup again later)
 - `data` Bedrock: Paleozoic-Mesozoic sedimentary rocks; sedimentary rocks (Late Paleozoic to Triassic; map scale tiny). — Macrostrat (CC BY 4.0), https://macrostrat.org/api/v2/geologic_units/map?lat=34.0801&lng=134.4454
+
+## Faults and hazards
+
+- `data` Active faults: nearest fault line 3.1 km SW (searched 4.1 km round; the map tiles carry no fault names). — 出典：国土地理院 活断層図（都市圏活断層図）, https://cyberjapandata.gsi.go.jp/xyz/afm/{z}/{x}/{y}.png
+- `data` 土砂災害警戒区域: the field is outside; none within 1.0 km. — 出典：ハザードマップポータルサイト, https://disaportaldata.gsi.go.jp/raster/05_dosekiryukeikaikuiki/{z}/{x}/{y}.png
+- `data` 洪水浸水想定区域: the field is INSIDE one (想定最大規模). — 出典：ハザードマップポータルサイト, https://disaportaldata.gsi.go.jp/raster/01_flood_l2_shinsuishin_data/{z}/{x}/{y}.png
 
 ## Soil
 
 - `data` SoilGrids has no value at this point (masked, e.g. built-up land). — https://rest.isric.org/soilgrids/v2.0/properties/query?lon=134.4454&lat=34.0801&property=phh2o&property=soc&property=clay&property=sand&depth=0-5cm&depth=15-30cm&value=mean
+- `hypothesis` Soil type: not looked up (no point API). Check the 農研機構 日本土壌インベントリー soil map at this point and write the class here. — https://soil-inventory.rad.naro.go.jp/figure.html?lat=34.080100&lng=134.445400&zoom=15
 
 ## History and places nearby
 
