@@ -242,6 +242,8 @@ Done 2026-10-30, 3c59854 (81 tests). `lookup_jp.sheet` (key `sheet_jp`), `sheet_
 
 **11c, `fieldnotes map` (one day, 11-01; must be done by the evening of 11-02 for the video).** `fieldnotes map [--date <day>]` → `records/map-<date>.png`: the 国土地理院 aerial photo (today's) under the parcel outline and the plots; each plot filled by the cover of its latest reading (SAM's share of the dominant plant, grey when there is no reading), outlined when a proposal awaits the farmer's ✓/✗, labelled with the field name, the dominant plant and the days since the last `work` line. The 1960s–70s photo as a second panel if it costs an hour, else not. The app shows the latest map in 読む; a tab only if cheap. The MCP `site` tool returns the map's path. Attribution: 「出典：国土地理院 空中写真」 added to the GSI line in the README. Tests: the drawing on a fixture (two plots, one reading, one proposal) checked for the files written and the labels, no pixel comparison.
 
+**11a done 2026-10-30, d4ed8c4.** The source line is formed from the dataset's `issue_year` and the day of use, ends with 「を加工して作成」, and carries the caveat in the same line; README has the source line and the caveat sentence. Niihama, corrected point from the farmer (33.9123365, 133.2644683, about 30 m ESE of the first point; "most of the photos are of this field"): a parcel of 1517 m² read as 田 in 2020, 98.6 m on the 1 m DEM, 更新世段丘, faults 200 m S and 1.1 km N, 土石流 zone 150 m S, flood zone 310 m SW; the soil inventory, checked by hand, says 礫質水田化疑似グライ土 H2c1p2 (gravel within 60 cm), where the first point (the garden by the house, in no parcel) was 陸成未熟土. The second farm's folder is still in Opus's scratchpad until the farmer names its place.
+
 **Order for Opus:** the real-voice check and the second farm's `init` when the recordings arrive > 11a today > 11c on 11-01 (after the farmer's polygons; the parcel outline when they are not there yet) > the Glimmer fix 11-02 > 9b on 11-02 if the farmer chooses it. 11c is the one piece here that changes the video: a picture of the field's state is worth a sentence in the script.
 
 ## WP7: the demo — timeline, README, script
@@ -266,7 +268,7 @@ Done 2026-10-30, 3c59854 (81 tests). `lookup_jp.sheet` (key `sheet_jp`), `sheet_
 | 9b | `export`, `--buyer` (selling) | 9a | Opus | **held**: Claude hackathon, else 11-02 |
 | 10 | `lookup` for Japan: 国土地理院 address, 1 m elevation, landform class, fault and hazard distances; NARO soil deferred | 1 | Opus | done, ba2615b (real runs: Ishii and Niihama; 78 tests) |
 | 10b | `lookup` for Japan: the 1:50,000 地質図幅 report for the point as a `hypothesis` line (parent rock of the gravels) | 10 | Opus | done, 3c59854 (81 tests; Niihama → 新居浜 13［高知］-040 (2013) with the report PDF; Ishii → 13［高知］-033 unpublished) |
-| 11a | `parcel_jp`: the 筆ポリゴン the point lies in (area, 田/畑, neighbours), 全国農地ナビ link | 10 | Opus | 10-30 – 10-31 |
+| 11a | `parcel_jp`: the 筆ポリゴン the point lies in (area, 田/畑, neighbours), 全国農地ナビ link | 10 | Opus | done, d4ed8c4 (83 tests; Ishii 602 m² 田 2020, 24 田 around; 全国農地ナビ takes no coordinates in a link, so a top-page link with "search the address above") |
 | 11b | the plots as polygons, `records/fields/<field>.geojson` (format, loader) | 11a | farmer draws / Opus loads | by 11-01 morning |
 | 11c | `fieldnotes map`: aerial photo + parcel + plots coloured by state | 11a, 11b | Opus | 11-01, done by 11-02 evening |
 | – | Muse Code review (docs/muse-code.md Task 2) | – | farmer runs `muse` | by 11-02 |
