@@ -246,6 +246,20 @@ Done 2026-10-30, 3c59854 (81 tests). `lookup_jp.sheet` (key `sheet_jp`), `sheet_
 
 **Order for Opus:** the real-voice check and the second farm's `init` when the recordings arrive > 11a today > 11c on 11-01 (after the farmer's polygons; the parcel outline when they are not there yet) > the Glimmer fix 11-02 > 9b on 11-02 if the farmer chooses it. 11c is the one piece here that changes the video: a picture of the field's state is worth a sentence in the script.
 
+## WP12: what the app computes and what the AI fills in (2026-10-30, the farmer's direction, Opus's proposal)
+
+**The farmer's direction (10-30):** not for my own field but for any field. Put as much as possible in the app; only what the app cannot compute is left to the AI (Muse, this time). Then check with today's photos. Then check with the records over days.
+
+**What happened by hand on 10-30 (recorded in `sample/records/site.md`, 7156d07 and b4c1878):** a Gemini Deep Research report on the Ishii field was checked against primary sources and found wrong four times (natural levee → the GSI landform class says 氾濫平野; sandy loam with good drainage → the soil inventory says 細粒質水田化褐色低地土; silent on the flood zone the field is inside; 麻名用水 → the farmer's correction 高川原用水, confirmed in 阿波学会紀要 32). The farmer's own hypothesis (the big floods pushed water to the outside of the 飯尾川 bend) was checked: OSM puts the field on the outside of a ~100° bend, 62 m from the river; DEM5A with the plain's tilt removed puts the outside 0.2–0.5 m above its surroundings; the inundation layers cover only the national river's levee failure (L1 0.5–3 m, L2 5–10 m), the prefectural rivers' layer is empty. Three of the four errors are findable from `lookup` data alone; the fourth needed the farmer.
+
+**Before the deadline (in this order; nothing of this on 11-02, which stays for the Glimmer fix, 9b if chosen, and the README):**
+
+- **12a `soil_jp`, 10-31, half a day.** The 農研機構 日本土壌インベントリー map tile at the point (`/tile/figure/15/x/y.png`) read by pixel colour against the published legend (`js/figureRGB.js`: RGB → code, name, description) → one `data` line in Soil: the soil group and code, with "contains errors (農研機構's disclaimer)" in the line; replaces the hand-check `hypothesis` line. Terms, read by Opus on 10-30 at the farmer's request (農研機構『デジタル土壌図 活用マニュアル』2019-12, §3, and the site's help.pdf): the digital soil map is open data under CC BY 4.0, adaptation and commercial reuse allowed; credit 「農研機構、日本土壌インベントリー」, and published results say they used 農研機構日本土壌インベントリー (NARO, Japanese Soil Inventory); disclaimer on errors. Use only what 農研機構 serves (the tiles and figureRGB.js, or the prefectural Shape files); never the 日本土壌協会 CD-ROM data the farmland part derives from. One tile per point. The README's sources get the credit line and the manual's URL. Fixtures: the tile and legend for Ishii and Niihama; a colour not in the legend gives "not in the legend", not a guess.
+- **12b `river`, 10-31 only if 12a is done by noon, else after the deadline, half a day.** From OSM (world-wide): the nearest river or stream, its name, the distance, which bank, and for a bend of more than ~60° within 300 m whether the field is on the inside or the outside. One `data` line in Terrain with the OSM ids.
+- **B1, no code.** Checking an outside AI's report is the own AI's job through MCP: `site` returns the site and lookup lines; the farmer pastes the report into their own AI and asks it to sort the claims into agrees / conflicts / no data against those lines; what holds goes into `site.md` by hand, as on 10-30. One paragraph in the README ("From your own AI") and an optional scene in `docs/demo.md`; no `check-report` command.
+
+**After the deadline (kept here so they are not lost):** 12c relief from DEM5A (the field's height against the plain with the tilt removed, low bands like old channels; drawn on the map) — only on 11-01 if `fieldnotes map` is done early; 12d hazard detail (L1/L2 depth classes, national vs prefectural river); B2 questions to the farmer where data is missing, answered by voice into records; C per-hypothesis photo checks ("what a photo would show": puddles after rain, crusting, indicator plants) as lines the farmer marks; D per-hypothesis evidence gathered across days in the timeline.
+
 ## WP7: the demo — timeline, README, script
 
 - `timeline.py` (minimal form done in 2a07572, tests in ef2cbf3): `timeline(field, records_root, photo_root, since=None) -> str`, Markdown, one block per date (oldest first): the photos (relative paths), weather in one line, the `overall` line with its verdict, the `work` and `seen` lines, the count of ✓ / ✗, any proposal of that day (its `summary` line and verdict). CLI `fieldnotes timeline <field> [--since DATE]`. The MCP `timeline` tool calls the same function. An app view only if time remains.
@@ -271,6 +285,9 @@ Done 2026-10-30, 3c59854 (81 tests). `lookup_jp.sheet` (key `sheet_jp`), `sheet_
 | 11a | `parcel_jp`: the 筆ポリゴン the point lies in (area, 田/畑, neighbours), 全国農地ナビ link | 10 | Opus | done, d4ed8c4 (83 tests; Ishii 602 m² 田 2020, 24 田 around; 全国農地ナビ takes no coordinates in a link, so a top-page link with "search the address above") |
 | 11b | the plots as polygons, `records/fields/<field>.geojson` (format, loader) | 11a | farmer draws / Opus loads | by 11-01 morning |
 | 11c | `fieldnotes map`: aerial photo + parcel + plots coloured by state | 11a, 11b | Opus | 11-01, done by 11-02 evening |
+| 12a | `soil_jp`: 日本土壌インベントリー class at the point from the tile colour (CC BY 4.0, credit 農研機構) | 10 | Opus | 10-31 |
+| 12b | `river`: nearest river from OSM, bank, bend inside/outside | – | Opus | 10-31 if 12a is done by noon, else after 11-05 |
+| 12+ | relief, hazard depth classes, B2 questions, C photo checks, D evidence in the timeline | – | – | after 11-05 (brief above) |
 | – | Muse Code review (docs/muse-code.md Task 2) | – | farmer runs `muse` | by 11-02 |
 
 Done for each package means: tests pass offline, one short real run when the package calls the API, the README section updated, and the work committed on main (or a branch) with a summary of what was and was not verified.
@@ -281,7 +298,7 @@ Done for each package means: tests pass offline, one short real run when the pac
 |---|---|---|
 | 10-29 Thu | WP8 cut proposal, tests, one real run on `uncut` | Niihama farm visit: photos, voice notes (the first real Japanese recording), three questions (who advises you, how do you sell, what would you pay to have solved). Evening on the LAN: `init` the second farm, send, `observe`, `voice` |
 | 10-30 Fri | real-voice check and second farm `init` when the Niihama recordings arrive; WP10 lookup JP in the idle time | morning: ✓/✗ on the cut proposal; cut, or reject with a reason; a stick of known length in the before photo; daily photos; decide 9b |
-| 10-31 Sat | WP11a parcel line; daily runs | cut if not yet; photos of the cut plot; the 1 m pin pole arrives: mark its spot and the standing spot; draw the plots on geojson.io |
+| 10-31 Sat | WP12a soil line (12b river if done by noon); daily runs | cut if not yet; photos of the cut plot; the 1 m pin pole arrives: mark its spot and the standing spot; draw the plots on geojson.io |
 | 11-01 Sun | WP11c `fieldnotes map` | photos; planning session: `docs/demo.md` (add the map), README structure |
 | 11-02 Mon | README final, code tidy, nova's fork checked for parts to merge; WP9b only if selling stays in this hackathon | Muse Code Task 2 review; photos |
 | 11-03 Tue | – | video: field footage, screen recording from the own AI, edit |
