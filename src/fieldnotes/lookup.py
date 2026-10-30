@@ -11,8 +11,9 @@ tell where every line came from:
                 and, in Japan, the GSJ 20万分の1日本シームレス地質図 V2 legend API
     soil        ISRIC SoilGrids 2.0 (pH, organic carbon, clay, sand; 250 m model;
                 no value where the map is masked, e.g. built-up land)
-    Japan       国土地理院 (address, 1 m elevation, landform, active faults) and the
-                ハザードマップポータルサイト (sediment-disaster and flood zones): lookup_jp.py
+    Japan       国土地理院 (address, 1 m elevation, landform, active faults), the
+                ハザードマップポータルサイト (sediment-disaster and flood zones) and the
+                産総研 catalogue (the 1:50,000 sheet and its report): lookup_jp.py
     history     Wikipedia articles with coordinates near the farm (in the
                 country's language) and OpenStreetMap features tagged
                 `historic` (castles, archaeological sites, flood memorials ...)
@@ -186,14 +187,16 @@ NAMES = {"elevation": "Open-Meteo elevation", "geology": "Macrostrat", "geology_
          "soil": "ISRIC SoilGrids", "wikipedia": "Wikipedia", "historic": "OpenStreetMap",
          "address_jp": "国土地理院 逆ジオコーダ", "elevation_jp": "国土地理院 標高API",
          "landform_jp": "国土地理院 地形分類", "faults_jp": "国土地理院 活断層図",
-         "hazard_jp": "ハザードマップポータルサイト", "soil_jp": "日本土壌インベントリー"}
+         "hazard_jp": "ハザードマップポータルサイト", "sheet_jp": "産総研 地質図カタログ",
+         "soil_jp": "日本土壌インベントリー"}
 SOURCES = {"address_jp": lookup_jp.address, "elevation_jp": lookup_jp.elevation, "elevation": elevation,
            "landform_jp": lookup_jp.landform, "geology": geology_world, "geology_jp": geology_japan,
+           "sheet_jp": lookup_jp.sheet,
            "faults_jp": lookup_jp.faults, "hazard_jp": lookup_jp.hazards,
            "soil": soil, "soil_jp": lookup_jp.soil_hint, "wikipedia": wiki_nearby, "historic": history_osm}
 JAPAN_ONLY = {k for k in SOURCES if k.endswith("_jp")}
 SECTIONS = [("Place", ["address_jp"]), ("Terrain", ["elevation_jp", "elevation", "landform_jp"]),
-            ("Geology", ["geology_jp", "geology"]), ("Faults and hazards", ["faults_jp", "hazard_jp"]),
+            ("Geology", ["geology_jp", "sheet_jp", "geology"]), ("Faults and hazards", ["faults_jp", "hazard_jp"]),
             ("Soil", ["soil", "soil_jp"]), ("History and places nearby", ["historic", "wikipedia"])]
 
 

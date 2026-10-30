@@ -1,0 +1,617 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><!--[if lt IE 7]>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja" id=ie6 class="no-js ie6 lt-ie9 lt-ie8 lt-ie7"><![endif]--><!--[if IE 7]>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja" id=ie7 class="no-js ie7 lt-ie9 lt-ie8">       <![endif]--><!--[if IE 8]>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja" id=ie8 class="no-js ie8 lt-ie9">              <![endif]--><!--[if gt IE 8]><!-->
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja"        class="no-js">                     <!--<![endif]-->
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+
+
+<link rel="stylesheet" type="text/css" href="../css/style2017.css" media="screen" />
+<link rel="stylesheet" type="text/css" href="../common/css/import.css" media="screen" />
+
+<link rel="stylesheet" type="text/css" href="../css/print.css" media="print" />
+
+<link rel="stylesheet" href="colorbox.css" />
+<script src="../js/jquery.min.js"></script>
+<script src="../js/jquery.colorbox.js"></script>
+<script>
+$(document).ready(function(){
+	//Examples of how to assign the Colorbox event to elements
+	$(".group1").colorbox({rel:'group1'});
+	$(".group2").colorbox({rel:'group2'});
+	$(".group3").colorbox({rel:'group3'});
+	$(".iframe").colorbox({iframe:true, width:"60%", height:"70%"});
+	$(".callbacks").colorbox({
+		onOpen:function(){ alert('onOpen: colorbox is about to open'); },
+		onLoad:function(){ alert('onLoad: colorbox has started to load the targeted content'); },
+		onComplete:function(){ alert('onComplete: colorbox has displayed the loaded content'); },
+		onCleanup:function(){ alert('onCleanup: colorbox has begun the close process'); },
+		onClosed:function(){ alert('onClosed: colorbox has completely closed'); }
+	});
+
+	$('.non-retina').colorbox({rel:'group5', transition:'none'})
+	$('.retina').colorbox({rel:'group5', transition:'none', retinaImage:true, retinaUrl:true});
+	
+	//Example of preserving a JavaScript event for inline calls.
+	$("#click").click(function(){ 
+		$('#click').css({"background-color":"#f00", "color":"#fff", "cursor":"inherit"}).text("Open this window again and this message will still be here.");
+		return false;
+	});
+	});
+</script>
+
+
+
+<style type="text/css">
+#outerImageContainer {
+    -moz-border-radius-topleft: 10px;
+    -moz-border-radius-topright: 10px;
+}
+#imageDataContainer {
+    -moz-border-radius-bottomleft: 10px;
+    -moz-border-radius-bottomright: 10px;
+}
+</style>
+
+<script src="../common/js/modernizr.min.js" type="text/javascript"></script><script type="text/javascript">
+void function(global, document, Modernizr) { "use strict";
+  global.googleSearchIframeName = "cse-search-results";
+  global.googleSearchFormName   = "cse-search-box";
+  global.googleSearchFrameWidth = 600;
+  global.googleSearchDomain     = "www.google.com";
+  global.googleSearchPath       = "/cse";
+
+  Modernizr.load([
+    {
+      //test: !/(?:^|\s+)lt-ie9(?:\s+|$)/.test(document.getElementsByTagName("html")[0].className),
+      test: document.getElementsByTagName("html")[0].className.indexOf(" lt-ie9") < 0,
+      //yep:  "//ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js",
+      yep:  "../common/js/jquery.min.js",
+      nope: [
+        //"//ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js",
+        "../common/js/jquery-3.7.1.min.js"
+      ]
+    },
+    [
+      "../common/js/jquery.cookie.min.js",
+      "../common/js/lightbox-2.6.min.js",
+      "../common/js/jquery.scrollTo.min.js"
+    ],
+    {
+
+
+      load: "../common/js/common.js"
+    }
+  ]);
+}(this, this.document, this.Modernizr);
+</script>
+
+
+<title>産総研 地質調査総合センター：地質図カタログ</title>
+</head>
+<body id="blog215" class="second">
+<ul id="skip">
+  <li><a href="#main">コンテンツへ</a></li>
+</ul>
+<div id="container">
+  <div id="header" class="clearfix">
+    <h1><a href="../../HomePageJP.html"><img src="../common/images/logo.jpg" width="260" height="66" alt="地質調査総合センター" /></a></h1>
+    <div id="headerinfo">
+    <div id="headersection">
+    <ul id="hNav" class="clearfix">
+    <li><a href="../../inquiries/index.html" target="_blank">お問い合わせ</a></li>
+    <li><a href="../../sitemap.html">サイトマップ</a></li>
+    <li><a href="http://www.aist.go.jp/aist_j/guidemap/tsukuba/tsukuba_map_main.html" target="_blank">アクセス</a></li>
+    <li><a href="../../en/index.html">English</a></li>
+    </ul>
+    </div>
+<!--div id="pageUtility" class="clearfix">
+<script>
+  (function() {
+    var cx = '004083589015928335565:ksyujbbswow';
+    var gcse = document.createElement('script');
+    gcse.type = 'text/javascript';
+    gcse.async = true;
+    gcse.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') +
+        '//www.google.com/cse/cse.js?cx=' + cx;
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(gcse, s);
+  })();
+</script>
+<gcse:searchbox-only></gcse:searchbox-only>
+    </div-->
+    </div>
+    <ul id="gnavi">
+      <li class="toppage02"><a href="../../HomePageJP.html"><img src="../common/images/gnavi01_f.jpg" width="95" height="18" alt="トップページ" /></a></li>
+      <li><a href="../../information/index.html"><img src="../common/images/gnavi02_f.jpg" width="100" height="18" alt="GSJ紹介" /></a></li>
+      <li><a href="../../researches/index.html"><img src="../common/images/gnavi03_f.jpg" width="100" height="18" alt="研究紹介" /></a></li>
+      <li><a href="../../publications/index.html"><img src="../common/images/gnavi04_h.jpg" width="120" height="18" alt="出版物とサービス" /></a></li>
+      <li><a href="../../hazards/index.html"><img src="../common/images/gnavi05_f.jpg" width="120" height="18" alt="災害と緊急調査" /></a></li>
+      <li><a href="../../geology/index.html"><img src="../common/images/gnavi06_f.jpg" width="138" height="18" alt="地質を学ぶ、地球を知る" /></a></li>
+    </ul>
+  </div>
+<div id="topicpath">
+  <ul>
+    <li><a href="../../HomePageJP.html">GSJトップページ</a>&nbsp;&gt;&nbsp;</li>
+<li><a href="../index.html">地質図カタログ</a>&nbsp;&gt;&nbsp;</li><li><a href="geology4.html">5万分の1地質図幅</a>&nbsp;&gt;&nbsp;</li><li>13．高知</li>
+  </ul>
+</div>
+<div id="content" class="clearfix">
+  <div id="wrap2" class="clearfix">
+
+    <div id="main" class="clearfix">
+ 
+		<h1>5万分の1地質図幅</h1>
+        
+		
+<h3>13．高知</h3>
+
+<table class="article03">
+<tbody>
+<tr>
+<td colspan="3">
+<img src="../indexmap/50k_13.jpg" width="700" height="500" usemap="#Map" />
+<br /><strong><font color="#FF0000" size="5">□</font> ：赤枠「13. 高知」区画　 <font color="#80FF80" size="5">■</font> ：刊行済、<font color="#000000" size="5">□</font> ：未刊行、<font color="#FF00FF" size="5">□</font> ：7万5千分の1地質図幅</strong></td>
+</td>
+</tr>
+<tr>
+<th>サムネイル画像</th>
+<td width="220" valign="top" align="center"><strong>図名・発行年・<br />価格（税込）は印刷媒体価格です。</strong></td>
+<td width="350" valign="top" align="center"><strong>各種ダウンロード</strong> <a class="iframe" href="download.html">（利用上の注意）</a><br />[yyyy.mm.dd] はデータ更新日。</td>
+</tr><tr>
+<th><a id="13001" class="group1" title="5万分の1地質図幅  13 ［高知］-001 「津田」" href="../jpeg/50k/50k_13001.jpg"><img src="../jpeg/50k/50k_13001.jpg" width="83" height="57" /></a></th>
+<td width="220" valign="top"><a class="iframe" href="docs/5man_doc/13/13_001.htm"><strong>津田</strong></a><br />13-001<br />発行年：1989<br />販売価格：&#165;2,750</td>
+<td width="350" valign="top" style="font-size: 90%">
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/JPG/GSJ_MAP_G050_13001_1989_200dpi.jpg" target="_blank"><img src="../icon/dl_06.png" /></a>  ラスターデータ （JPEG / 200dpi / 3.8 MB）[2023.04.20]<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/GTF/GSJ_MAP_G050_13001_1989.zip" target="_blank"><img src="../icon/dl_04.png" /></a>  ラスターデータ （GeoTiff, KML / 200dpi / 36 MB）[2023.04.20]<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/VCT/GSJ_MAP_G050_13001_1989_V01.zip" target="_blank"><img src="../icon/dl_02.png" /></a>  ベクトルデータ （Shapefile, KML / 3.7 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/PDF/GSJ_MAP_G050_13001_1989_D.pdf" target="_blank"><img src="../icon/icon_pdf.gif" height="20" style="vertical-align:-5px;"/></a>  説明書 （PDF / 13 MB）<br />
+<a href="https://cdn.gsj.jp/ld/zfk/zfkdoc/0634/0634.html" target="_blank">  説明書</a> （HTML）</td>
+</tr><tr>
+<th><a id="13002" class="group1" title="5万分の1地質図幅  13 ［高知］-002 「広島」" href="../jpeg/50k/50k_13002.jpg"><img src="../jpeg/50k/50k_13002.jpg" width="83" height="57" /></a></th>
+<td width="220" valign="top"><a class="iframe" href="docs/5man_doc/13/13_002.htm"><strong>広島</strong></a><br />13-002<br />発行年：1991<br />販売価格：&#165;1,650</td>
+<td width="350" valign="top" style="font-size: 90%">
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/JPG/GSJ_MAP_G050_13002_1991_200dpi.jpg" target="_blank"><img src="../icon/dl_06.png" /></a>  ラスターデータ （JPEG / 200dpi / 3.8 MB）[2023.04.20]<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/GTF/GSJ_MAP_G050_13002_1991.zip" target="_blank"><img src="../icon/dl_04.png" /></a>  ラスターデータ （GeoTiff, KML / 200dpi / 34 MB）[2023.04.20]<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/VCT/GSJ_MAP_G050_13002_1991_V01.zip" target="_blank"><img src="../icon/dl_02.png" /></a>  ベクトルデータ （Shapefile, KML / 3.4 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/PDF/GSJ_MAP_G050_13002_1991_D.pdf" target="_blank"><img src="../icon/icon_pdf.gif" height="20" style="vertical-align:-5px;"/></a>  説明書 （PDF / 5.9 MB）</td>
+</tr><tr>
+<th><a id="13003" class="group1" title="5万分の1地質図幅  13 ［高知］-003 「海田市」" href="../jpeg/50k/50k_13003.jpg"><img src="../jpeg/50k/50k_13003.jpg" width="83" height="57" /></a></th>
+<td width="220" valign="top"><a class="iframe" href="docs/5man_doc/13/13_003.htm"><strong>海田市</strong></a><br />13-003<br />発行年：1999<br />販売価格：&#165;2,970</td>
+<td width="350" valign="top" style="font-size: 90%">
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/JPG/GSJ_MAP_G050_13003_1999_200dpi.jpg" target="_blank"><img src="../icon/dl_06.png" /></a>  ラスターデータ （JPEG / 200dpi / 4.1 MB）[2023.04.20]<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/GTF/GSJ_MAP_G050_13003_1999.zip" target="_blank"><img src="../icon/dl_04.png" /></a>  ラスターデータ （GeoTiff, KML / 200dpi / 35 MB）[2023.04.20]<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/VCT/GSJ_MAP_G050_13003_1999_V01.zip" target="_blank"><img src="../icon/dl_02.png" /></a>  ベクトルデータ （Shapefile, KML / 6.2 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/PDF/GSJ_MAP_G050_13003_1999_D.pdf" target="_blank"><img src="../icon/icon_pdf.gif" height="20" style="vertical-align:-5px;"/></a>  説明書 （PDF / 7.2 MB）</td>
+</tr><tr>
+<th><a id="13011" class="group1" title="5万分の1地質図幅  13 ［高知］-011 「洲本」" href="../jpeg/50k/50k_13011.jpg"><img src="../jpeg/50k/50k_13011.jpg" width="83" height="57" /></a></th>
+<td width="220" valign="top"><a class="iframe" href="docs/5man_doc/13/13_011.htm"><strong>洲本</strong></a><br />13-011<br />発行年：1992<br />販売価格：&#165;2,860</td>
+<td width="350" valign="top" style="font-size: 90%">
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/JPG/GSJ_MAP_G050_13011_1992_200dpi.jpg" target="_blank"><img src="../icon/dl_06.png" /></a>  ラスターデータ （JPEG / 200dpi / 2.5 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/GTF/GSJ_MAP_G050_13011_1992.zip" target="_blank"><img src="../icon/dl_04.png" /></a>  ラスターデータ （GeoTiff, KML / 200dpi / 32 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/VCT/GSJ_MAP_G050_13011_1992_V01.zip" target="_blank"><img src="../icon/dl_02.png" /></a>  ベクトルデータ （Shapefile, KML / 3.1 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/PDF/GSJ_MAP_G050_13011_1992_D.pdf" target="_blank"><img src="../icon/icon_pdf.gif" height="20" style="vertical-align:-5px;"/></a>  説明書 （PDF / 13 MB）</td>
+</tr><tr>
+<th><a id="13012" class="group1" title="5万分の1地質図幅  13 ［高知］-012 「大竹」" href="../jpeg/50k/50k_13012.jpg"><img src="../jpeg/50k/50k_13012.jpg" width="83" height="57" /></a></th>
+<td width="220" valign="top"><a class="iframe" href="docs/5man_doc/13/13_012.htm"><strong>大竹</strong></a><br />13-012<br />発行年：1986<br />販売価格：&#165;3,080</td>
+<td width="350" valign="top" style="font-size: 90%">
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/JPG/GSJ_MAP_G050_13012_1986_200dpi.jpg" target="_blank"><img src="../icon/dl_06.png" /></a>  ラスターデータ （JPEG / 200dpi / 4.4 MB）[2023.04.20]<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/GTF/GSJ_MAP_G050_13012_1986.zip" target="_blank"><img src="../icon/dl_04.png" /></a>  ラスターデータ （GeoTiff, KML / 200dpi / 36 MB）[2023.04.20]<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/VCT/GSJ_MAP_G050_13012_1986_V01.zip" target="_blank"><img src="../icon/dl_02.png" /></a>  ベクトルデータ （Shapefile, KML / 5.0 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/PDF/GSJ_MAP_G050_13012_1986_D.pdf" target="_blank"><img src="../icon/icon_pdf.gif" height="20" style="vertical-align:-5px;"/></a>  説明書 （PDF / 2.7 MB）</td>
+</tr><tr>
+<th><a id="13013" class="group1" title="5万分の1地質図幅  13 ［高知］-013 「厳島」" href="../jpeg/50k/50k_13013.jpg"><img src="../jpeg/50k/50k_13013.jpg" width="83" height="57" /></a></th>
+<td width="220" valign="top"><a class="iframe" href="docs/5man_doc/13/13_013.htm"><strong>厳島</strong></a><br />13-013<br />発行年：1999<br />販売価格：&#165;2,640</td>
+<td width="350" valign="top" style="font-size: 90%">
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/JPG/GSJ_MAP_G050_13013_1999_200dpi.jpg" target="_blank"><img src="../icon/dl_06.png" /></a>  ラスターデータ （JPEG / 200dpi / 2.6 MB）[2023.04.20]<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/GTF/GSJ_MAP_G050_13013_1999.zip" target="_blank"><img src="../icon/dl_04.png" /></a>  ラスターデータ （GeoTiff, KML / 200dpi / 25 MB）[2023.04.20]<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/VCT/GSJ_MAP_G050_13013_1999_V01.zip" target="_blank"><img src="../icon/dl_02.png" /></a>  ベクトルデータ （Shapefile, KML / 2.6 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/PDF/GSJ_MAP_G050_13013_1999_D.pdf" target="_blank"><img src="../icon/icon_pdf.gif" height="20" style="vertical-align:-5px;"/></a>  説明書 （PDF / 5.9 MB）</td>
+</tr><tr>
+<th><a id="13014" class="group1" title="5万分の1地質図幅  13 ［高知］-014 「呉」" href="../jpeg/50k/50k_13014.jpg"><img src="../jpeg/50k/50k_13014.jpg" width="83" height="57" /></a></th>
+<td width="220" valign="top"><a class="iframe" href="docs/5man_doc/13/13_014.htm"><strong>呉</strong></a><br />13-014<br />発行年：1985<br />販売価格：&#165;3,080</td>
+<td width="350" valign="top" style="font-size: 90%">
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/JPG/GSJ_MAP_G050_13014_1985_200dpi.jpg" target="_blank"><img src="../icon/dl_06.png" /></a>  ラスターデータ （JPEG / 200dpi / 3.6 MB）[2023.04.20]<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/GTF/GSJ_MAP_G050_13014_1985.zip" target="_blank"><img src="../icon/dl_04.png" /></a>  ラスターデータ （GeoTiff, KML / 200dpi / 33 MB）[2023.04.20]<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/VCT/GSJ_MAP_G050_13014_1985_V01.zip" target="_blank"><img src="../icon/dl_02.png" /></a>  ベクトルデータ （Shapefile, KML / 4.8 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/PDF/GSJ_MAP_G050_13014_1985_D.pdf" target="_blank"><img src="../icon/icon_pdf.gif" height="20" style="vertical-align:-5px;"/></a>  説明書 （PDF / 3.7 MB）</td>
+</tr><tr>
+<th><a id="13015" class="group1" title="5万分の1地質図幅  13 ［高知］-015 「三津」" href="../jpeg/50k/50k_13015.jpg"><img src="../jpeg/50k/50k_13015.jpg" width="83" height="57" /></a></th>
+<td width="220" valign="top"><a class="iframe" href="docs/5man_doc/13/13_015.htm"><strong>三津</strong></a><br />13-015<br />発行年：2001<br />販売価格：&#165;2,750</td>
+<td width="350" valign="top" style="font-size: 90%">
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/JPG/GSJ_MAP_G050_13015_2001_200dpi.jpg" target="_blank"><img src="../icon/dl_06.png" /></a>  ラスターデータ （JPEG / 200dpi / 2.8 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/GTF/GSJ_MAP_G050_13015_2001.zip" target="_blank"><img src="../icon/dl_04.png" /></a>  ラスターデータ （GeoTiff, KML / 200dpi / 28 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/VCT/GSJ_MAP_G050_13015_2001_V01.zip" target="_blank"><img src="../icon/dl_02.png" /></a>  ベクトルデータ （Shapefile, KML / 3.3 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/PDF/GSJ_MAP_G050_13015_2001_D.pdf" target="_blank"><img src="../icon/icon_pdf.gif" height="20" style="vertical-align:-5px;"/></a>  説明書 （PDF / 2.5 MB）</td>
+</tr><tr>
+<th><a id="13024" class="group1" title="5万分の1地質図幅  13 ［高知］-024 「岩国」" href="../jpeg/50k/50k_13024.jpg"><img src="../jpeg/50k/50k_13024.jpg" width="83" height="57" /></a></th>
+<td width="220" valign="top"><a class="iframe" href="docs/5man_doc/13/13_024.htm"><strong>岩国</strong></a><br />13-024<br />発行年：1983<br />販売価格：&#165;2,750</td>
+<td width="350" valign="top" style="font-size: 90%">
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/JPG/GSJ_MAP_G050_13024_1983_200dpi.jpg" target="_blank"><img src="../icon/dl_06.png" /></a>  ラスターデータ （JPEG / 200dpi / 5.0 MB）[2023.04.20]<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/GTF/GSJ_MAP_G050_13024_1983.zip" target="_blank"><img src="../icon/dl_04.png" /></a>  ラスターデータ （GeoTiff, KML / 200dpi / 35 MB）[2023.04.20]<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/VCT/GSJ_MAP_G050_13024_1983_V01.zip" target="_blank"><img src="../icon/dl_02.png" /></a>  ベクトルデータ （Shapefile, KML / 4.6 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/PDF/GSJ_MAP_G050_13024_1983_D.pdf" target="_blank"><img src="../icon/icon_pdf.gif" height="20" style="vertical-align:-5px;"/></a>  説明書 （PDF / 12 MB）</td>
+</tr><tr>
+<th><a id="13025" class="group1" title="5万分の1地質図幅  13 ［高知］-025, 026 「倉橋島及び柱島」" href="../jpeg/50k/50k_13025-026.jpg"><img src="../jpeg/50k/50k_13025-026.jpg" width="83" height="57" /></a></th>
+<td width="220" valign="top"><a class="iframe" href="docs/5man_doc/13/13_025-026.htm"><strong>倉橋島及び柱島</strong></a><br />13-025, 026<br />発行年：1997<br />販売価格：&#165;3,190</td>
+<td width="350" valign="top" style="font-size: 90%">
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/JPG/GSJ_MAP_G050_13025_1997_200dpi.jpg" target="_blank"><img src="../icon/dl_06.png" /></a>  ラスターデータ （JPEG / 200dpi / 2.9 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/GTF/GSJ_MAP_G050_13025_1997.zip" target="_blank"><img src="../icon/dl_04.png" /></a>  ラスターデータ （GeoTiff, KML / 200dpi / 43 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/VCT/GSJ_MAP_G050_13025_1997_V01.zip" target="_blank"><img src="../icon/dl_02.png" /></a>  ベクトルデータ （Shapefile, KML / 2.4 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/PDF/GSJ_MAP_G050_13025_1997_D.pdf" target="_blank"><img src="../icon/icon_pdf.gif" height="20" style="vertical-align:-5px;"/></a>  説明書 （PDF / 12 MB）</td>
+</tr><tr>
+<th><a id="13027" class="group1" title="5万分の1地質図幅  13 ［高知］-027 「今治西部」" href="../jpeg/50k/50k_13027.jpg"><img src="../jpeg/50k/50k_13027.jpg" width="83" height="57" /></a></th>
+<td width="220" valign="top"><a class="iframe" href="docs/5man_doc/13/13_027.htm"><strong>今治西部</strong></a><br />13-027<br />発行年：1965<br />販売価格：&#165;550</td>
+<td width="350" valign="top" style="font-size: 90%">
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/JPG/GSJ_MAP_G050_13027_1965_200dpi.jpg" target="_blank"><img src="../icon/dl_06.png" /></a>  ラスターデータ （JPEG / 200dpi / 2.3 MB）[2023.04.20]<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/GTF/GSJ_MAP_G050_13027_1965.zip" target="_blank"><img src="../icon/dl_04.png" /></a>  ラスターデータ （GeoTiff, KML / 200dpi / 23 MB）[2023.04.20]<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/VCT/GSJ_MAP_G050_13027_1965_V01.zip" target="_blank"><img src="../icon/dl_02.png" /></a>  ベクトルデータ （Shapefile, KML / 1.7 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/PDF/GSJ_MAP_G050_13027_1965_D.pdf" target="_blank"><img src="../icon/icon_pdf.gif" height="20" style="vertical-align:-5px;"/></a>  説明書 （PDF / 736 KB）</td>
+</tr><tr>
+<th><a id="13030" class="group1" title="5万分の1地質図幅  13 ［高知］-030 「観音寺」" href="../jpeg/50k/50k_13030.jpg"><img src="../jpeg/50k/50k_13030.jpg" width="83" height="57" /></a></th>
+<td width="220" valign="top"><a class="iframe" href="docs/5man_doc/13/13_030.htm"><strong>観音寺</strong></a><br />13-030<br />発行年：2017<br />販売価格：&#165;1,980</td>
+<td width="350" valign="top" style="font-size: 90%">
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/JPG/GSJ_MAP_G050_13030_2017_200dpi.jpg" target="_blank"><img src="../icon/dl_06.png" /></a>  ラスターデータ （JPEG / 200dpi / 3.7 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/GTF/GSJ_MAP_G050_13030_2017.zip" target="_blank"><img src="../icon/dl_04.png" /></a>  ラスターデータ （GeoTiff, KML / 200dpi / 25 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/PDF/GSJ_MAP_G050_13030_2017_D.pdf" target="_blank"><img src="../icon/icon_pdf.gif" height="20" style="vertical-align:-5px;"/></a>  説明書 （PDF / 43 MB）</td>
+</tr><tr>
+<th><a id="13031" class="group1" title="5万分の1地質図幅  13 ［高知］-031 「池田」" href="../jpeg/50k/50k_13031.jpg"><img src="../jpeg/50k/50k_13031.jpg" width="83" height="57" /></a></th>
+<td width="220" valign="top"><a class="iframe" href="docs/5man_doc/13/13_031.htm"><strong>池田</strong></a><br />13-031<br />発行年：2021<br /><a href="../errata/errata_50k-13031.pdf" target="_blank">正誤表</a>（PDF/ 25 MB）<br />販売価格：&#165;2,200</td>
+<td width="350" valign="top" style="font-size: 90%">
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/JPG/GSJ_MAP_G050_13031_2021_200dpi.jpg" target="_blank"><img src="../icon/dl_06.png" /></a>  ラスターデータ （JPEG / 200dpi / 4.1 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/GTF/GSJ_MAP_G050_13031_2021.zip" target="_blank"><img src="../icon/dl_04.png" /></a>  ラスターデータ （GeoTiff, KML / 200dpi / 36.7 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/PDF/GSJ_MAP_G050_13031_2021_D-L.pdf" target="_blank"><img src="../icon/icon_pdf.gif" height="20" style="vertical-align:-5px;"/></a>  説明書［軽量版］（PDF / 14.5 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/PDF/GSJ_MAP_G050_13031_2021_D.pdf" target="_blank"><img src="../icon/icon_pdf.gif" height="20" style="vertical-align:-5px;"/></a>  説明書（PDF / 288 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/PDF/GSJ_MAP_G050_13031_2021_D_V2.pdf" target="_blank"><img src="../icon/icon_pdf.gif" height="20" style="vertical-align:-5px;"/></a>  説明書［訂正版］（PDF / 290 MB）</td>
+</tr><tr>
+<th><a id="13040" class="group1" title="5万分の1地質図幅  13 ［高知］-040 「新居浜」" href="../jpeg/50k/50k_13040.jpg"><img src="../jpeg/50k/50k_13040.jpg" width="83" height="57" /></a></th>
+<td width="220" valign="top"><a class="iframe" href="docs/5man_doc/13/13_040.htm"><strong>新居浜</strong></a><br />13-040<br />発行年：2013<br />販売価格：&#165;2,640</td>
+<td width="350" valign="top" style="font-size: 90%">
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/JPG/GSJ_MAP_G050_13040_2013_200dpi.jpg" target="_blank"><img src="../icon/dl_06.png" /></a>  ラスターデータ （JPEG / 200dpi / 4.5 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/GTF/GSJ_MAP_G050_13040_2013.zip" target="_blank"><img src="../icon/dl_04.png" /></a>  ラスターデータ （GeoTiff, KML / 200dpi / 33 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/PDF/GSJ_MAP_G050_13040_2013_D.pdf" target="_blank"><img src="../icon/icon_pdf.gif" height="20" style="vertical-align:-5px;"/></a>  説明書 （PDF / 63 MB）</td>
+</tr><tr>
+<th><a id="13041" class="group1" title="5万分の1地質図幅  13 ［高知］-041 「三島」" href="../jpeg/50k/50k_13041.jpg"><img src="../jpeg/50k/50k_13041.jpg" width="83" height="57" /></a></th>
+<td width="220" valign="top"><a class="iframe" href="docs/5man_doc/13/13_041.htm"><strong>三島</strong></a><br /><small>※現地形図名「伊予三島」</small><br />13-041<br />発行年：1964<br />在庫切</td>
+<td width="350" valign="top" style="font-size: 90%">
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/JPG/GSJ_MAP_G050_13041_1964_200dpi.jpg" target="_blank"><img src="../icon/dl_06.png" /></a>  ラスターデータ （JPEG / 200dpi / 3.8 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/GTF/GSJ_MAP_G050_13041_1964.zip" target="_blank"><img src="../icon/dl_04.png" /></a>  ラスターデータ （GeoTiff, KML / 200dpi / 40 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/VCT/GSJ_MAP_G050_13041_1964_V01.zip" target="_blank"><img src="../icon/dl_02.png" /></a>  ベクトルデータ （Shapefile, KML / 3.3 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/PDF/GSJ_MAP_G050_13041_1964_D.pdf" target="_blank"><img src="../icon/icon_pdf.gif" height="20" style="vertical-align:-5px;"/></a>  説明書 （PDF / 2.3 MB）</td>
+</tr><tr>
+<th><a id="13042" class="group1" title="5万分の1地質図幅  13 ［高知］-042 「川口」" href="../jpeg/50k/50k_13042.jpg"><img src="../jpeg/50k/50k_13042.jpg" width="83" height="57" /></a></th>
+<td width="220" valign="top"><a class="iframe" href="docs/5man_doc/13/13_042.htm"><strong>川口</strong></a><br />13-042<br />発行年：1966<br />販売価格：&#165;660</td>
+<td width="350" valign="top" style="font-size: 90%">
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/JPG/GSJ_MAP_G050_13042_1966_200dpi.jpg" target="_blank"><img src="../icon/dl_06.png" /></a>  ラスターデータ （JPEG / 200dpi / 3.5 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/GTF/GSJ_MAP_G050_13042_1966.zip" target="_blank"><img src="../icon/dl_04.png" /></a>  ラスターデータ （GeoTiff, KML / 200dpi / 40 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/VCT/GSJ_MAP_G050_13042_1966_V01.zip" target="_blank"><img src="../icon/dl_02.png" /></a>  ベクトルデータ （Shapefile, KML / 3.8 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/PDF/GSJ_MAP_G050_13042_1966_D.pdf" target="_blank"><img src="../icon/icon_pdf.gif" height="20" style="vertical-align:-5px;"/></a>  説明書 （PDF / 1.1 MB）</td>
+</tr><tr>
+<th><a id="13052" class="group1" title="5万分の1地質図幅  13 ［高知］-052 「日比原」" href="../jpeg/50k/50k_13052.jpg"><img src="../jpeg/50k/50k_13052.jpg" width="83" height="57" /></a></th>
+<td width="220" valign="top"><a class="iframe" href="docs/5man_doc/13/13_052.htm"><strong>日比原</strong></a><br />13-052<br />発行年：2009<br />販売価格：&#165;3,630</td>
+<td width="350" valign="top" style="font-size: 90%">
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/JPG/GSJ_MAP_G050_13052_2009_200dpi.jpg" target="_blank"><img src="../icon/dl_06.png" /></a>  ラスターデータ （JPEG / 200dpi / 4.0 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/GTF/GSJ_MAP_G050_13052_2009.zip" target="_blank"><img src="../icon/dl_04.png" /></a>  ラスターデータ （GeoTiff, KML / 200dpi / 36 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/VCT/GSJ_MAP_G050_13052_2009_V01.zip" target="_blank"><img src="../icon/dl_02.png" /></a>  ベクトルデータ （Shapefile, KML / 22.7 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/PDF/GSJ_MAP_G050_13052_2009_D.pdf" target="_blank"><img src="../icon/icon_pdf.gif" height="20" style="vertical-align:-5px;"/></a>  説明書 （PDF / 6.6 MB）<br />
+<a href="https://cdn.gsj.jp/ld/zfk/zfkdoc/1165/1165.html" target="_blank">  説明書</a> （HTML）</td>
+</tr><tr>
+<th><a id="13053" class="group1" title="5万分の1地質図幅  13 ［高知］-053 「本山」" href="../jpeg/50k/50k_13053.jpg"><img src="../jpeg/50k/50k_13053.jpg" width="83" height="57" /></a></th>
+<td width="220" valign="top"><a class="iframe" href="docs/5man_doc/13/13_053.htm"><strong>本山</strong></a><br />13-053<br />発行年：2019<br />販売価格：&#165;2,090</td>
+<td width="350" valign="top" style="font-size: 90%">
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/JPG/GSJ_MAP_G050_13053_2019_200dpi.jpg" target="_blank"><img src="../icon/dl_06.png" /></a>  ラスターデータ （JPEG / 200dpi / 4.2 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/GTF/GSJ_MAP_G050_13053_2019.zip" target="_blank"><img src="../icon/dl_04.png" /></a>  ラスターデータ （GeoTiff, KML / 200dpi / 37 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/PDF/GSJ_MAP_G050_13053_2019_D.pdf" target="_blank"><img src="../icon/icon_pdf.gif" height="20" style="vertical-align:-5px;"/></a>  説明書 （PDF / 14 MB）</td>
+</tr><tr>
+<th><a id="13055" class="group1" title="5万分の1地質図幅  13 ［高知］-055 「北川」" href="../jpeg/50k/50k_13055.jpg"><img src="../jpeg/50k/50k_13055.jpg" width="83" height="57" /></a></th>
+<td width="220" valign="top"><a class="iframe" href="docs/5man_doc/13/13_055.htm"><strong>北川</strong></a><br />13-055<br />発行年：2014<br />販売価格：&#165;1,540</td>
+<td width="350" valign="top" style="font-size: 90%">
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/JPG/GSJ_MAP_G050_13055_2014_200dpi.jpg" target="_blank"><img src="../icon/dl_06.png" /></a>  ラスターデータ （JPEG / 200dpi / 4.0 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/GTF/GSJ_MAP_G050_13055_2014.zip" target="_blank"><img src="../icon/dl_04.png" /></a>  ラスターデータ （GeoTiff, KML / 200dpi / 48 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/PDF/GSJ_MAP_G050_13055_2014_D.pdf" target="_blank"><img src="../icon/icon_pdf.gif" height="20" style="vertical-align:-5px;"/></a>  説明書 （PDF / 17 MB）</td>
+</tr><tr>
+
+
+<th><a id="13058" class="group1" title="5万分の1地質図幅  13 ［高知］-058 「伊予長浜」" href="../jpeg/50k/50k_13058.jpg"><img src="../jpeg/50k/50k_13058.jpg" width="83" height="57" /></a></th>
+<td width="220" valign="top"><a class="iframe" href="docs/5man_doc/13/13_058.htm"><strong>伊予長浜</strong></a><br />13-058<br />発行年：2024<br />販売価格：&#165;3,080</td>
+<td width="350" valign="top" style="font-size: 90%">
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/JPG/GSJ_MAP_G050_13058_2024_200dpi.jpg" target="_blank"><img src="../icon/dl_06.png" /></a>  ラスターデータ （JPEG / 200dpi / 2.7 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/GTF/GSJ_MAP_G050_13058_2024.zip" target="_blank"><img src="../icon/dl_04.png" /></a>  ラスターデータ （GeoTiff, KML / 200dpi / 23 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/PDF/GSJ_MAP_G050_13058_2024_D-L.pdf" target="_blank"><img src="../icon/icon_pdf.gif" height="20" style="vertical-align:-5px;"/></a>  説明書［軽量版］ （PDF / 20 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/PDF/GSJ_MAP_G050_13058_2024_D.pdf" target="_blank"><img src="../icon/icon_pdf.gif" height="20" style="vertical-align:-5px;"/></a>  説明書 （PDF / 312 MB）</td>
+
+
+</tr><tr>
+<th><a id="13059" class="group1" title="5万分の1地質図幅  13 ［高知］-059 「大洲」" href="../jpeg/50k/50k_13059.jpg"><img src="../jpeg/50k/50k_13059.jpg" width="83" height="57" /></a></th>
+<td width="220" valign="top"><a class="iframe" href="docs/5man_doc/13/13_059.htm"><strong>大洲</strong></a><br />13-059<br />発行年：2010<br />販売価格：&#165;3,410</td>
+<td width="350" valign="top" style="font-size: 90%">
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/JPG/GSJ_MAP_G050_13059_2010_200dpi.jpg" target="_blank"><img src="../icon/dl_06.png" /></a>  ラスターデータ （JPEG / 200dpi / 3.0 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/GTF/GSJ_MAP_G050_13059_2010.zip" target="_blank"><img src="../icon/dl_04.png" /></a>  ラスターデータ （GeoTiff, KML / 200dpi / 33 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/VCT/GSJ_MAP_G050_13059_2010_V01.zip" target="_blank"><img src="../icon/dl_02.png" /></a>  ベクトルデータ （Shapefile, KML / 3.8 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/PDF/GSJ_MAP_G050_13059_2010_D.pdf" target="_blank"><img src="../icon/icon_pdf.gif" height="20" style="vertical-align:-5px;"/></a>  説明書 （PDF / 4.6 MB）<br />
+<a href="https://cdn.gsj.jp/ld/zfk/zfkdoc/1166/1166.html" target="_blank">  説明書</a> （HTML）</td>
+</tr><tr>
+<th><a id="13062" class="group1" title="5万分の1地質図幅  13 ［高知］-062 「伊野」" href="../jpeg/50k/50k_13062.jpg"><img src="../jpeg/50k/50k_13062.jpg" width="83" height="57" /></a></th>
+<td width="220" valign="top"><a class="iframe" href="docs/5man_doc/13/13_062.htm"><strong>伊野</strong></a><br /><small>※現地形図名「いの」</small><br />13-062<br />発行年：2007<br /><a href="../errata/errata_50k-13062.pdf" target="_blank">正誤表</a>（PDF / 309 KB）<br />販売価格：&#165;5,170</td>
+<td width="350" valign="top" style="font-size: 90%">
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/JPG/GSJ_MAP_G050_13062_2007_200dpi.jpg" target="_blank"><img src="../icon/dl_06.png" /></a>  ラスターデータ （JPEG / 200dpi / 4.5 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/GTF/GSJ_MAP_G050_13062_2007.zip" target="_blank"><img src="../icon/dl_04.png" /></a>  ラスターデータ （GeoTiff, KML / 200dpi / 40 MB）<br />[2017.02.08]（不足ファイルを追加）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/VCT/GSJ_MAP_G050_13062_2007_V01.zip" target="_blank"><img src="../icon/dl_02.png" /></a>  ベクトルデータ （Shapefile, KML / 40.5 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/PDF/GSJ_MAP_G050_13062_2007_D.pdf" target="_blank"><img src="../icon/icon_pdf.gif" height="20" style="vertical-align:-5px;"/></a>  説明書 （PDF / 68 MB）[2020.05.26]<br />※非表示レイヤーテキストの文字化けを修正。<br />
+<a href="https://cdn.gsj.jp/ld/zfk/zfkdoc/1144/1144.html" target="_blank">  説明書</a> （HTML）</td>
+</tr><tr>
+<th><a id="13065" class="group1" title="5万分の1地質図幅  13 ［高知］-065 「馬路」" href="../jpeg/50k/50k_13065.jpg"><img src="../jpeg/50k/50k_13065.jpg" width="83" height="57" /></a></th>
+<td width="220" valign="top"><a class="iframe" href="docs/5man_doc/13/13_065.htm"><strong>馬路</strong></a><br />13-065<br />発行年：2020<br />販売価格：&#165;1,760</td>
+<td width="350" valign="top" style="font-size: 90%">
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/JPG/GSJ_MAP_G050_13065_2020_200dpi.jpg" target="_blank"><img src="../icon/dl_06.png" /></a>  ラスターデータ （JPEG / 200dpi / 4.7 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/GTF/GSJ_MAP_G050_13065_2020.zip" target="_blank"><img src="../icon/dl_04.png" /></a>  ラスターデータ （GeoTiff, KML / 200dpi / 36 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/PDF/GSJ_MAP_G050_13065_2020_D-L.pdf" target="_blank"><img src="../icon/icon_pdf.gif" height="20" style="vertical-align:-5px;"/></a>  説明書［軽量版］（PDF / 15 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/PDF/GSJ_MAP_G050_13065_2020_D.pdf" target="_blank"><img src="../icon/icon_pdf.gif" height="20" style="vertical-align:-5px;"/></a>  説明書（PDF / 186 MB）</td>
+</tr><tr>
+<th><a id="13067" class="group1" title="5万分の1地質図幅  13 ［高知］-067 「伊予三崎」" href="../jpeg/50k/50k_13067.jpg"><img src="../jpeg/50k/50k_13067.jpg" width="83" height="57" /></a></th>
+<td width="220" valign="top"><a class="iframe" href="docs/5man_doc/13/13_067.htm"><strong>伊予三崎</strong></a><br />13-067<br />発行年：1959<br />在庫切</td>
+<td width="350" valign="top" style="font-size: 90%">
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/JPG/GSJ_MAP_G050_13067_1959_200dpi.jpg" target="_blank"><img src="../icon/dl_06.png" /></a>  ラスターデータ （JPEG / 200dpi / 2.9 MB）[2023.04.20]<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/GTF/GSJ_MAP_G050_13067_1959.zip" target="_blank"><img src="../icon/dl_04.png" /></a>  ラスターデータ （GeoTiff, KML / 200dpi / 26 MB）[2023.04.20]<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/VCT/GSJ_MAP_G050_13067_1959_V01.zip" target="_blank"><img src="../icon/dl_02.png" /></a>  ベクトルデータ （Shapefile, KML / 1.4 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/PDF/GSJ_MAP_G050_13067_1959_D.pdf" target="_blank"><img src="../icon/icon_pdf.gif" height="20" style="vertical-align:-5px;"/></a>  説明書 （PDF / 498 KB）<br />
+<a href="https://cdn.gsj.jp/ld/zfk/zfkdoc/0647/0647.html" target="_blank">  説明書</a> （HTML）</td>
+</tr><tr>
+<th><a id="13068" class="group1" title="5万分の1地質図幅  13 ［高知］-068 「八幡浜」" href="../jpeg/50k/50k_13068.jpg"><img src="../jpeg/50k/50k_13068.jpg" width="83" height="57" /></a></th>
+<td width="220" valign="top"><a class="iframe" href="docs/5man_doc/13/13_068.htm"><strong>八幡浜</strong></a><br />13-068<br />発行年：1957 / 説明書：1956<br />備考：説明書は「伊予高山」と共通<br />販売価格：&#165;660<br />※「伊予高山」とセット価格</td>
+<td width="350" valign="top" style="font-size: 90%">
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/JPG/GSJ_MAP_G050_13068_1957_200dpi.jpg" target="_blank"><img src="../icon/dl_06.png" /></a>  ラスターデータ （JPEG / 200dpi / 3.5 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/GTF/GSJ_MAP_G050_13068_1957.zip" target="_blank"><img src="../icon/dl_04.png" /></a>  ラスターデータ （GeoTiff, KML / 200dpi / 36 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/VCT/GSJ_MAP_G050_13068_1957_V01.zip" target="_blank"><img src="../icon/dl_02.png" /></a>  ベクトルデータ （Shapefile, KML / 5.5 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/PDF/GSJ_MAP_G050_13068_1956_D.pdf" target="_blank"><img src="../icon/icon_pdf.gif" height="20" style="vertical-align:-5px;"/></a>  説明書 （PDF / 1.2 MB）<br />
+<a href="https://cdn.gsj.jp/ld/zfk/zfkdoc/0648/0648.html" target="_blank">  説明書</a> （HTML）</td>
+</tr><tr>
+<th><a id="13076" class="group1" title="5万分の1地質図幅  13 ［高知］-076 「伊予高山」" href="../jpeg/50k/50k_13076.jpg"><img src="../jpeg/50k/50k_13076.jpg" width="83" height="57" /></a></th>
+<td width="220" valign="top"><a class="iframe" href="docs/5man_doc/13/13_076.htm"><strong>伊予高山 （北半部）</strong></a><br />13-076<br />発行年：1957 / 説明書：1956<br />備考：説明書は「八幡浜」と共通<br />販売価格：&#165;660<br />※「八幡浜」とセット価格</td>
+<td width="350" valign="top" style="font-size: 90%">
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/JPG/GSJ_MAP_G050_13076_1957_200dpi.jpg" target="_blank"><img src="../icon/dl_06.png" /></a>  ラスターデータ （JPEG / 200dpi / 2.5 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/GTF/GSJ_MAP_G050_13076_1957.zip" target="_blank"><img src="../icon/dl_04.png" /></a>  ラスターデータ （GeoTiff, KML / 200dpi / 28 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/VCT/GSJ_MAP_G050_13076_1957_V01.zip" target="_blank"><img src="../icon/dl_02.png" /></a>  ベクトルデータ （Shapefile, KML / 3.7 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/PDF/GSJ_MAP_G050_13068_1956_D.pdf" target="_blank"><img src="../icon/icon_pdf.gif" height="20" style="vertical-align:-5px;"/></a>  説明書 （PDF / 1.2 MB）<br />
+<a href="https://cdn.gsj.jp/ld/zfk/zfkdoc/0648/0648.html" target="_blank">  説明書</a> （HTML）</td>
+</tr><tr>
+<th><a id="13077" class="group1" title="5万分の1地質図幅  13 ［高知］-077 「宇和島」" href="../jpeg/50k/50k_13077.jpg"><img src="../jpeg/50k/50k_13077.jpg" width="83" height="57" /></a></th>
+<td width="220" valign="top"><a class="iframe" href="docs/5man_doc/13/13_077.htm"><strong>宇和島</strong></a><br />13-077<br />発行年：1986<br />販売価格：&#165;3,960</td>
+<td width="350" valign="top" style="font-size: 90%">
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/JPG/GSJ_MAP_G050_13077_1986_200dpi.jpg" target="_blank"><img src="../icon/dl_06.png" /></a>  ラスターデータ （JPEG / 200dpi / 4.2 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/GTF/GSJ_MAP_G050_13077_1986.zip" target="_blank"><img src="../icon/dl_04.png" /></a>  ラスターデータ （GeoTiff, KML / 200dpi / 40 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/VCT/GSJ_MAP_G050_13077_1986_V01.zip" target="_blank"><img src="../icon/dl_02.png" /></a>  ベクトルデータ （Shapefile, KML / 9.2 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/PDF/GSJ_MAP_G050_13077_1986_D.pdf" target="_blank"><img src="../icon/icon_pdf.gif" height="20" style="vertical-align:-5px;"/></a>  説明書 （PDF / 3.3 MB）</td>
+</tr><tr>
+<th><a id="13087" class="group1" title="5万分の1地質図幅  13 ［高知］-087 「鶴御崎」" href="../jpeg/50k/50k_13087.jpg"><img src="../jpeg/50k/50k_13087.jpg" width="83" height="57" /></a></th>
+<td width="220" valign="top"><a class="iframe" href="docs/5man_doc/13/13_087.htm"><strong>鶴御崎</strong></a><br />13-087<br />発行年：1988<br />販売価格：&#165;1,980</td>
+<td width="350" valign="top" style="font-size: 90%">
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/JPG/GSJ_MAP_G050_13087_1988_200dpi.jpg" target="_blank"><img src="../icon/dl_06.png" /></a>  ラスターデータ （JPEG / 200dpi / 1.2 MB）[2023.04.20]<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/GTF/GSJ_MAP_G050_13087_1988.zip" target="_blank"><img src="../icon/dl_04.png" /></a>  ラスターデータ （GeoTiff, KML / 200dpi / 18 MB）[2023.04.20]<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/VCT/GSJ_MAP_G050_13087_1988_V01.zip" target="_blank"><img src="../icon/dl_02.png" /></a>  ベクトルデータ （Shapefile, KML / 1.5 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/PDF/GSJ_MAP_G050_13087_1988_D.pdf" target="_blank"><img src="../icon/icon_pdf.gif" height="20" style="vertical-align:-5px;"/></a>  説明書 （PDF / 1.6 MB）</td>
+</tr><tr>
+<th><a id="13088" class="group1" title="5万分の1地質図幅  13 ［高知］-088 「伊予鹿島」" href="../jpeg/50k/50k_13088.jpg"><img src="../jpeg/50k/50k_13088.jpg" width="83" height="57" /></a></th>
+<td width="220" valign="top"><a class="iframe" href="docs/5man_doc/13/13_088.htm"><strong>伊予鹿島</strong></a><br />13-088<br />発行年：1980<br />備考：説明書は「宿毛」と共通<br />販売価格：&#165;2,640<br />※「宿毛」とセット価格</td>
+<td width="350" valign="top" style="font-size: 90%">
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/JPG/GSJ_MAP_G050_13088_1980_200dpi.jpg" target="_blank"><img src="../icon/dl_06.png" /></a>  ラスターデータ （JPEG / 200dpi / 1.6 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/GTF/GSJ_MAP_G050_13088_1980.zip" target="_blank"><img src="../icon/dl_04.png" /></a>  ラスターデータ （GeoTiff, KML / 200dpi / 21 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/VCT/GSJ_MAP_G050_13088_1980_V01.zip" target="_blank"><img src="../icon/dl_02.png" /></a>  ベクトルデータ （Shapefile, KML / 1.3 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/PDF/GSJ_MAP_G050_13089_1980_D.pdf" target="_blank"><img src="../icon/icon_pdf.gif" height="20" style="vertical-align:-5px;"/></a>  説明書 （PDF / 8.8 MB）<br />
+<a href="https://cdn.gsj.jp/ld/zfk/zfkdoc/0653/0653.html" target="_blank">  説明書</a> （HTML）</td>
+</tr><tr>
+<th><a id="13089" class="group1" title="5万分の1地質図幅  13 ［高知］-089 「宿毛」" href="../jpeg/50k/50k_13089.jpg"><img src="../jpeg/50k/50k_13089.jpg" width="83" height="57" /></a></th>
+<td width="220" valign="top"><a class="iframe" href="docs/5man_doc/13/13_089.htm"><strong>宿毛</strong></a><br />13-089<br />発行年：1980<br />備考：説明書は「伊予鹿島」と共通<br />販売価格：&#165;2,640<br />※「伊予鹿島」とセット価格</td>
+<td width="350" valign="top" style="font-size: 90%">
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/JPG/GSJ_MAP_G050_13089_1980_200dpi.jpg" target="_blank"><img src="../icon/dl_06.png" /></a>  ラスターデータ （JPEG / 200dpi / 2.9 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/GTF/GSJ_MAP_G050_13089_1980.zip" target="_blank"><img src="../icon/dl_04.png" /></a>  ラスターデータ （GeoTiff, KML / 200dpi / 33 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/VCT/GSJ_MAP_G050_13089_1980_V01.zip" target="_blank"><img src="../icon/dl_02.png" /></a>  ベクトルデータ （Shapefile, KML / 5.7 MB）<br />
+<a href="https://gbank.gsj.jp/ld/dlform/?url=/data/50KGM/PDF/GSJ_MAP_G050_13089_1980_D.pdf" target="_blank"><img src="../icon/icon_pdf.gif" height="20" style="vertical-align:-5px;"/></a>  説明書 （PDF / 8.8 MB）<br />
+<a href="https://cdn.gsj.jp/ld/zfk/zfkdoc/0653/0653.html" target="_blank">  説明書</a> （HTML）</td>
+</tr>
+</tbody>
+</table>
+<br />
+	
+
+
+      <!-- /main -->
+    </div>
+
+
+	<div id="localMenu" class="clearfix">
+
+<div class="sideBox">
+<ul>
+<li><a href="infomation.html" title="お知らせ">お知らせ</a></li>
+<li><a href="purchase-guide.html" title="購入方法">購入方法</a></li>
+<li><a href="pub-inquiries.html" title="お問い合わせ" target="_blank">お問い合わせ</a></li>
+</ul>
+</div>
+
+<div class="sideBox">
+<ul>
+<li><a href="newmaps.html" title="新刊紹介">新刊紹介</a></li>
+</ul>
+</div>
+
+<div class="sideBox">
+<ul>
+	<li><a href="seamless-geomap.html" title="海陸シームレス地質図">海陸シームレス地質図</a></li>
+	<li><strong>5万分の1地質図幅</strong><br />
+		・<a href="geology4-1.html"> 1. 網走</a><br />
+		・<a href="geology4-2.html"> 2. 釧路</a><br />
+		・<a href="geology4-3.html"> 3. 旭川</a><br />
+		・<a href="geology4-4.html"> 4. 札幌</a><br />
+		・<a href="geology4-5.html"> 5. 青森</a><br />
+		・<a href="geology4-6.html"> 6. 秋田</a><br />
+		・<a href="geology4-7.html"> 7. 新潟</a><br />
+		・<a href="geology4-8.html"> 8. 東京</a><br />
+		・<a href="geology4-9.html"> 9. 八丈島,<br />　20.小笠原諸島</a><br />
+		・<a href="geology4-10.html">10. 金沢</a><br />
+		・<a href="geology4-11.html">11. 京都</a><br />
+		・<a href="geology4-12.html">12. 岡山</a><br />
+		・<strong>13. 高知</strong><br />
+		・<a href="geology4-14.html">14. 福岡</a><br />
+		・<a href="geology4-15.html">15. 鹿児島</a><br />
+		・<a href="geology4-16.html">16. 種子島, 17.奄美大島, 18.那覇, 19.宮古島</a><br />
+		<br /></li>
+	<li><a href="geology2.html" title="20万分の1地質図幅">20万分の1 地質図幅</a></li>
+	<li><a href="geology0.html" title="200万分の1地質編集図">200万分の1 地質編集図</a></li>
+	<li><a href="geology.html" title="100万分の1地質図，他">100万分の1 地質図，他</a></li>
+	<li><a href="geology3.html" title="7万5千分の1地質図幅">7万5千分の1 地質図幅</a></li>
+	<li><a href="geology1.html" title="50万分の1地質図幅・活構造図">50万分の1 地質図幅<br />50万分の1 活構造図</a></li>
+	<li><a href="af-earthquake2.html" title="構造図（活断層ストリップマップ）">構造図<small>（活断層ストリップマップ）</small></a></li>
+	<li><a href="marine-geology.html" title="海洋地質図">海洋地質図</a></li>
+	<li><a href="volcano.html" title="火山地質図">火山地質図</a></li>
+	<li><a href="lvi.html" title="大規模火砕流分布図">大規模火砕流分布図</a></li>
+	<li><a href="geology5.html" title="特殊地質図">特殊地質図</a></li>
+	<!--li><a href="environment.html" title="水文環境図">水文環境図</a></li-->
+	<!--li><a href="environment2.html" title="水理地質図">水理地質図</a></li-->
+	<li><a href="environment.html" title="水文環境図・水理地質図">水文環境図・水理地質図</a></li>
+	<li><a href="geophysics.html" title="重力図（ブーゲー異常図）">重力図<small>（ブーゲー異常図）</small></a></li>
+	<li><a href="geophysics2.html" title="空中磁気図（高分解能空中磁気異常図）">空中磁気図<small>（高分解能空中磁気異常図）</small></a></li>
+	<li><a href="geochemistry.html" title="地球化学">地球化学図</a></li>
+	<li><a href="soils_assessment.html" title="土壌評価図">土壌評価図<small> (CD-ROM)</small></a></li>
+	<li><a href="geophysics3.html" title="地球物理">地球物理<small> (CD-ROM)</small></a></li>
+	<li><a href="fuel_resource.html" title="燃料資源図">燃料資源図<small> (CD-ROM)</small></a></li>
+	<li><a href="geothermal_resources.html" title="地熱資源図">地熱資源図<small> (CD-ROM)</small></a></li>
+	<li><a href="geo-resources.html" title="鉱物資源図">鉱物資源図</a></li>
+	<li><a href="geo-resources2.html" title="日本炭田図">日本炭田図</a></li>
+	<li><a href="geo-resources3.html" title="日本油田・ガス田図">日本油田・ガス田図</a></li>
+	<li><a href="asia-area-geoscience.html" title="アジア地域の地球科学図">アジア地域の地球科学図</a></li>
+	<li><a href="cd_dvd_list.html" title="CD / DVD-ROM 出版物">CD / DVD-ROM 出版物</a></li>
+</ul>
+</div>
+
+<div class="sideBox">
+<ul>
+<li><a href="../../license/index.html" title="地質図類の利用について" target="_blank">地質図類の利用について</a></li>
+<li><a href="related-links.html" title="関連リンク">関連リンク</a></li>
+</ul>
+</div>
+      <!-- /localMenu -->
+    </div>
+    <!-- /wrap -->
+  </div>
+
+  </div>
+<div id="footer">
+  <p class="pageTop"><a href="#">このページの先頭へ</a></p>
+    <ul>
+<!--●産総研HPへ●--><li><a href="http://www.aist.go.jp/" target="_blank">産業技術総合研究所ホーム</a></li>
+<!--●ご利用条件●--><li><a href="../../license/index.html">ご利用条件</a></li>
+<!--●個人情報保護方針●--><li><a href="http://www.aist.go.jp/aist_j/comp-info/pip/index.html" target="_blank">個人情報保護方針</a></li>
+<!--●更新履歴●--><li><a href="../../info/index.html">更新履歴</a></li>
+    </ul>
+    <p id="copyright">Copyright &copy; Geological Survey of Japan, AIST</p>
+    <!-- /footer -->
+  </div>
+  <!-- /content -->
+  </div>
+  <!-- /container -->
+
+	
+
+<map name="Map" id="Map">
+  <area shape="rect" coords="120,61,162,95" href="#13001" />
+  <area shape="rect" coords="162,61,203,95" href="#13002" />
+  <area shape="rect" coords="203,61,243,95" href="#13003" />
+<!---  <area shape="rect" coords="243,61,286,95" href="#13004" />
+  <area shape="rect" coords="286,61,328,95" href="#13005" />
+  <area shape="rect" coords="327,61,368,95" href="#13006" />
+  <area shape="rect" coords="369,61,410,95" href="#13007" />
+  <area shape="rect" coords="409,61,453,95" href="#13008" />
+  <area shape="rect" coords="452,61,495,95" href="#13009" />
+  <area shape="rect" coords="493,61,535,95" href="#13010" />--->
+  <area shape="rect" coords="576,61,618,95" href="#13011" />
+  <area shape="rect" coords="120,95,162,129" href="#13012" />
+  <area shape="rect" coords="161,95,203,129" href="#13013" />
+  <area shape="rect" coords="203,95,244,129" href="#13014" />
+  <area shape="rect" coords="243,95,285,129" href="#13015" />
+<!---  <area shape="rect" coords="285,95,327,129" href="#13016" />
+  <area shape="rect" coords="326,95,368,129" href="#13017" />
+  <area shape="rect" coords="369,95,410,129" href="#13018" />
+  <area shape="rect" coords="409,95,451,129" href="#13019" />
+  <area shape="rect" coords="450,95,494,129" href="#13020" />
+  <area shape="rect" coords="494,95,535,129" href="#13021" />
+  <area shape="rect" coords="535,95,576,129" href="#13022" />
+  <area shape="rect" coords="576,95,617,129" href="#13023" />--->
+  <area shape="rect" coords="119,129,161,162" href="#13024" />
+  <area shape="rect" coords="161,129,244,162" href="#13025" />
+  <area shape="rect" coords="243,129,286,162" href="#13027" />
+<!---  <area shape="rect" coords="285,129,328,162" href="#13028" />
+  <area shape="rect" coords="327,129,369,162" href="#13029" />--->
+  <area shape="rect" coords="366,129,410,162" href="#13030" />
+  <area shape="rect" coords="409,129,452,162" href="#13031" />
+<!---  <area shape="rect" coords="451,129,494,162" href="#13032" />
+  <area shape="rect" coords="493,129,535,162" href="#13033" />
+  <area shape="rect" coords="536,129,576,162" href="#13034" />
+  <area shape="rect" coords="120,162,162,197" href="#13035" />
+  <area shape="rect" coords="161,162,202,197" href="#13036" />
+  <area shape="rect" coords="202,162,244,197" href="#13037" />
+  <area shape="rect" coords="244,162,286,197" href="#13038" />
+  <area shape="rect" coords="286,162,327,197" href="#13039" />--->
+  <area shape="rect" coords="326,162,367,197" href="#13040" />
+  <area shape="rect" coords="368,162,410,197" href="#13041" />
+  <area shape="rect" coords="409,162,453,197" href="#13042" />
+<!---  <area shape="rect" coords="451,162,493,197" href="#13043" />
+  <area shape="rect" coords="492,162,535,197" href="#13044" />
+  <area shape="rect" coords="535,162,577,197" href="#13045" />
+  <area shape="rect" coords="576,162,618,197" href="#13046" />
+  <area shape="rect" coords="119,197,161,231" href="#13047" />
+  <area shape="rect" coords="161,197,203,231" href="#13048" />
+  <area shape="rect" coords="203,197,245,231" href="#13049" />
+  <area shape="rect" coords="244,197,285,231" href="#13050" />
+  <area shape="rect" coords="284,197,327,231" href="#13051" />--->
+  <area shape="rect" coords="327,197,368,231" href="#13052" />
+  <area shape="rect" coords="368,197,411,231" href="#13053" />
+<!---  <area shape="rect" coords="411,197,451,231" href="#13054" />--->
+  <area shape="rect" coords="450,197,494,231" href="#13055" />
+<!---  <area shape="rect" coords="493,197,534,231" href="#13056" />
+  <area shape="rect" coords="533,197,577,231" href="#13057" />--->
+  <area shape="rect" coords="162,231,204,265" href="#13058" />
+  <area shape="rect" coords="202,231,244,265" href="#13059" />
+<!---  <area shape="rect" coords="243,231,286,265" href="#13060" />
+  <area shape="rect" coords="285,231,327,265" href="#13061" />--->
+  <area shape="rect" coords="326,231,368,265" href="#13062" />
+<!---  <area shape="rect" coords="369,231,411,265" href="#13063" />
+  <area shape="rect" coords="412,231,452,265" href="#13064" />--->
+  <area shape="rect" coords="451,231,494,265" href="#13065" />
+<!---    <area shape="rect" coords="493,231,534,265" href="#13066" />--->
+  <area shape="rect" coords="120,265,162,299" href="#13067" />
+  <area shape="rect" coords="161,265,204,299" href="#13068" />
+<!---  <area shape="rect" coords="204,265,245,299" href="#13069" />
+  <area shape="rect" coords="245,265,286,299" href="#13070" />
+  <area shape="rect" coords="285,265,328,299" href="#13071" />
+  <area shape="rect" coords="328,265,368,299" href="#13072" />
+  <area shape="rect" coords="368,265,410,299" href="#13073" />
+  <area shape="rect" coords="409,265,451,299" href="#13074" />
+  <area shape="rect" coords="450,265,493,299" href="#13075" />--->
+  <area shape="rect" coords="161,299,203,334" href="#13076" />
+  <area shape="rect" coords="203,299,245,334" href="#13077" />
+<!---  <area shape="rect" coords="245,299,286,334" href="#13078" />
+  <area shape="rect" coords="286,299,328,334" href="#13079" />
+  <area shape="rect" coords="328,299,369,334" href="#13080" />
+  <area shape="rect" coords="452,299,493,334" href="#13081" />
+  <area shape="rect" coords="119,333,161,367" href="#13082" />
+  <area shape="rect" coords="160,333,203,367" href="#13083" />
+  <area shape="rect" coords="202,333,244,367" href="#13084" />
+  <area shape="rect" coords="244,333,287,367" href="#13085" />
+  <area shape="rect" coords="287,333,328,367" href="#13086" />--->
+  <area shape="rect" coords="120,366,162,401" href="#13087" />
+  <area shape="rect" coords="162,366,203,401" href="#13088" />
+  <area shape="rect" coords="204,366,245,401" href="#13089" />
+<!---  <area shape="rect" coords="245,368,291,401" href="#13090" />
+  <area shape="rect" coords="197,401,244,437" href="#13091" />
+  <area shape="rect" coords="244,402,290,436" href="#13092" />--->
+  <area shape="rect" coords="633,14,684,256" href="geology4-11.html" alt="11「京都」区画へ" />
+  <area shape="rect" coords="133,8,604,47" href="geology4-12.html" alt="12「岡山」区画へ" />
+  <area shape="rect" coords="17,15,97,352" href="geology4-14.html" alt="14「福岡」区画へ" />
+  <area shape="rect" coords="17,379,94,486" href="geology4-15.html" alt="15「鹿児島」区画へ" />
+</map>
+
+</body>
+</html>

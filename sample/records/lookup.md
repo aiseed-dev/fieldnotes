@@ -24,6 +24,7 @@ places with a name near the farm, worth reading about. Mark or correct them like
 ## Geology
 
 - (GSJ シームレス地質図: not reached on 2026-10-30, JSONDecodeError; run lookup again later)
+- `hypothesis` Parent material: not looked up. No 1:50,000 geological map is published for this sheet (13［高知］-033; 134°15′–134°30′E, 34°00′–34°10′N), so there is no report to read. — 出典：産総研地質調査総合センター 地質図カタログ, https://www.gsj.jp/Map/JP/geology4-13.html#13033
 - `data` Bedrock: Paleozoic-Mesozoic sedimentary rocks; sedimentary rocks (Late Paleozoic to Triassic; map scale tiny). — Macrostrat (CC BY 4.0), https://macrostrat.org/api/v2/geologic_units/map?lat=34.0801&lng=134.4454
 
 ## Faults and hazards

@@ -14,6 +14,8 @@ and settle the place:
                   (within 2 km at z15; if none, within 4 km at z14)
     hazard_jp     ハザードマップポータルサイト raster tiles → inside or outside, and the
                   distance to, 土砂災害警戒区域 and 洪水浸水想定区域 (想定最大規模)
+    sheet_jp      産総研 地質図カタログ (5万分の1地質図幅) → the sheet the point is on,
+                  and its report: the report's text says what the deposits are made of
 
 Each returns (lines, raw) like the sources in lookup.py. A tile that is not
 there (404) means the layer has nothing in it; any other failure raises, and
@@ -24,6 +26,7 @@ from __future__ import annotations
 
 import io
 import math
+import re
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -86,6 +89,21 @@ SEDIMENT = [("05_dosekiryukeikaikuiki", "土石流"), ("05_kyukeishakeikaikuiki"
 FLOOD = "01_flood_l2_shinsuishin_data"
 FAULT_SEARCH = [(15, 2), (14, 2)]  # 5×5 tiles: at least 2 km round the point at z15 (~4 m px), then 4 km at z14
 HAZARD_Z, HAZARD_R = 15, 1  # 3×3 tiles: at least 1 km
+
+# 産総研 地質図カタログ, 5万分の1地質図幅: one page per region, each with an index map
+# whose rectangles are the sheets (15′ of longitude by 10′ of latitude) on a regular
+# pixel grid. Per page: (west longitude of the grid, its north edge in 10′ steps,
+# pixel x and y of that corner, columns, rows). Placed by the sheets named after
+# towns (国土地理院 地名検索, 2026-10-30). Pages 9 and 16 (islands) are not on one grid.
+CATALOGUE = "https://www.gsj.jp/Map/JP/geology4-{}.html"
+SHEET_PX = (41.6, 34.2)
+SHEET_GRID = {
+    1: (142.5, 271, 94, 118, 12, 10), 2: (142.5, 261, 94, 80, 14, 10), 3: (141.0, 274, 258, 15, 7, 13),
+    4: (139.25, 261, 15, 34, 13, 13), 5: (139.5, 250, 130, 104, 10, 10), 6: (139.0, 240, 151, 55, 13, 12),
+    7: (138.0, 230, 78, 70, 13, 11), 8: (138.0, 219, 125, 58, 12, 12), 10: (135.0, 227, 86, 4, 12, 14),
+    11: (135.0, 213, 120, 35, 12, 13), 12: (132.0, 218, 119, 45, 12, 11), 13: (132.0, 207, 119, 61, 12, 11),
+    14: (129.0, 209, 118, 70, 12, 11), 15: (128.25, 200, 37, 13, 15, 14),
+}
 
 
 def get_bytes(url: str) -> bytes | None:
@@ -322,6 +340,79 @@ def hazards(site: Site):
     sediment, raw1 = _zone(site, SEDIMENT, "土砂災害警戒区域")
     flood, raw2 = _zone(site, [(FLOOD, "想定最大規模")], "洪水浸水想定区域")
     return [sediment, flood], {**raw1, **raw2, "zoom": HAZARD_Z}
+
+
+def sheet_cell(lat: float, lon: float) -> tuple[float, float]:
+    """(west longitude, north latitude) of the 1:50,000 sheet the point is on. A
+    point on an edge is on the sheet east or south of it."""
+    return math.floor(round(lon * 4, 9)) / 4, math.ceil(round(lat * 6, 9)) / 6
+
+
+def _dms(deg: float) -> str:
+    d, m = divmod(round(deg * 60), 60)
+    return f"{d}°{m:02d}′"
+
+
+def _catalogue(page: str) -> tuple[list[tuple[tuple[int, int, int, int], str]], dict[str, dict]]:
+    """The index map's rectangles (x1, y1, x2, y2; code) and the published sheets by code."""
+    rects = [(tuple(map(int, m[:4])), m[4]) for m in
+             re.findall(r'<area shape="rect" coords="(\d+),(\d+),(\d+),(\d+)" href="#(\d+)"', page)]
+    sheets = {}
+    for row in page.split("<tr>"):
+        m = re.search(r'id="(\d+)" class="group1" title="5万分の1地質図幅\s+(\d+)\s*［([^］]+)］-(\d+)\s*「([^」]+)」', row)
+        if not m:
+            continue
+        year = re.search(r"発行年：(\d{4})", row)
+        pdfs = re.findall(r"url=(/data/50KGM/PDF/[^\"]+_D[^\"/]*\.pdf)", row)
+        # the corrected edition (_V2) over the plain one over the light one (-L)
+        pdf = max(pdfs, key=lambda u: ("_V" in u, "-L" not in u), default=None)
+        elsewhere = re.search(r'説明書\s*（<a href="([^"]+)"', row)  # Hokkaido: at 道総研
+        jpg = re.search(r"url=(/data/50KGM/JPG/[^\"]+\.jpg)", row)
+        sheets[m[1]] = {"region": m[2], "region_name": m[3], "no": m[4], "name": m[5].strip(),
+                        "year": year[1] if year else None,
+                        "report": f"https://www.gsj.jp{pdf}" if pdf else elsewhere[1] if elsewhere else None,
+                        "map": f"https://www.gsj.jp{jpg[1]}" if jpg else None}
+    return rects, sheets
+
+
+def sheet(site: Site):
+    """The 1:50,000 geological map sheet the point is on, from the 産総研 catalogue,
+    and where its report is. The point's formation name ("terrace deposits") does
+    not say what rock the gravels are; the report's text does."""
+    west, north = sheet_cell(site.lat, site.lon)
+    cell = f"{_dms(west)}–{_dms(west + 0.25)}E, {_dms(north - 1 / 6)}–{_dms(north)}N"
+    raw = {"cell": [west, north], "pages": []}
+    head = "- `hypothesis` Parent material: not looked up."
+    for page_no, (lon0, n0, x0, y0, cols, rows) in SHEET_GRID.items():
+        col, row = round((west - lon0) * 4), n0 - round(north * 6)
+        if not (0 <= col < cols and 0 <= row < rows):
+            continue
+        url = CATALOGUE.format(page_no)
+        raw["pages"].append(url)
+        rects, sheets = _catalogue((get_bytes(url) or b"").decode("utf-8", "replace"))
+        if not rects:  # gone, or a maintenance page: not the same as "no sheet here"
+            raise RuntimeError(f"no index map on {url}")
+        px, py = x0 + (col + 0.5) * SHEET_PX[0], y0 + (row + 0.5) * SHEET_PX[1]
+        code = next((c for (x1, y1, x2, y2), c in rects if x1 <= px < x2 and y1 <= py < y2), None)
+        if code is None:
+            continue
+        s = sheets.get(code)
+        raw["sheet"] = {"code": code, **(s or {})}
+        src = f"— 出典：産総研地質調査総合センター 地質図カタログ, {url}#{code}"
+        if s is None:
+            region = next(iter(sheets.values()), {})
+            label = f"{int(code[:2])}［{region.get('region_name', '?')}］-{code[2:]}"
+            return [f"{head} No 1:50,000 geological map is published for this sheet ({label}; {cell}), "
+                    f"so there is no report to read. {src}"], raw
+        label = f"{s['name']}, 5万分の1地質図幅 {s['region']}［{s['region_name']}］-{s['no']}"
+        if s["report"]:
+            return [f"{head} The 1:50,000 report {label} ({s['year']}) describes the rocks and deposits of this "
+                    f"sheet ({cell}); read its section on the unit at this point. {src}, {s['report']}"], raw
+        return [f"{head} The 1:50,000 map {label} ({s['year']}) is published without a report online; "
+                f"its legend names the units ({cell}). {src}" + (f", {s['map']}" if s["map"] else "")], raw
+    return [f"{head} This point ({cell}) is not on the 産総研 catalogue's 1:50,000 index maps "
+            f"(the islands' pages are not read). — 出典：産総研地質調査総合センター 地質図カタログ, "
+            f"https://www.gsj.jp/Map/JP/geology4.html"], raw
 
 
 def soil_hint(site: Site):

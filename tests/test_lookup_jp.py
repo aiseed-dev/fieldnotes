@@ -95,6 +95,8 @@ def test_lookup_in_japan_writes_place_hazards_and_soil_hint(tmp_path, monkeypatc
     assert heads[:2] == ["## Place", "## Terrain"] and "## Faults and hazards" in heads
     assert text.index("Elevation 97.1 m (DEM") < text.index("Elevation 97 m. — Open-Meteo")
     assert "`hypothesis` Soil type: not looked up (no point API). Check the 農研機構 日本土壌インベントリー" in text
+    geology = text[text.index("## Geology"):text.index("## Faults and hazards")]
+    assert "The 1:50,000 report 新居浜" in geology
     raw = json.loads((tmp_path / "records" / "lookup" / "faults_jp.json").read_text())
     assert raw["nearest"][0] == {"m": 211, "direction": "S"}
 
@@ -117,6 +119,39 @@ def test_outside_japan_none_of_this_is_asked(tmp_path, monkeypatch):
     cli.main(["--root", str(tmp_path), "init", "--place", "Nakuru", "--country", "KE", "--lat", "-0.3", "--lon", "36.07"])
     lookup.lookup(tmp_path / "records")
     assert "国土地理院" not in (tmp_path / "records" / "lookup.md").read_text()
+
+
+ISHII = Site(lat=34.0801, lon=134.4454, country="JP")
+
+
+def test_the_map_sheet_is_found_from_the_point(recorded):
+    assert lookup_jp.sheet_cell(LAT, LON) == (133.25, 34.0)
+    assert lookup_jp.sheet_cell(ISHII.lat, ISHII.lon) == (134.25, 34 + 1 / 6)
+    lines, raw = lookup_jp.sheet(NIIHAMA)
+    assert lines[0].startswith("- `hypothesis` Parent material: not looked up. The 1:50,000 report 新居浜, "
+                               "5万分の1地質図幅 13［高知］-040 (2013) describes the rocks and deposits of this sheet "
+                               "(133°15′–133°30′E, 33°50′–34°00′N)")
+    assert lines[0].endswith("geology4-13.html#13040, https://www.gsj.jp/data/50KGM/PDF/GSJ_MAP_G050_13040_2013_D.pdf")
+    assert raw["sheet"]["code"] == "13040" and raw["pages"] == ["https://www.gsj.jp/Map/JP/geology4-13.html"]
+    lines, raw = lookup_jp.sheet(ISHII)  # 徳島: no 1:50,000 map yet
+    assert "No 1:50,000 geological map is published for this sheet (13［高知］-033; 134°15′–134°30′E, 34°00′–34°10′N)" in lines[0]
+
+
+def test_a_point_on_a_sheet_corner_is_on_the_sheet_south_east_of_it(recorded):
+    corner = Site(lat=34.0, lon=133.25, country="JP")  # the north-west corner of 新居浜
+    assert lookup_jp.sheet_cell(corner.lat, corner.lon) == (133.25, 34.0)
+    assert lookup_jp.sheet(corner)[1]["sheet"]["code"] == "13040"
+    across = Site(lat=34.0001, lon=133.2499, country="JP")  # just over the corner: the sheet north-west of it
+    assert lookup_jp.sheet_cell(across.lat, across.lon) == (133.0, 34 + 1 / 6)
+    assert lookup_jp.sheet(across)[1]["sheet"]["code"] == "13028"
+    assert lookup_jp.sheet_cell(33 + 5 / 6, 133.5) == (133.5, 33 + 5 / 6)  # 10′ steps do not drift
+
+
+def test_a_catalogue_page_without_its_index_map_is_not_reached(monkeypatch):
+    monkeypatch.setattr(lookup_jp, "get_bytes", lambda url: "<p>メンテナンス中</p>".encode())
+    with pytest.raises(RuntimeError, match="no index map"):
+        lookup_jp.sheet(NIIHAMA)
+    assert "not on the 産総研 catalogue" in lookup_jp.sheet(Site(lat=26.21, lon=127.68, country="JP"))[0][0]  # 那覇
 
 
 def test_no_fault_close_by_looks_wider(monkeypatch):
