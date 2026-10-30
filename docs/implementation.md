@@ -37,6 +37,8 @@ Nothing here changes what is built by 11-05. Checks that wait until after the de
 
 **Scope decision (the farmer, 2026-10-29):** what matters most is selling the produce. This Meta hackathon goes as far as **production**: read the field, propose, cut, record, verify. **Selling** (a buyer's AI reading the records) goes to a Claude hackathon if the farmer can enter one; if not, it is squeezed into the end of this one (11-02). So WP9a (the farmer's own AI connecting) is in; WP9b (`export`, `--buyer`) is **held** until that is decided (the farmer decides on 10-30).
 
+**Direction (the farmer, 2026-10-30 evening):** no more small experiments in the software (SAM phrases, river and relief lines, hazard detail, further hypothesis checks). What is built stays and runs. The experiments are in the field: **mixed planting and mixed sowing (多種の混植・混播)**, and the app's job is to **judge the field from many photos**: the farmer walks the field and shoots, the app reads the set as one field, and the days line up. WP13 below; it is the last package before the README and the video.
+
 ## Rules for every package
 
 - Python ≥ 3.11, the package lives in `src/fieldnotes/`, and the venv is `.venv` (`.venv/bin/pip install -e .`).
@@ -273,6 +275,22 @@ Rules: Spark, `in_language`; the two steps never share a call; a hypothesis with
 
 **After the deadline (kept here so they are not lost):** 12b river; relief from DEM5A (the field's height against the plain with the tilt removed, low bands like old channels; drawn on the map) — only on 11-01 if `fieldnotes map` is done early; hazard detail (L1/L2 depth classes, national vs prefectural river); B2 questions to the farmer where data is missing, answered by voice into records.
 
+## WP13: the field from many photos (the farmer, 2026-10-30; the last package)
+
+**The farmer's side.** Walk each field on the same route, 20–50 photos per field, the phone's location on so the photos carry GPS; the first walk on 10-31 (uncut after the cut, mix1 with the mixed planting), then daily. After the cut, the mixed sowing on the cut strip as planned. The record of the experiment is the daily walk.
+
+**`observe` with many photos (Opus, 10-31, one day).**
+- `inbox` reads each photo's EXIF capture time (as now) and GPS; `photos/<field>/<date>/index.json` keeps per photo: file, time, lat, lon (null when absent). Photo order in the record = walk order (time).
+- SAM as now, per photo; the field's cover per species = mean over the photos, with the spread (min–max) in the record's cover line, and per-photo cover kept in `index.json`.
+- Muse Spark reads the **whole set in one request** (photos downscaled to ~1024 px on the long side, numbered, each with its position: GPS relative to the parcel's bounding box as "NW corner / middle / S edge", or walk order when there is no GPS). Opus checks the API's per-request image limit on dev.meta.ai and writes it in the code; above it, batches of n with one summary request, and the record says so.
+- The reading keeps today's lines (`overall`, `dominant`, barometers, `watch`) and adds two kinds: `- zone: <where>: <what> [conf]` (bare ground, ogi stand, goldenrod, cut strip, wet patch ...) and `- emerging: <species> at <where> [conf]` for the sown or planted species seen coming up, with the mixed sowing and the mixed planting named in the prompt from `site.md` and the day's `work` lines. Both parsed by `OBS_LINE`, marked ✓/✗ like any line, kept through re-runs.
+- `timeline`: the zones and the emerging lines per day, so the mixed sowing's course reads down the page.
+- `fieldnotes map` (11c, revised): the photo points from GPS on the aerial photo, each coloured by that photo's dominant species and cover, the zone lines as labels; the farmer's plot polygons (11b) become optional and are not needed for the video.
+- Cost: SAM ~3 s × 50 = ~3 min; one Spark request per field per day. `observe` prints progress per photo.
+- Tests offline: GPS from an EXIF fixture (and none), `index.json`, the set prompt with `FakeModel` (numbering and positions), batching, zone and emerging lines parsed and marked, the timeline rows. One real run on the farmer's 10-31 walk, the record committed with the run noted.
+
+Dropped from the plan (after the deadline only if the farmer wants them): 12b river, relief, hazard depth classes, more SAM phrases, more hypothesis checks beyond what runs already.
+
 ## WP7: the demo — timeline, README, script
 
 - `timeline.py` (minimal form done in 2a07572, tests in ef2cbf3): `timeline(field, records_root, photo_root, since=None) -> str`, Markdown, one block per date (oldest first): the photos (relative paths), weather in one line, the `overall` line with its verdict, the `work` and `seen` lines, the count of ✓ / ✗, any proposal of that day (its `summary` line and verdict). CLI `fieldnotes timeline <field> [--since DATE]`. The MCP `timeline` tool calls the same function. An app view only if time remains.
@@ -296,12 +314,13 @@ Rules: Spark, `in_language`; the two steps never share a call; a hypothesis with
 | 10 | `lookup` for Japan: 国土地理院 address, 1 m elevation, landform class, fault and hazard distances; NARO soil deferred | 1 | Opus | done, ba2615b (real runs: Ishii and Niihama; 78 tests) |
 | 10b | `lookup` for Japan: the 1:50,000 地質図幅 report for the point as a `hypothesis` line (parent rock of the gravels) | 10 | Opus | done, 3c59854 (81 tests; Niihama → 新居浜 13［高知］-040 (2013) with the report PDF; Ishii → 13［高知］-033 unpublished) |
 | 11a | `parcel_jp`: the 筆ポリゴン the point lies in (area, 田/畑, neighbours), 全国農地ナビ link | 10 | Opus | done, d4ed8c4 (83 tests; Ishii 602 m² 田 2020, 24 田 around; 全国農地ナビ takes no coordinates in a link, so a top-page link with "search the address above") |
-| 11b | the plots as polygons, `records/fields/<field>.geojson` (format, loader) | 11a | farmer draws / Opus loads | by 11-01 morning |
-| 11c | `fieldnotes map`: aerial photo + parcel + plots coloured by state | 11a, 11b | Opus | 11-01, done by 11-02 evening |
+| 11b | the plots as polygons, `records/fields/<field>.geojson` (format, loader) | 11a | farmer draws / Opus loads | optional, not needed for the video |
+| 11c | `fieldnotes map`: aerial photo + parcel + the walk's photo points coloured by cover and dominant, zone labels | 11a, 13 | Opus | 11-01, done by 11-02 evening |
 | 12a | `soil_jp`: 日本土壌インベントリー class at the point from the tile colour (CC BY 4.0, credit 農研機構) | 10 | Opus | done, eff7a89 (85 tests) |
 | 12c | `fieldnotes expect <field>`: what a photo would show per hypothesis, then `observe` adds `## Checks` lines; first real run on Ishii | 1 | Opus | done, 34c8437 (92 tests; uncut: 29 hypotheses, 7 visible in a photo; on 10-28's photos 2 agree, 5 cannot tell) |
 | 12d | the same lines on every `observe`; a column per hypothesis in `timeline` | 12c | Opus | done, 34c8437 ("Hypotheses day by day" table at the end of `timeline`) |
-| 12+ | river, relief, hazard depth classes, B2 questions | – | – | after 11-05 (brief above) |
+| 12+ | river, relief, hazard depth classes, B2 questions | – | – | dropped from the plan (after 11-05 only if wanted) |
+| 13 | the field from many photos: GPS per photo, SAM per photo, Spark reads the set, `zone` and `emerging` lines, timeline | 1 | Opus; the farmer walks and shoots daily | 10-31 (brief above) |
 | – | Muse Code review (docs/muse-code.md Task 2) | – | farmer runs `muse` | by 11-02 |
 
 Done for each package means: tests pass offline, one short real run when the package calls the API, the README section updated, and the work committed on main (or a branch) with a summary of what was and was not verified.
@@ -312,8 +331,8 @@ Done for each package means: tests pass offline, one short real run when the pac
 |---|---|---|
 | 10-29 Thu | WP8 cut proposal, tests, one real run on `uncut` | Niihama farm visit: photos, voice notes (the first real Japanese recording), three questions (who advises you, how do you sell, what would you pay to have solved). Evening on the LAN: `init` the second farm, send, `observe`, `voice` |
 | 10-30 Fri | real-voice check and second farm `init` when the Niihama recordings arrive; WP10 lookup JP in the idle time | morning: ✓/✗ on the cut proposal; cut, or reject with a reason; a stick of known length in the before photo; daily photos; decide 9b |
-| 10-31 Sat | WP12c expect + checks on the latest photos, 12d the lines on every observe and the timeline column; daily runs | cut if not yet; photos of the cut plot; the 1 m pin pole arrives: mark its spot and the standing spot; draw the plots on geojson.io |
-| 11-01 Sun | WP11c `fieldnotes map` | photos; planning session: `docs/demo.md` (add the map), README structure |
+| 10-31 Sat | WP13: GPS per photo, the set read as one field, zone and emerging lines, timeline; real run on the day's walk | cut if not yet, sow the mix on the cut strip; walk uncut and mix1 with the phone's location on, 20–50 photos each; the 1 m pin pole: mark its spot and the standing spot |
+| 11-01 Sun | WP11c `fieldnotes map` with the walk's photo points | the daily walk; planning session: `docs/demo.md` (walk → judgment → map), README structure |
 | 11-02 Mon | README final, code tidy, nova's fork checked for parts to merge; WP9b only if selling stays in this hackathon | Muse Code Task 2 review; photos |
 | 11-03 Tue | – | video: field footage, screen recording from the own AI, edit |
 | 11-04 Wed | buffer | submission form (team members added here; public repo pushed) |
