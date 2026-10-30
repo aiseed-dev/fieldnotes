@@ -53,7 +53,7 @@ class FakeModel:
         system, user = messages[0]["content"], messages[1]["content"]
         text = user if isinstance(user, str) else "\n".join(p["text"] for p in user if p["type"] == "text")
         kinds = {concepts.SYSTEM: "concepts", plants.ECOLOGY_SYSTEM: "ecology", describe.SYSTEM: "describe",
-                 describe.COMPARE_SYSTEM: "compare", propose.SYSTEM: "propose", propose.CUT_SYSTEM: "cut",
+                 describe.SUMMARY_SYSTEM: "summary", describe.COMPARE_SYSTEM: "compare", propose.SYSTEM: "propose", propose.CUT_SYSTEM: "cut",
                  surroundings.SYSTEM: "surroundings", around.SYSTEM: "around", voice.SYSTEM: "voice",
                  check.EXPECT_SYSTEM: "expect", check.CHECK_SYSTEM: "check"}
         # prompts carry the farm's place (<FIELD>, <REGION>; site.py) and may
@@ -68,7 +68,7 @@ class FakeModel:
             sci = SCI.search(text).group(1)
             return json.dumps({"name": "セイタカアワダチソウ", "scientific": sci,
                                "notes": [{"aspect": "soil_ph", "text": "tolerates acid soil", "confidence": 0.5}]})
-        if kind == "describe":
+        if kind in ("describe", "summary"):
             return json.dumps(self.reading)
         if kind == "compare":
             names = re.findall(r"--- FIELD (\S+)", text)

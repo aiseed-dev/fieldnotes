@@ -10,6 +10,7 @@ Layout (see docs/design.md §3):
     photos: [...]
     weather: {...}
     coverage: {weed: 61.2, bare_soil: 18.5}
+    cover_range: {weed: [12.0, 88.5], ...}   (several photos: lowest and highest)
     ---
 
     ## AI observation (<model>)
@@ -78,7 +79,8 @@ class Record:
     date: str  # ISO yyyy-mm-dd
     photos: list[str] = field(default_factory=list)
     weather: dict = field(default_factory=dict)
-    coverage: dict[str, float] = field(default_factory=dict)  # concept -> % of frame
+    coverage: dict[str, float] = field(default_factory=dict)  # concept -> % of frame, mean over the photos
+    cover_range: dict[str, list[float]] = field(default_factory=dict)  # concept -> [min, max] over the photos
     ai_model: str = ""
     observations: list[Observation] = field(default_factory=list)
     earlier: list[Observation] = field(default_factory=list)  # marked lines a re-run replaced
@@ -104,6 +106,8 @@ class Record:
             "weather": self.weather,
             "coverage": self.coverage,
         }
+        if self.cover_range:
+            front["cover_range"] = self.cover_range
         out = ["---", yaml.safe_dump(front, sort_keys=False, allow_unicode=True).rstrip(), "---", ""]
         out.append(f"## AI observation ({self.ai_model or 'none'})")
         out += [o.to_line() for o in self.observations] or ["(none)"]
@@ -138,6 +142,7 @@ class Record:
             photos=list(front.get("photos") or []),
             weather=dict(front.get("weather") or {}),
             coverage=dict(front.get("coverage") or {}),
+            cover_range=dict(front.get("cover_range") or {}),
         )
         section = None
         note_lines: list[str] = []

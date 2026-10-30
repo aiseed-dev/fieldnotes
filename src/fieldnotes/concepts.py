@@ -253,22 +253,31 @@ def mark(root: Path, field: str, noun: str, verdict: str, reason: str | None = N
     shared.save()
 
 
-def segment_field(rec: Record, photo_root: Path, records_root: Path, run=None):
+def segment_field(rec: Record, photo_root: Path, records_root: Path, run=None, progress=None):
     """Run SAM 3.1 with the field's active phrases on every photo of the
-    observation, set rec.coverage to the mean cover per phrase, and write what
-    each phrase found back into the field's concept list. `run` defaults to
-    segment.segment_concepts (replaceable in tests)."""
+    observation, set rec.coverage to the mean cover per phrase (and
+    rec.cover_range to the lowest and highest, when there are several photos),
+    and write what each phrase found back into the field's concept list. `run`
+    defaults to segment.segment_concepts (replaceable in tests); `progress`, if
+    given, is called with (n, of, photo) before each photo."""
     if run is None:
         from .segment import segment_concepts as run
     fc = FieldConcepts.load(records_root, rec.field)
     nouns = fc.nouns()
-    results = [run(photo_root / p, nouns) for p in rec.photos]
+    results = []
+    for n, p in enumerate(rec.photos, start=1):
+        if progress:
+            progress(n, len(rec.photos), p)
+        results.append(run(photo_root / p, nouns))
     found = {}
     for noun in nouns:
         covers = [r.concepts[noun].coverage for r in results if noun in r.concepts]
         count = sum(len(r.concepts[noun].instances) for r in results if noun in r.concepts)
         found[noun] = (round(sum(covers) / len(covers), 1) if covers else 0.0, count)
     rec.coverage = {noun: cover for noun, (cover, _) in found.items()}
+    if len(results) > 1:
+        rec.cover_range = {noun: [min(c), max(c)] for noun in nouns
+                           if (c := [r.concepts[noun].coverage for r in results if noun in r.concepts])}
     fc.record(rec.date, found)
     fc.save(records_root)
     return results

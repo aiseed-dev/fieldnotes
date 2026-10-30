@@ -38,6 +38,7 @@ from .describe import SITE_CHECK_HEADING, _body, _photo_parts, day_summary, site
 from .llm import Backend, chat, conf, in_language, json_value
 from .records import Observation, Record, notes_from_markdown, notes_to_markdown
 from .site import Site
+from .walk import MAX_IMAGES, sample
 
 CHECKS = "_checks"
 FILE = "expect.md"
@@ -162,7 +163,7 @@ def build_check_messages(rec: Record, items: dict[str, dict], photo_root: Path, 
     listed = "\n".join(f"{h}: holds: {e['holds']}\n    fails: {e['fails']}" for h, e in items.items())
     content = [{"type": "text", "text": f"Expectations written beforehand:\n{listed}"},
                {"type": "text", "text": f"--- field {rec.field}, {day_summary(rec)}"},
-               *_photo_parts(rec, photo_root, max_side),
+               *_photo_parts(rec, photo_root, max_side, photos=sample(rec.photos, MAX_IMAGES)),
                {"type": "text", "text": "Which way do these photos point for each id? JSON only."}]
     return [{"role": "system", "content": in_language(place.fill(CHECK_SYSTEM))}, {"role": "user", "content": content}]
 

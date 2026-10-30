@@ -21,7 +21,7 @@ from collections.abc import Callable
 from datetime import date
 from pathlib import Path
 
-from . import around, check, concepts, describe, segment, weather
+from . import around, check, concepts, describe, segment, walk, weather
 from .inbox import AROUND, DATED, valid_field
 from .llm import Backend
 from .plants import species_in
@@ -50,11 +50,13 @@ def _check_field(field: str) -> None:
 # ---- finding things -----------------------------------------------------
 
 def photos_for(field: str, day: date | str, root: Path = ROOT) -> list[str]:
-    """Photo paths relative to root, sorted (file names start with the time)."""
+    """Photo paths relative to root, in walk order (capture time; inbox.index_day)."""
     d = root / "photos" / field / _iso(day)
     if not d.is_dir():
         return []
-    return [p.relative_to(root).as_posix() for p in sorted(d.iterdir()) if p.suffix.lower() in PHOTO_SUFFIXES]
+    if field == AROUND:
+        return [p.relative_to(root).as_posix() for p in sorted(d.iterdir()) if p.suffix.lower() in PHOTO_SUFFIXES]
+    return [(d / e["file"]).relative_to(root).as_posix() for e in walk.entries(root, field, _iso(day))]
 
 
 def overlay_paths(field: str, day: date | str, root: Path = ROOT) -> list[Path]:
@@ -165,11 +167,14 @@ def run_observation(field: str, day: date, root: Path = ROOT, backend: Backend |
     # 5. segmentation, one overlay per photo
     def segment_and_overlay():
         say(w("step.segment", n=len(photos)))
-        results = concepts.segment_field(rec, photo_root=root, records_root=records)
+        results = concepts.segment_field(rec, photo_root=root, records_root=records,
+                                         progress=lambda n, of, p: say(w("step.photo", n=n, of=of, name=Path(p).name)))
         for old in overlay_paths(field, day_s, root):
             old.unlink()  # a re-run with fewer photos must not leave stale overlays
         for n, result in enumerate(results, start=1):
             segment.save_overlay(result, records / field / f"{day_s}-overlay-{n}.jpg")
+        # what SAM found in each photo, for the map (walk.py, index.json)
+        walk.save_cover(root, field, day_s, {Path(p).name: r.coverage for p, r in zip(photos, results)})
 
     asked = set(concepts.FieldConcepts.load(records, field).nouns())
     segment_and_overlay()

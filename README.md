@@ -117,6 +117,15 @@ fieldnotes app --port 8550               # the phone app
 `--root DIR` (before the subcommand) points at the folder that holds `photos/` and `records/`; the default is `$FIELDNOTES_ROOT`, else the current folder. If the `fieldnotes` command is not found, `.venv/bin/python -m fieldnotes ...` does the same (re-run `pip install -e .` to get the command).
 Running `observe` again on the same day replaces the AI lines but keeps your right/wrong marks and note; a marked line whose wording changed moves under `## Earlier AI lines`.
 
+**The field from many photos.** Walk the field on the same route each day with the phone's location on and take 20–50 photos. Each day's folder keeps `index.json`: per photo, the capture time, the GPS point and the direction the camera faced (`null` when the phone gave none), and later what SAM found in it. `observe` runs SAM on every photo (the record's `coverage` is the mean over the photos, `cover_range` the lowest and highest) and Muse Spark reads the whole walk in one request: the photos numbered in walk order, each labelled with where it was taken (`3 of 42, 10:21, NW corner, facing W`, relative to the farm parcel (筆ポリゴン) that holds the photo points, else to the area the walk covered). A walk of more than 50 photos (Muse Spark's limit per request) is read in equal parts and then combined in one more request; the record's model line says so. Besides the usual lines the reading says which parts of the field differ and what was sown or planted coming up, with what you sowed taken from `site.md` and your `work` lines:
+
+```
+- zone: S edge: the cut strip: stubble and bare silt (photos 30, 31) [0.70]
+- emerging: ヘアリーベッチ (Vicia villosa) at S edge (photos 31) [0.50]
+```
+
+You mark both like any other line. `fieldnotes timeline <field>` lists them day by day and adds a table, one row per species coming up and one column per day, so the course of a mixed sowing reads across the page.
+
 **Checking the hypotheses on the photos.** The `hypothesis` lines in `records/site.md` (yours and the AI's) are things to check, not premises. `fieldnotes expect <field>` has the reading model write, from the text alone and before it sees any photo, what photos of that field would show for each one if it holds and if it fails, and whether a photo can show it at all (a flood 2000 years ago cannot): `records/_checks/<field>/expect.md`, one line per hypothesis (`h1`, `h2` ... in site.md order), which you mark or edit. From then on every `observe` of that field shows the day's photos and these expectations to the model in a call of its own and adds a `## Checks` section to the record: `- h3: agrees | disagrees | cannot tell: what the photos showed`, marked like any other line. `fieldnotes timeline <field>` ends with a table, one row per hypothesis and one column per day. Expectations come first so they cannot be bent to fit the photos; what the photos and the days answer is for you to carry into site.md.
 
 Tests run offline: `.venv/bin/pip install -e ".[dev]" && .venv/bin/pytest`.

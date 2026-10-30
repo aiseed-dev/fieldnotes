@@ -1,7 +1,11 @@
 """Describe today's photos against the previous observations with Muse Spark (or Glimmer).
 
 The model gets, in ONE request:
-  * the photos of the same field from the last N observations and today, oldest first,
+  * today's photos: one walk over the field, numbered in walk order, each with
+    where it was taken and which way it faced when the phone knew (walk.py),
+  * photos of the same field from the last N observations, as many as the
+    request has room for (Muse Spark takes at most 50 images), spread along
+    each walk; when not all fit, that day's reading as text,
   * the SAM 3.1 coverage numbers for each observation (a rough guide),
   * the weather for each observation day,
   * the site background from records/site.md (terrain, geology, soil, from
@@ -10,13 +14,19 @@ The model gets, in ONE request:
   * why the dominant plants dominate, as looked up earlier (plants.py),
   * the farmer's earlier corrections (few-shot),
 and answers, in this order: the field as a whole, the dominant weeds, how the
-vegetables grow, the weed barometers (acidity, fertility, dryness), then what
-CHANGED. Natural farming looks at the whole field before details, so the
+vegetables grow, the weed barometers (acidity, fertility, dryness), the parts
+of the field that differ (`zone`), the sown or planted species seen coming up
+(`emerging`, against the farmer's sowing in site.md and the `work` lines), then
+what CHANGED. Natural farming looks at the whole field before details, so the
 overall view always comes first and the numbers only support it.
 
 The barometers are a holistic judgment: start from why the dominant weeds
 dominate, then check against the vegetables, the weather and the site's
 geology and soil.
+
+A walk of more than 50 photos is read in parts of equal size, then one
+text-only request combines the parts' readings into one; the record's model
+line says so.
 
 `compare_fields` puts the latest observation of several fields side by side and
 ranks them on the same barometers. `observe` runs one observation end to end.
@@ -25,6 +35,7 @@ ranks them on the same barometers. `observe` runs one observation end to end.
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 
 from .around import latest_text as around_text
@@ -33,6 +44,8 @@ from .plants import ecology, notes_for_prompt, species_in
 from .records import FRONT, Observation, Record, corrected_examples
 from .segment import load_image_as_data_url
 from .site import Site
+from .walk import MAX_IMAGES, SIDE, entries, frame_note, sample
+from .walk import labels as walk_labels
 
 # Weed barometers: what "up" and "down" mean, how the rough level is given,
 # and how fields are ranked (from which end).
@@ -45,11 +58,12 @@ BAROMETERS = {
                 "level": 'one of "dry", "moist", "wet"', "rank": "driest → wettest"},
 }
 CHANGE_KEYS = ["leaf_colour", "weed_height", "soil", "animal", "other"]
-KEYS = ["overall", "dominant", "crops", *BAROMETERS, *CHANGE_KEYS]
+PART_KEYS = ["zone", "emerging"]
+KEYS = ["overall", "dominant", "crops", *BAROMETERS, *PART_KEYS, *CHANGE_KEYS]
 
 FIELD_CONTEXT = """You observe <FIELD>.
 Weeds are ground cover here, not enemies: report them as a condition, not a problem.
-The farmer chooses how many photos and from where; file names may say which part of the field a photo shows.
+The farmer walks the field and shoots as many photos as it takes; each photo is labelled with its number in the walk and, when the phone knew, where in the field it was taken and which way it faced. File names may say more.
 Cover percentages from a segmentation model are a rough guide to how the whole moves, not a precise measurement."""
 
 BAROMETER_RULES = """Weed barometers: the soil's acidity, fertility and dryness, as one holistic judgment.
@@ -62,18 +76,26 @@ BAROMETER_RULES = """Weed barometers: the soil's acidity, fertility and dryness,
 - If the plants do not tell, use "unclear" and a low confidence rather than guessing.""" % (
     BAROMETERS["acidity"]["level"], BAROMETERS["fertility"]["level"], BAROMETERS["dryness"]["level"])
 
-SYSTEM = FIELD_CONTEXT + """
-You will receive photos of the SAME field from earlier observations and today, oldest first, each observation with its cover percentages and weather.
-
-""" + BAROMETER_RULES + """
-
-Answer with a JSON array only, in this order:
+ANSWER = """Answer with a JSON array only, in this order:
 1. {"key": "overall", "text": one or two sentences on how the field looks as a whole today (vigour, colour, the mix of plants, unevenness across the field) and how that whole has shifted since the earlier observations, "confidence": 0-1}. Always present.
 2. {"key": "dominant", "plants": [{"name": common name, "scientific": scientific name, "share": rough share of the field such as "~40%%"}], "confidence"}: the 2 to 4 weeds that dominate today, most dominant first. Always present.
 3. {"key": "crops", "text": how the vegetables are growing as a whole (vigour, leaf colour, size, evenness, signs of stress), "confidence"}. Omit if no vegetables are in view.
 4. For each of "acidity", "fertility", "dryness": {"key", "level", "direction": "up" | "down" | "same" | "unclear" compared with the most recent earlier observation (up = more acidic / richer / drier), "evidence", "confidence"}. If there is no earlier observation, use "direction": "none".
-5. Then only what CHANGED since the earlier observations: {"key": one of %s, "text": one short sentence, "confidence"}. Omit a key if nothing changed. Say "no new tracks" for animal only if you looked and saw none.
+5. For each part of the field that differs from the rest: {"key": "zone", "where": where in the field, in the words the photos are labelled with ("NW corner", "middle", "S edge"), or by photo numbers when they carry no position, "what": what is there (bare ground, an ogi stand, goldenrod, the cut strip, a wet patch ...), "photos": [the photo numbers that show it], "confidence"}. Omit when the photos show only one part.
+6. For each sown or planted species you can see coming up (the farmer's sowing and planting are given below, from site.md and their work lines): {"key": "emerging", "name": common name, "scientific": scientific name, "where", "photos": [numbers], "confidence"}. Omit species you cannot see; do not guess a seedling's species beyond what the photo shows ("unknown legume seedling" is a fine name).
+7. Then only what CHANGED since the earlier observations: {"key": one of %s, "text": one short sentence, "confidence"}. Omit a key if nothing changed. Say "no new tracks" for animal only if you looked and saw none.
 Do not advise, do not predict, do not count or describe single plants.""" % json.dumps(CHANGE_KEYS)
+
+SYSTEM = FIELD_CONTEXT + """
+You will receive photos of the SAME field from earlier observations and today, oldest first, each observation with its cover percentages and weather. Today's photos are one walk over the field: read them together as one field, and use their numbers and positions to say where things are.
+
+""" + BAROMETER_RULES + "\n\n" + ANSWER
+
+SUMMARY_SYSTEM = FIELD_CONTEXT + """
+Today's walk had more photos than one request takes, so it was read in parts. You receive the parts' readings (each says which photos it covered), the earlier observations' readings, the cover percentages and the weather.
+Combine them into ONE reading of the whole field today, as if all the photos had been read together: weigh each part by how much of the field it shows, keep every zone and emerging species the parts found (merging the same one seen in two parts), and where the parts disagree, say so and lower the confidence.
+
+""" + BAROMETER_RULES + "\n\n" + ANSWER
 
 COMPARE_SYSTEM = FIELD_CONTEXT + """
 You will receive the latest photos of SEVERAL fields of the same farm, each introduced by its field name, with its cover percentages, weather and the weeds that dominated there.
@@ -87,15 +109,20 @@ Do not advise, do not predict, do not count or describe single plants."""
 
 
 def day_summary(rec: Record) -> str:
-    cov = ", ".join(f"{k} {v}%" for k, v in rec.coverage.items()) or "n/a"
+    spread = lambda k: f" ({rec.cover_range[k][0]}-{rec.cover_range[k][1]})" if k in rec.cover_range else ""  # noqa: E731
+    cov = ", ".join(f"{k} {v}%{spread(k)}" for k, v in rec.coverage.items()) or "n/a"
     wx = ", ".join(f"{k} {v}" for k, v in rec.weather.items()) or "n/a"
     return f"{rec.date}: cover [{cov}]; weather [{wx}]"
 
 
-def _photo_parts(rec: Record, photo_root: Path, max_side: int) -> list[dict]:
+def _photo_parts(rec: Record, photo_root: Path, max_side: int, labels: dict[str, str] | None = None,
+                 photos: list[str] | None = None) -> list[dict]:
+    """The photos (all of the record's unless `photos` is given), each after a
+    line naming it: "photo 3 of 42, 10:21, NW corner, facing W (102133-x.jpg)"."""
     parts: list[dict] = []
-    for p in rec.photos:
-        parts.append({"type": "text", "text": f"photo {Path(p).name}"})
+    for p in rec.photos if photos is None else photos:
+        label = (labels or {}).get(p)
+        parts.append({"type": "text", "text": f"photo {label} ({Path(p).name})" if label else f"photo {Path(p).name}"})
         url, _, _ = load_image_as_data_url(photo_root / p, max_side)
         parts.append({"type": "image_url", "image_url": {"url": url}})
     return parts
@@ -108,6 +135,37 @@ def _voice_part(rec: Record) -> list[dict]:
         return []
     return [{"type": "text", "text": "The farmer said (work: what they did; seen: what they saw). "
              "Take what they did as a record; check what they saw against the photos:\n" + "\n".join(said)}]
+
+
+def _reading_part(rec: Record) -> list[dict]:
+    """An earlier day's reading as text, for when not all its photos are resent."""
+    said = [o.to_line() for o in rec.observations if o.key in ("overall", "dominant", *PART_KEYS) and o.verdict != "wrong"]
+    return [{"type": "text", "text": "Its reading then:\n" + "\n".join(said)}] if said else []
+
+
+def work_history(records_root: Path, field: str, before: str) -> str:
+    """The farmer's `work` lines on this field before today, oldest first: what was
+    sown or planted, so the reading knows what may be emerging."""
+    d = records_root / field
+    lines = []
+    for p in sorted(d.glob("*.md")) if d.is_dir() else []:
+        if p.stem < before and FRONT.match(p.read_text(encoding="utf-8")):
+            rec = Record.load(records_root, field, p.stem)
+            lines += [f"- {rec.date}: {o.text}" for o in rec.voice if o.key == "work" and o.verdict != "wrong"]
+    if not lines:
+        return ""
+    return ("What the farmer did on this field before today (sowing and planting tell what may be emerging; "
+            "site.md may name the mix too):\n" + "\n".join(lines))
+
+
+def walk_labels_for(records: list[Record], photo_root: Path, records_root: Path) -> dict[str, str]:
+    """Photo path -> its label in its day's walk, for each record given."""
+    out = {}
+    for rec in records:
+        base = f"photos/{rec.field}/{rec.date}/"
+        out |= {base + f: label for f, label in walk_labels(entries(photo_root, rec.field, rec.date),
+                                                             records_root).items()}
+    return out
 
 
 def _corrections_part(records: list[Record]) -> list[dict]:
@@ -155,19 +213,59 @@ def site_background(records_root: Path) -> str:
 
 
 def build_messages(today: Record, previous: list[Record], photo_root: Path,
-                   plant_notes: str = "", max_side: int = 1280, site: str = "", place: Site | None = None) -> list[dict]:
-    """Pure function: records -> chat messages (with images inline). Testable offline."""
+                   plant_notes: str = "", max_side: int = SIDE, site: str = "", place: Site | None = None, *,
+                   labels: dict[str, str] | None = None, photos: list[str] | None = None, part: str = "",
+                   walk_note: str = "", history: str = "") -> list[dict]:
+    """Pure function: records -> chat messages (with images inline). Testable offline.
+
+    `photos` is the part of today's walk this request shows (all of it by
+    default); the earlier days share what room is left under MAX_IMAGES."""
+    shown = today.photos if photos is None else photos
+    each = (MAX_IMAGES - len(shown)) // len(previous) if previous else 0
     content: list[dict] = []
-    for rec in previous + [today]:
-        label = "TODAY" if rec is today else "earlier"
-        content.append({"type": "text", "text": f"--- {label} {day_summary(rec)}"})
-        content += _photo_parts(rec, photo_root, max_side)
+    for rec in previous:
+        pics = sample(rec.photos, each)
+        cut = len(pics) < len(rec.photos)
+        tail = f"; {len(pics)} of its {len(rec.photos)} photos shown" if cut else ""
+        content.append({"type": "text", "text": f"--- earlier {day_summary(rec)}{tail}"})
+        content += _photo_parts(rec, photo_root, max_side, labels, pics)
+        if cut:
+            content += _reading_part(rec)
         content += _voice_part(rec)
+    content.append({"type": "text", "text": f"--- TODAY {day_summary(today)}"})
+    content += _text_part(" ".join(x for x in (walk_note, part) if x))
+    content += _photo_parts(today, photo_root, max_side, labels, shown)
+    content += _voice_part(today)
+    content += _text_part(history)
     content += _text_part(site)
     content += _text_part(plant_notes)
     content += _corrections_part(previous)
-    content.append({"type": "text", "text": "How does the field look as a whole today, which weeds dominate, how are the vegetables growing, what does all that say about acidity, fertility and dryness, and what changed? JSON array only, overall first."})
+    content.append({"type": "text", "text": "How does the field look as a whole today, which weeds dominate, how are the vegetables growing, what does all that say about acidity, fertility and dryness, which parts differ, what that was sown or planted is coming up, and what changed? JSON array only, overall first."})
     return [{"role": "system", "content": in_language((place or Site()).fill(SYSTEM))}, {"role": "user", "content": content}]
+
+
+def build_summary_messages(today: Record, previous: list[Record], parts: list[tuple[int, int, list[Observation]]],
+                           plant_notes: str = "", site: str = "", place: Site | None = None, *,
+                           walk_note: str = "", history: str = "") -> list[dict]:
+    """Text only: the readings of the parts of today's walk, combined into one."""
+    content: list[dict] = []
+    for rec in previous:
+        content.append({"type": "text", "text": f"--- earlier {day_summary(rec)}"})
+        content += _reading_part(rec)
+        content += _voice_part(rec)
+    content.append({"type": "text", "text": f"--- TODAY {day_summary(today)}; {len(today.photos)} photos"})
+    content += _text_part(walk_note)
+    for first, last, lines in parts:
+        content.append({"type": "text", "text": f"Reading of photos {first}-{last}:\n"
+                        + "\n".join(o.to_line() for o in lines)})
+    content += _voice_part(today)
+    content += _text_part(history)
+    content += _text_part(site)
+    content += _text_part(plant_notes)
+    content += _corrections_part(previous)
+    content.append({"type": "text", "text": "Combine the parts into one reading of the whole field today. JSON array only, overall first."})
+    return [{"role": "system", "content": in_language((place or Site()).fill(SUMMARY_SYSTEM))},
+            {"role": "user", "content": content}]
 
 
 def build_compare_messages(latest: list[Record], photo_root: Path, history: list[Record] = (),
@@ -176,10 +274,11 @@ def build_compare_messages(latest: list[Record], photo_root: Path, history: list
     """latest: one record per field (its newest observation). history: earlier
     comparison records, whose farmer corrections are fed back."""
     content: list[dict] = []
+    each = max(1, MAX_IMAGES // max(1, len(latest)))
     for rec in latest:
         dom = "; ".join(o.text for o in rec.observations if o.key == "dominant") or "n/a"
         content.append({"type": "text", "text": f"--- FIELD {rec.field} {day_summary(rec)}; dominant [{dom}]"})
-        content += _photo_parts(rec, photo_root, max_side)
+        content += _photo_parts(rec, photo_root, max_side, photos=sample(rec.photos, each))
     content += _text_part(site)
     content += _text_part(plant_notes)
     content += _corrections_part(list(history))
@@ -194,16 +293,41 @@ def _level(key: str, level) -> str:
 
 
 def _order_key(o: Observation) -> int:
-    order = ["overall", "dominant", "crops", *BAROMETERS]
+    order = ["overall", "dominant", "crops", *BAROMETERS, *PART_KEYS]
     return order.index(o.key) if o.key in order else len(order)
+
+
+def _words(v) -> str:
+    return " ".join(str(v or "").split())
+
+
+def _photos_tail(it: dict) -> str:
+    nums = [str(n) for n in it.get("photos") or [] if str(n).isdigit()]
+    return f" (photos {', '.join(nums)})" if nums else ""
 
 
 def parse_observations(text: str, basis: str | None = None) -> list[Observation]:
     """Model answer -> observations. `basis` is the date of the earlier
-    observation the barometer directions refer to."""
+    observation the barometer directions refer to.
+
+    zone:     "NW corner: dense ogi stand, head-high (photos 3, 4) [0.7]"
+    emerging: "ヘアリーベッチ (Vicia villosa) at S edge (photos 12) [0.6]"
+    """
     out = []
     for it in json_value(text):
+        if not isinstance(it, dict):
+            continue
         key = it.get("key", "other")
+        if key == "zone":
+            where = _words(it.get("where")).replace(":", ",") or "unclear"
+            out.append(Observation(key, f"{where}: {_words(it.get('what') or it.get('text'))}{_photos_tail(it)}"
+                                   + conf(it)))
+            continue
+        if key == "emerging":
+            name, sci = _words(it.get("name")) or "unknown", _words(it.get("scientific"))
+            where = _words(it.get("where")) or "unclear"
+            out.append(Observation(key, f"{name}{f' ({sci})' if sci else ''} at {where}{_photos_tail(it)}" + conf(it)))
+            continue
         if key == "dominant":
             plants = "; ".join(f"{p.get('name', '?')} ({p.get('scientific', '?')}) {p.get('share', '')}".strip()
                                for p in it.get("plants", []))
@@ -244,9 +368,28 @@ def parse_comparison(text: str, fields: list[str]) -> list[Observation]:
 
 
 def describe(today: Record, previous: list[Record], photo_root: Path, backend: Backend,
-             plant_notes: str = "", site: str = "", place: Site | None = None) -> list[Observation]:
-    text = chat(backend, build_messages(today, previous, photo_root, plant_notes, site=site, place=place))
-    return parse_observations(text, basis=previous[-1].date if previous else None)
+             plant_notes: str = "", site: str = "", place: Site | None = None, **walk) -> tuple[list[Observation], str]:
+    """The reading of today's walk and how it was read (the model, and the parts
+    when the walk had more photos than one request takes). `walk` holds the
+    labels, walk_note and history keywords of build_messages."""
+    basis = previous[-1].date if previous else None
+    n = len(today.photos)
+    if n <= MAX_IMAGES:
+        text = chat(backend, build_messages(today, previous, photo_root, plant_notes, site=site, place=place, **walk))
+        return parse_observations(text, basis), backend.name
+    k = math.ceil(n / MAX_IMAGES)
+    size = math.ceil(n / k)
+    parts = []
+    for i in range(0, n, size):
+        chunk = today.photos[i:i + size]
+        note = (f"This request shows photos {i + 1}-{i + len(chunk)} of today's {n}; "
+                "the others are read in other requests and combined afterwards.")
+        text = chat(backend, build_messages(today, previous, photo_root, plant_notes, site=site, place=place,
+                                            photos=chunk, part=note, **walk))
+        parts.append((i + 1, i + len(chunk), parse_observations(text, basis)))
+    walk.pop("labels", None)
+    text = chat(backend, build_summary_messages(today, previous, parts, plant_notes, site, place, **walk))
+    return parse_observations(text, basis), f"{backend.name}, {n} photos read in {k} parts, then a summary"
 
 
 def observe(today: Record, previous: list[Record], photo_root: Path, records_root: Path,
@@ -254,10 +397,12 @@ def observe(today: Record, previous: list[Record], photo_root: Path, records_roo
     """One observation: background on the plants that dominated before, the
     model's reading, then a look-up of any newly dominant plant for next time."""
     known = [s for r in previous for s in species_in(r.observations)]
-    today.observations = describe(today, previous, photo_root, backend,
-                                  notes_for_prompt(records_root, known), site_background(records_root),
-                                  Site.load(records_root))
-    today.ai_model = backend.name
+    found = entries(photo_root, today.field, today.date)
+    today.observations, today.ai_model = describe(
+        today, previous, photo_root, backend, notes_for_prompt(records_root, known), site_background(records_root),
+        Site.load(records_root), labels=walk_labels_for(previous + [today], photo_root, records_root),
+        walk_note=frame_note(found, records_root) if len(found) > 1 else "",
+        history=work_history(records_root, today.field, today.date))
     for name, sci in species_in(today.observations):
         ecology(name, sci, records_root, backend)  # cached under records/_plants/
     return today

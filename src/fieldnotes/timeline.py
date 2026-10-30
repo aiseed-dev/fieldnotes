@@ -4,20 +4,25 @@
     photos: photos/uncut/2026-10-28/121701-uncut.jpg
     weather: tmax 18.4, tmin 12.3, rain_mm 0.0
     overall: Dense head-high stand ...  → farmer: right
+    zone: S edge: the cut strip, stubble and bare soil (photos 30, 31) [0.7]
+    emerging: ヘアリーベッチ (Vicia villosa) at S edge (photos 31) [0.5]  → farmer: right
     work: 北側の通路だけ刈った
     seen: オギの株元に新しい芽
     farmer: 3 ✓, 1 ✗ of 6 AI lines
     cut proposal: summary: South edge first ...  → farmer: wrong (...)
     checks: h3 agrees ✓, h7 cannot tell, h12 disagrees ✗
 
-Oldest first, so it reads as a story. When the field's photos were checked
-against the hypotheses (check.py), a table at the end gives each hypothesis a
-row and each day a column: the day's answer and the farmer's mark. Used by `fieldnotes timeline` and the
+Oldest first, so it reads as a story. Two tables follow: what was sown or
+planted coming up (`emerging`, one row per species, one column per day: where,
+and the farmer's mark), so the course of a mixed sowing reads across; and,
+when the field's photos were checked against the hypotheses (check.py), each
+hypothesis with the day's answer and the farmer's mark. Used by `fieldnotes timeline` and the
 MCP `timeline` tool, and for the demo.
 """
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 from . import check
@@ -25,6 +30,7 @@ from .propose import HEADINGS, PROPOSALS, Proposal
 from .records import Record
 
 MARKS = {"right": " ✓", "wrong": " ✗", None: ""}
+CONF = re.compile(r"\s*\[[\d.]+\]$")
 
 WEATHER_KEYS = ("tmax", "tmin", "rain_mm", "days_since_rain")
 
@@ -44,6 +50,29 @@ def _days(records_root: Path, field: str) -> list[str]:
 
 def _answer(o) -> str:
     return o.text.split(":", 1)[0] + MARKS.get(o.verdict, "")
+
+
+def _records(records_root: Path, field: str, days: list[str]) -> dict[str, Record]:
+    return {d: Record.load(records_root, field, d) for d in days if Record.path_for(records_root, field, d).exists()}
+
+
+def emerging_table(records_root: Path, field: str, days: list[str]) -> list[str]:
+    """One row per species seen coming up, one column per day it was read."""
+    cols = {}
+    for day, rec in _records(records_root, field, days).items():
+        lines = [o for o in rec.observations if o.key == "emerging"]
+        if lines:
+            cols[day] = {}
+            for o in lines:
+                name, _, where = o.text.partition(" at ")
+                where = CONF.sub("", where)
+                cols[day][name] = (cols[day][name] + "; " if name in cols[day] else "") + where + MARKS.get(o.verdict, "")
+    if not cols:
+        return []
+    names = list(dict.fromkeys(n for c in cols.values() for n in c))
+    out = ["## Coming up day by day", "", "| species | " + " | ".join(cols) + " |", "|---|" + "---|" * len(cols)]
+    out += [f"| {n} | " + " | ".join(c.get(n, "") for c in cols.values()) + " |" for n in names]
+    return out + [""]
 
 
 def checks_table(records_root: Path, field: str, days: list[str]) -> list[str]:
@@ -79,7 +108,7 @@ def timeline(field: str, records_root: Path, since: str | None = None) -> str:
             wx = ", ".join(f"{k} {rec.weather[k]}" for k in WEATHER_KEYS if k in rec.weather)
             if wx:
                 out.append(f"weather: {wx}")
-            out += [o.to_line()[2:] for o in rec.observations if o.key == "overall"]
+            out += [o.to_line()[2:] for o in rec.observations if o.key in ("overall", "zone", "emerging")]
             out += [o.to_line()[2:] for o in rec.voice]
             if rec.observations:
                 right = sum(o.verdict == "right" for o in rec.observations)
@@ -91,6 +120,7 @@ def timeline(field: str, records_root: Path, since: str | None = None) -> str:
             head = HEADINGS.get(prop.kind, prop.kind).replace(" proposal", "").lower()
             out += [f"{head} proposal: {o.to_line()[2:]}" for o in prop.notes if o.key == "summary"]
         out.append("")
+    out += emerging_table(records_root, field, days)
     out += checks_table(records_root, field, days)
     if not days:
         out.append("(no records yet)")

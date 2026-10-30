@@ -165,6 +165,7 @@ TEXTS: dict[str, tuple[str, str]] = {
     "step.no_weather": ("天気は取れませんでした（{e}）", "No weather for the day ({e})"),
     "step.nouns": ("SAM に聞く名詞を用意しています", "Choosing the nouns for SAM"),
     "step.segment": ("SAM で {n} 枚を分けています", "SAM is segmenting {n} photo(s)"),
+    "step.photo": ("SAM {n}/{of}: {name}", "SAM {n}/{of}: {name}"),
     "step.read": ("{model} が畑を読んでいます", "{model} is reading the field"),
     "step.check": ("{model} が仮説の期待と写真を突き合わせています", "{model} is checking the photos against the expectations"),
     "step.no_check": ("仮説の確認はできませんでした（{e}）", "No hypothesis check today ({e})"),
