@@ -258,7 +258,16 @@ Done 2026-10-30, 3c59854 (81 tests). `lookup_jp.sheet` (key `sheet_jp`), `sheet_
 - **12b `river`, 10-31 only if 12a is done by noon, else after the deadline, half a day.** From OSM (world-wide): the nearest river or stream, its name, the distance, which bank, and for a bend of more than ~60° within 300 m whether the field is on the inside or the outside. One `data` line in Terrain with the OSM ids.
 - **B1, no code.** Checking an outside AI's report is the own AI's job through MCP: `site` returns the site and lookup lines; the farmer pastes the report into their own AI and asks it to sort the claims into agrees / conflicts / no data against those lines; what holds goes into `site.md` by hand, as on 10-30. One paragraph in the README ("From your own AI") and an optional scene in `docs/demo.md`; no `check-report` command.
 
-**After the deadline (kept here so they are not lost):** 12c relief from DEM5A (the field's height against the plain with the tilt removed, low bands like old channels; drawn on the map) — only on 11-01 if `fieldnotes map` is done early; 12d hazard detail (L1/L2 depth classes, national vs prefectural river); B2 questions to the farmer where data is missing, answered by voice into records; C per-hypothesis photo checks ("what a photo would show": puddles after rain, crusting, indicator plants) as lines the farmer marks; D per-hypothesis evidence gathered across days in the timeline.
+**12a done 2026-10-30, eff7a89 (85 tests).** Only colours that match figureRGB.js exactly are used (the site itself takes the nearest colour, but neighbouring classes can differ by one step); Ishii 細粒質水田化褐色低地土 (F4c1t1), Niihama 礫質水田化疑似グライ土 (H2c1p2); the earlier hand reading 陸成未熟土 at the first Niihama point came from clicking beside the point.
+
+**12c and 12d, checking the hypotheses with photos and then with records (the farmer, 2026-10-30, to Opus: "go as far as checking with photos for real; for the records, build it and start"). 10-31, one day; ahead of 12b.** One mechanism in two steps, so that the expectation is written before any photo is seen and cannot be fitted to it:
+
+1. **`fieldnotes expect <field>`, text only.** For every `hypothesis` line in `records/site.md` (numbered h1, h2 ... in order of appearance, each line keeping its first words as a label so a renumbering shows), the reading model writes what a photo of this field would show if the hypothesis holds, what it would show if it fails, and whether a photo can tell at all (a flood 2000 years ago or underflow at 4 m: "not visible in a photo"; such lines are kept but not checked). Saved in the proposal file shape to `records/_checks/<field>/expect.md` (front matter: field, date, model, the site.md lines it was made from), lines `- h3: holds: ...; fails: ...; visible: yes | no [conf]`, markable with `fieldnotes mark ... --proposal expect` and editable by the farmer. Re-run only when site.md's hypotheses change.
+2. **`observe` adds the check lines.** When `expect.md` exists, `observe` (CLI and the MCP tool, no new tool) shows the model the day's photos with the expectations and appends to the day's record a section `## Checks (<model>)` with one line per visible hypothesis: `- h3: agrees | disagrees | cannot tell: <what was seen, in the photo's own terms> [conf]`, parsed by `OBS_LINE`, marked ✓/✗ like any line, kept through re-runs like the farmer's other marks. **12c** is the first such run on the latest photos of the Ishii fields (10-30's or 10-31's); **12d** is the same lines on every later `observe`, plus one column per hypothesis in `fieldnotes timeline` (agrees / disagrees / cannot tell / ✓ ✗ by day). No separate evidence file.
+
+Rules: Spark, `in_language`; the two steps never share a call; a hypothesis with "visible: no" never gets an "agrees". Tests offline with `FakeModel` (expect file shape, the checks section, marks kept on re-run, the timeline column). One real run on `sample` (expect, then observe on the latest photos), committed with the result noted. Half a day each; if 12d's timeline column does not fit on 10-31, the record lines come first and the column goes to 11-02 with the README.
+
+**After the deadline (kept here so they are not lost):** 12b river; relief from DEM5A (the field's height against the plain with the tilt removed, low bands like old channels; drawn on the map) — only on 11-01 if `fieldnotes map` is done early; hazard detail (L1/L2 depth classes, national vs prefectural river); B2 questions to the farmer where data is missing, answered by voice into records.
 
 ## WP7: the demo — timeline, README, script
 
@@ -285,9 +294,10 @@ Done 2026-10-30, 3c59854 (81 tests). `lookup_jp.sheet` (key `sheet_jp`), `sheet_
 | 11a | `parcel_jp`: the 筆ポリゴン the point lies in (area, 田/畑, neighbours), 全国農地ナビ link | 10 | Opus | done, d4ed8c4 (83 tests; Ishii 602 m² 田 2020, 24 田 around; 全国農地ナビ takes no coordinates in a link, so a top-page link with "search the address above") |
 | 11b | the plots as polygons, `records/fields/<field>.geojson` (format, loader) | 11a | farmer draws / Opus loads | by 11-01 morning |
 | 11c | `fieldnotes map`: aerial photo + parcel + plots coloured by state | 11a, 11b | Opus | 11-01, done by 11-02 evening |
-| 12a | `soil_jp`: 日本土壌インベントリー class at the point from the tile colour (CC BY 4.0, credit 農研機構) | 10 | Opus | 10-31 |
-| 12b | `river`: nearest river from OSM, bank, bend inside/outside | – | Opus | 10-31 if 12a is done by noon, else after 11-05 |
-| 12+ | relief, hazard depth classes, B2 questions, C photo checks, D evidence in the timeline | – | – | after 11-05 (brief above) |
+| 12a | `soil_jp`: 日本土壌インベントリー class at the point from the tile colour (CC BY 4.0, credit 農研機構) | 10 | Opus | done, eff7a89 (85 tests) |
+| 12c | `fieldnotes expect <field>`: what a photo would show per hypothesis, then `observe` adds `## Checks` lines; first real run on Ishii | 1 | Opus | 10-31 |
+| 12d | the same lines on every `observe`; a column per hypothesis in `timeline` | 12c | Opus | 10-31 (column by 11-02 at the latest) |
+| 12+ | river, relief, hazard depth classes, B2 questions | – | – | after 11-05 (brief above) |
 | – | Muse Code review (docs/muse-code.md Task 2) | – | farmer runs `muse` | by 11-02 |
 
 Done for each package means: tests pass offline, one short real run when the package calls the API, the README section updated, and the work committed on main (or a branch) with a summary of what was and was not verified.
@@ -298,7 +308,7 @@ Done for each package means: tests pass offline, one short real run when the pac
 |---|---|---|
 | 10-29 Thu | WP8 cut proposal, tests, one real run on `uncut` | Niihama farm visit: photos, voice notes (the first real Japanese recording), three questions (who advises you, how do you sell, what would you pay to have solved). Evening on the LAN: `init` the second farm, send, `observe`, `voice` |
 | 10-30 Fri | real-voice check and second farm `init` when the Niihama recordings arrive; WP10 lookup JP in the idle time | morning: ✓/✗ on the cut proposal; cut, or reject with a reason; a stick of known length in the before photo; daily photos; decide 9b |
-| 10-31 Sat | WP12a soil line (12b river if done by noon); daily runs | cut if not yet; photos of the cut plot; the 1 m pin pole arrives: mark its spot and the standing spot; draw the plots on geojson.io |
+| 10-31 Sat | WP12c expect + checks on the latest photos, 12d the lines on every observe and the timeline column; daily runs | cut if not yet; photos of the cut plot; the 1 m pin pole arrives: mark its spot and the standing spot; draw the plots on geojson.io |
 | 11-01 Sun | WP11c `fieldnotes map` | photos; planning session: `docs/demo.md` (add the map), README structure |
 | 11-02 Mon | README final, code tidy, nova's fork checked for parts to merge; WP9b only if selling stays in this hackathon | Muse Code Task 2 review; photos |
 | 11-03 Tue | – | video: field footage, screen recording from the own AI, edit |
