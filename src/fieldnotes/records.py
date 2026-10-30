@@ -22,9 +22,14 @@ Layout (see docs/design.md §3):
     - work: what the farmer did  → farmer: right | wrong (reason)
     - seen: what the farmer saw
 
+    ## Checks (<model>)
+    - h3: agrees | disagrees | cannot tell: what the photos showed  → farmer: ...
+
     ## Farmer note (<model>, <language>)
     free text (voice notes: one line each, "HH:MM transcript (file)")
 
+"Checks" answers, from the day's photos, the expectations written beforehand
+for the farm's hypotheses (check.py); it is absent when there are none.
 "Earlier AI lines" holds lines the farmer marked that a re-run of the same day
 replaced with different text (pipeline.merge_rerun); it is absent otherwise.
 
@@ -44,10 +49,11 @@ from . import llm
 
 FRONT = re.compile(r"\A---\n(.*?)\n---\n(.*)\Z", re.S)
 OBS_LINE = re.compile(
-    r"^- (?P<key>[a-z_]+): (?P<text>.*?)(?:\s+→ farmer: (?P<verdict>right|wrong)(?: \((?P<reason>.*)\))?)?$"
+    r"^- (?P<key>[a-z][a-z0-9_]*): (?P<text>.*?)(?:\s+→ farmer: (?P<verdict>right|wrong)(?: \((?P<reason>.*)\))?)?$"
 )
 EARLIER_HEADING = "## Earlier AI lines"
 VOICE_HEADING = "## From the farmer's voice"
+CHECKS_HEADING = "## Checks"
 
 
 @dataclass
@@ -78,6 +84,8 @@ class Record:
     earlier: list[Observation] = field(default_factory=list)  # marked lines a re-run replaced
     voice: list[Observation] = field(default_factory=list)  # work and seen, sorted from the farmer's voice
     voice_model: str = ""
+    checks: list[Observation] = field(default_factory=list)  # the hypotheses checked on the day's photos
+    checks_model: str = ""
     note_model: str = ""
     note_language: str = ""  # the language the note is in; the setting when new
     farmer_note: str = ""
@@ -108,6 +116,10 @@ class Record:
             out.append(f"{VOICE_HEADING} ({self.voice_model or 'none'})")
             out += [o.to_line() for o in self.voice]
             out.append("")
+        if self.checks:
+            out.append(f"{CHECKS_HEADING} ({self.checks_model or 'none'})")
+            out += [o.to_line() for o in self.checks]
+            out.append("")
         out.append(f"## Farmer note ({self.note_model or 'none'}, {self.note_language or llm.language()})")
         out.append(self.farmer_note or "(none)")
         out.append("")
@@ -137,6 +149,10 @@ class Record:
                 section = "voice"
                 rec.voice_model = line[len(VOICE_HEADING) :].strip(" ()")
                 continue
+            if line.startswith(CHECKS_HEADING):
+                section = "checks"
+                rec.checks_model = line[len(CHECKS_HEADING) :].strip(" ()")
+                continue
             if line.startswith("## AI observation"):
                 section = "ai"
                 rec.ai_model = line[len("## AI observation") :].strip(" ()")
@@ -147,10 +163,11 @@ class Record:
                 rec.note_model = head[0]
                 rec.note_language = head[1] if len(head) > 1 else ""
                 continue
-            if section in ("ai", "earlier", "voice"):
+            if section in ("ai", "earlier", "voice", "checks"):
                 om = OBS_LINE.match(line)
                 if om:
-                    {"ai": rec.observations, "earlier": rec.earlier, "voice": rec.voice}[section].append(
+                    {"ai": rec.observations, "earlier": rec.earlier, "voice": rec.voice,
+                     "checks": rec.checks}[section].append(
                         Observation(**om.groupdict()))
             elif section == "note":
                 note_lines.append(line)

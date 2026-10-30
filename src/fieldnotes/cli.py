@@ -34,7 +34,7 @@ import tempfile
 from datetime import date
 from pathlib import Path
 
-from . import concepts, lookup, pipeline, propose, site, surroundings, timeline, voice
+from . import check, concepts, lookup, pipeline, propose, site, surroundings, timeline, voice
 from . import llm
 from .llm import Backend
 from .records import Record
@@ -69,6 +69,9 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("field")
     s.add_argument("date", nargs="?", type=_day, default=None)
 
+    s = sub.add_parser("expect", help="write, before any photo, what photos would show for each hypothesis in site.md")
+    s.add_argument("field")
+
     s = sub.add_parser("show", help="print a record")
     s.add_argument("field")
     s.add_argument("date", nargs="?", type=_day, default=None)
@@ -84,8 +87,8 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("key", help="line key, e.g. dominant; key#2 for the second line with that key")
     s.add_argument("verdict", choices=pipeline.VERDICTS)
     s.add_argument("reason", nargs="*")
-    s.add_argument("--proposal", choices=[propose.KIND, propose.KIND_CUT],
-                   help="mark a line of that day's proposal instead of the record")
+    s.add_argument("--proposal", choices=[propose.KIND, propose.KIND_CUT, "expect"],
+                   help="mark a line of that day's proposal, or of the field's expectations (h3), instead of the record")
 
     s = sub.add_parser("concept", help="mark a SAM noun right or wrong")
     s.add_argument("field")
@@ -167,6 +170,10 @@ def run(args: argparse.Namespace) -> int:
         rec = pipeline.run_observation(args.field, day, root, progress=_say)
         _say(w("cli.saved", path=Record.path_for(records, rec.field, rec.date)))
         print(rec.to_markdown())
+    elif args.cmd == "expect":
+        path = check.expect(args.field, root, Backend.default(), today.isoformat())
+        _say(w("cli.saved", path=path))
+        print(path.read_text(encoding="utf-8"))
     elif args.cmd == "show":
         rec = Record.load(records, args.field, args.date.isoformat()) if args.date else _latest_or_fail(args.field, root)
         print(rec.to_markdown())
@@ -178,6 +185,8 @@ def run(args: argparse.Namespace) -> int:
         _say(w("cli.heard", text=text))
         for o in changed:
             print(o.to_line())
+    elif args.cmd == "mark" and args.proposal == "expect":
+        print(check.mark(records, args.field, args.key, args.verdict, _reason(args.reason)).to_line())
     elif args.cmd == "mark" and args.proposal:
         line = propose.mark(records, args.field, args.date.isoformat(), args.proposal, args.key, args.verdict,
                             _reason(args.reason))

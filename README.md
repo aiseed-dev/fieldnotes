@@ -105,6 +105,8 @@ fieldnotes concept uncut goldenrod wrong "finds ogi too" --replace "yellow flowe
 fieldnotes propose uncut --seeds "crimson clover, rye"
 fieldnotes propose uncut --cut           # where to cut first and how high → records/_proposals/uncut/<date>-cut.md
 fieldnotes mark uncut 2026-10-29 height wrong "too high: goldenrod seeds anyway" --proposal cut
+fieldnotes expect uncut                  # before any photo: what photos would show for each hypothesis in site.md
+fieldnotes mark uncut 2026-10-30 h3 wrong "photos cannot show this" --proposal expect
 fieldnotes compare                       # rank fields by the newest record of each
 fieldnotes surroundings                  # read the maps around the farm once (--force to redo)
 fieldnotes reader glimmer --check        # read with Muse Glimmer at home instead of Muse Spark
@@ -114,6 +116,8 @@ fieldnotes app --port 8550               # the phone app
 
 `--root DIR` (before the subcommand) points at the folder that holds `photos/` and `records/`; the default is `$FIELDNOTES_ROOT`, else the current folder. If the `fieldnotes` command is not found, `.venv/bin/python -m fieldnotes ...` does the same (re-run `pip install -e .` to get the command).
 Running `observe` again on the same day replaces the AI lines but keeps your right/wrong marks and note; a marked line whose wording changed moves under `## Earlier AI lines`.
+
+**Checking the hypotheses on the photos.** The `hypothesis` lines in `records/site.md` (yours and the AI's) are things to check, not premises. `fieldnotes expect <field>` has the reading model write, from the text alone and before it sees any photo, what photos of that field would show for each one if it holds and if it fails, and whether a photo can show it at all (a flood 2000 years ago cannot): `records/_checks/<field>/expect.md`, one line per hypothesis (`h1`, `h2` ... in site.md order), which you mark or edit. From then on every `observe` of that field shows the day's photos and these expectations to the model in a call of its own and adds a `## Checks` section to the record: `- h3: agrees | disagrees | cannot tell: what the photos showed`, marked like any other line. `fieldnotes timeline <field>` ends with a table, one row per hypothesis and one column per day. Expectations come first so they cannot be bent to fit the photos; what the photos and the days answer is for you to carry into site.md.
 
 Tests run offline: `.venv/bin/pip install -e ".[dev]" && .venv/bin/pytest`.
 

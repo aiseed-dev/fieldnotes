@@ -166,6 +166,8 @@ TEXTS: dict[str, tuple[str, str]] = {
     "step.nouns": ("SAM に聞く名詞を用意しています", "Choosing the nouns for SAM"),
     "step.segment": ("SAM で {n} 枚を分けています", "SAM is segmenting {n} photo(s)"),
     "step.read": ("{model} が畑を読んでいます", "{model} is reading the field"),
+    "step.check": ("{model} が仮説の期待と写真を突き合わせています", "{model} is checking the photos against the expectations"),
+    "step.no_check": ("仮説の確認はできませんでした（{e}）", "No hypothesis check today ({e})"),
     "step.next": ("次回の SAM の名詞を用意しています", "Choosing SAM's nouns for next time"),
     "step.save": ("記録を保存しています", "Saving the record"),
     # CLI

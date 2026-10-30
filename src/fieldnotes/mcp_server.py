@@ -21,7 +21,7 @@ from pathlib import Path
 from mcp.server.mcpserver import MCPServer
 from mcp.server.mcpserver.exceptions import ToolError
 
-from . import pipeline, propose, timeline as timeline_mod, voice
+from . import check, pipeline, propose, timeline as timeline_mod, voice
 from .appdata import photo_days
 from .inbox import list_fields
 from .llm import Backend
@@ -102,9 +102,12 @@ def build(root: Path, buyer: bool = False) -> MCPServer:
     def mark(field: str, day: str, key: str, verdict: str, reason: str | None = None,
              proposal: str | None = None) -> str:
         """Set the farmer's verdict ("right" or "wrong", with the reason) on one line: a record line by its key
-        (overall, dominant, acidity ..., work, seen; key#2 for the second line with that key), or a line of that
-        day's proposal when `proposal` is "cut" or "cover_crop". Only when the farmer says so."""
-        if proposal:
+        (overall, dominant, acidity ..., work, seen, h3 for the check of hypothesis 3; key#2 for the second line
+        with that key), a line of that day's proposal when `proposal` is "cut" or "cover_crop", or one of the
+        field's expectations (h3) when `proposal` is "expect". Only when the farmer says so."""
+        if proposal == "expect":
+            line = check.mark(records, field, key, verdict, reason)
+        elif proposal:
             line = propose.mark(records, field, day, proposal, key, verdict, reason)
         else:
             line = pipeline.mark(field, _day(day), key, verdict, reason, root=root)

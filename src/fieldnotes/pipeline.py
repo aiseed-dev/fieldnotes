@@ -21,7 +21,7 @@ from collections.abc import Callable
 from datetime import date
 from pathlib import Path
 
-from . import around, concepts, describe, segment, weather
+from . import around, check, concepts, describe, segment, weather
 from .inbox import AROUND, DATED, valid_field
 from .llm import Backend
 from .plants import species_in
@@ -90,16 +90,18 @@ def merge_rerun(new: Record, old: Record) -> Record:
     * a marked old line whose text changed is kept, with its verdict, under
       `earlier` (the "## Earlier AI lines" section), so the mark is never lost;
     * unmarked old lines are simply replaced;
+    * the same holds for the Checks lines (check.py);
     * the farmer note and what was sorted from the farmer's voice stay.
     """
     taken: set[int] = set()
-    for o in new.observations:
-        prior = next((p for p in old.observations if p.verdict and id(p) not in taken and _same(p, o)), None)
+    for o in new.observations + new.checks:
+        prior = next((p for p in old.observations + old.checks
+                      if p.verdict and id(p) not in taken and _same(p, o)), None)
         if prior:
             taken.add(id(prior))
             o.verdict, o.reason = prior.verdict, prior.reason
     earlier = list(old.earlier)
-    for p in old.observations:
+    for p in old.observations + old.checks:
         if p.verdict and id(p) not in taken and not any(
                 _same(p, e) and e.verdict == p.verdict for e in earlier):
             earlier.append(p)
@@ -176,6 +178,15 @@ def run_observation(field: str, day: date, root: Path = ROOT, backend: Backend |
     say(w("step.read", model=backend.name))
     describe.observe(rec, previous, photo_root=root, records_root=records, backend=backend)
 
+    # 6b. the farm's hypotheses: the day's photos against the expectations written
+    # beforehand (check.py), in a call of its own; a failure must not lose the reading
+    if check.to_check(records, field):
+        say(w("step.check", model=backend.name))
+        try:
+            rec.checks, rec.checks_model = check.check_record(rec, root, backend), backend.name
+        except Exception as e:  # noqa: BLE001 - the reading above is already done
+            say(w("step.no_check", e=e))
+
     # 7. prompts for next time
     say(w("step.next"))
     concepts.ensure(records, field, species_in(rec.observations), backend, shared)
@@ -194,9 +205,11 @@ def run_observation(field: str, day: date, root: Path = ROOT, backend: Backend |
 
 def _find_line(rec: Record, key: str) -> Observation:
     """`key` is the line's key; `key#2` picks the second line with that key.
-    `work` and `seen` are the lines sorted from the farmer's voice."""
+    `work` and `seen` are the lines sorted from the farmer's voice; `h3` is the
+    check of hypothesis 3 on the day's photos."""
     base, _, nth = key.partition("#")
-    lines = [o for o in (rec.voice if base in ("work", "seen") else rec.observations) if o.key == base]
+    pool = rec.voice if base in ("work", "seen") else rec.checks if re.fullmatch(r"h\d+", base) else rec.observations
+    lines = [o for o in pool if o.key == base]
     i = int(nth) - 1 if nth.isdigit() else 0
     if not 0 <= i < len(lines):
         raise KeyError(f"no line {key!r} in {rec.field} {rec.date}")

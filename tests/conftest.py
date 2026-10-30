@@ -11,7 +11,7 @@ import numpy as np
 import pytest
 from PIL import Image
 
-from fieldnotes import around, concepts, describe, llm, plants, propose, segment, surroundings, voice, weather
+from fieldnotes import around, check, concepts, describe, llm, plants, propose, segment, surroundings, voice, weather
 from fieldnotes.llm import Backend
 from fieldnotes.segment import ConceptResult, Instance, SegmentResult
 
@@ -54,7 +54,8 @@ class FakeModel:
         text = user if isinstance(user, str) else "\n".join(p["text"] for p in user if p["type"] == "text")
         kinds = {concepts.SYSTEM: "concepts", plants.ECOLOGY_SYSTEM: "ecology", describe.SYSTEM: "describe",
                  describe.COMPARE_SYSTEM: "compare", propose.SYSTEM: "propose", propose.CUT_SYSTEM: "cut",
-                 surroundings.SYSTEM: "surroundings", around.SYSTEM: "around", voice.SYSTEM: "voice"}
+                 surroundings.SYSTEM: "surroundings", around.SYSTEM: "around", voice.SYSTEM: "voice",
+                 check.EXPECT_SYSTEM: "expect", check.CHECK_SYSTEM: "check"}
         # prompts carry the farm's place (<FIELD>, <REGION>; site.py) and may
         # carry a trailing language rule (llm.in_language)
         kind = next(k for s, k in kinds.items() if re.match(_pattern(s), system))
@@ -94,6 +95,14 @@ class FakeModel:
                 "cautions": []})
         if kind == "voice":
             return json.dumps(self.sorted)
+        if kind == "expect":  # even hypotheses cannot be seen in a photo
+            return json.dumps([{"id": f"h{n}", "holds": f"sign {n} present; dense", "fails": f"sign {n} absent",
+                                "visible": int(n) % 2 == 1, "confidence": 0.6}
+                               for n in re.findall(r"^h(\d+): ", text, re.M)])
+        if kind == "check":  # answers every id it is asked, and one it was not
+            asked = re.findall(r"^(h\d+): holds:", text, re.M)
+            return json.dumps([{"id": h, "result": "agrees" if h == "h1" else "cannot tell",
+                                "seen": f"what {h} looks like", "confidence": 0.5} for h in asked + ["h2"]])
         return json.dumps([{"aspect": "land_use", "text": "paddies to the south", "confidence": 0.6}])
 
 
@@ -143,7 +152,7 @@ def offline(monkeypatch, tmp_path):
 @pytest.fixture
 def model(monkeypatch):
     fake = FakeModel()
-    for mod in (llm, describe, concepts, plants, propose, surroundings, around, voice):
+    for mod in (llm, describe, concepts, plants, propose, surroundings, around, voice, check):
         monkeypatch.setattr(mod, "chat", fake)
     return fake
 
