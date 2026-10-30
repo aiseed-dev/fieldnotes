@@ -289,6 +289,8 @@ Rules: Spark, `in_language`; the two steps never share a call; a hypothesis with
 - Cost: SAM ~3 s × 50 = ~3 min; one Spark request per field per day. `observe` prints progress per photo.
 - Tests offline: GPS from an EXIF fixture (and none), `index.json`, the set prompt with `FakeModel` (numbering and positions), batching, zone and emerging lines parsed and marked, the timeline rows. One real run on the farmer's 10-31 walk, the record committed with the run noted.
 
+**Code done 2026-10-30, 1ab669d (100 offline tests); the real run waits for the farmer's walk on 10-31.** `walk.py` and changes in `inbox`, `describe`, `pipeline`, `records`, `timeline`. As briefed, plus: `index.json` also keeps the direction the camera faced; each photo's label is "3 of 42, 10:21, NW corner, facing W", the position relative to the 筆ポリゴン that holds most of the photo points (from `lookup/parcel_jp.json`), else to the area the walk covered, else the number alone; previous days' photos fill the slots left under 50, spaced along the walk, and when they do not all fit their reading goes in as text; a day over 50 photos is read in equal parts and then one text-only summary request, the model line saying so; `check` and `compare` keep within 50 too; the record's `coverage` is the mean over the photos and `cover_range` the min–max; lines `zone: <where>: <what> (photos n) [conf]` and `emerging: <name> (<sci>) at <where> (photos n) [conf]`; the timeline adds the table "Coming up day by day" (species × day, with where and ✓/✗). README paragraph "The field from many photos" added. Video and perception grounding not started, as decided.
+
 After WP13, in this order and as time allows before the README: relief from DEM5A drawn on the map (with 11c, 11-01); 12b river and the hazard depth classes (11-02, before the README tidy); SAM phrases tried on each day's new photos and the hypothesis checks running on every `observe` are part of the daily runs, not extra packages.
 
 ## WP7: the demo — timeline, README, script
@@ -322,7 +324,7 @@ After WP13, in this order and as time allows before the README: relief from DEM5
 | 12b | `river`: nearest river from OSM, bank, bend inside/outside | – | Opus | 11-02, after WP13 and the map |
 | 12e | relief from DEM5A on the map; hazard depth classes (L1/L2, national vs prefectural river) | 11c | Opus | relief with 11c on 11-01; depth classes 11-02 |
 | 12+ | B2 questions to the farmer where data is missing | – | – | after 11-05 |
-| 13 | the field from many photos: GPS per photo, SAM per photo, Spark reads the set, `zone` and `emerging` lines, timeline | 1 | Opus; the farmer walks and shoots daily | 10-31 (brief above) |
+| 13 | the field from many photos: GPS per photo, SAM per photo, Spark reads the set, `zone` and `emerging` lines, timeline | 1 | Opus; the farmer walks and shoots daily | code done 10-30, 1ab669d (100 tests); the real run waits for the farmer's 10-31 walk |
 | – | Muse Code review (docs/muse-code.md Task 2) | – | farmer runs `muse` | by 11-02 |
 
 Done for each package means: tests pass offline, one short real run when the package calls the API, the README section updated, and the work committed on main (or a branch) with a summary of what was and was not verified.
