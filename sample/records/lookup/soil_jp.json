@@ -1,3 +1,16 @@
 {
- "url": "https://soil-inventory.rad.naro.go.jp/figure.html?lat=34.080100&lng=134.445400&zoom=15"
+ "tile": "https://soil-inventory.rad.naro.go.jp/tile/figure/15/28621/13080.png",
+ "legend": "https://soil-inventory.rad.naro.go.jp/js/figureRGB.js",
+ "rgba": [
+  4,
+  136,
+  168,
+  255
+ ],
+ "view": "https://soil-inventory.rad.naro.go.jp/figure.html?lat=34.080100&lng=134.445400&zoom=16",
+ "class": {
+  "code": "F4c1t1",
+  "name": "細粒質水田化褐色低地土",
+  "explanation": "次表層の土性が重埴土、シルト質埴土、軽埴土、砂質埴土、シルト質埴壌土、埴壌土、砂質埴壌土である水田化褐色低地土。"
+ }
 }

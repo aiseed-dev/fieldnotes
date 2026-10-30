@@ -19,6 +19,8 @@ and settle the place:
     parcel_jp     農林水産省 筆ポリゴン (ArcGIS FeatureServer, by point) → the parcel the
                   point lies in (area, 田/畑, the year read) and the parcels within 100 m;
                   the outline is kept in the raw answer. 全国農地ナビ as a link
+    soil_jp       農研機構 日本土壌インベントリー → the soil class at the point: the colour of
+                  the soil map's tile there, looked up in the site's own legend (figureRGB.js)
 
 Each returns (lines, raw) like the sources in lookup.py. A tile that is not
 there (404) means the layer has nothing in it; any other failure raises, and
@@ -110,6 +112,13 @@ LAND_TYPE = {100: "田", 200: "畑"}
 FUDE_CAVEAT = ("筆ポリゴン are reference for the position and shape of farmland, drawn by hand over aerial "
                "photos for the 面積調査 with 田/畑 read by eye; they show neither 筆界 nor rights")
 NOUCHI_NAVI = "https://map.maff.go.jp/"
+
+# 農研機構 日本土壌インベントリー: CC BY 4.0, credit 「農研機構、日本土壌インベントリー」
+# (デジタル土壌図 活用マニュアル 2019, §3). Only what NARO serves: the soil map tiles and
+# the site's legend; the 日本土壌協会 CD-ROM data the farmland map was adapted from is not used.
+SOIL_TILE = "https://soil-inventory.rad.naro.go.jp/tile/figure/{z}/{x}/{y}.png"
+SOIL_LEGEND = "https://soil-inventory.rad.naro.go.jp/js/figureRGB.js"
+SOIL_Z = 15  # the map's finest tiles
 EARTH_R = 6371008.8
 SHEET_PX = (41.6, 34.2)
 SHEET_GRID = {
@@ -486,7 +495,36 @@ def parcel(site: Site):
     return [f"- `data` Parcel (筆ポリゴン): {said}. {FUDE_CAVEAT}. {src}", nav], raw
 
 
-def soil_hint(site: Site):
-    url = f"https://soil-inventory.rad.naro.go.jp/figure.html?lat={site.lat:.6f}&lng={site.lon:.6f}&zoom=15"
-    return [f"- `hypothesis` Soil type: not looked up (no point API). Check the 農研機構 日本土壌インベントリー "
-            f"soil map at this point and write the class here. — {url}"], {"url": url}
+def legend(js: str) -> dict[tuple[int, int, int], tuple[str, str, str]]:
+    """figureRGB.js: [r, g, b, "code", "name", "explanation"] per soil class."""
+    return {(int(r), int(g), int(b)): (code, name, text.strip()) for r, g, b, code, name, text in
+            re.findall(r'\[\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*"([^"]*)"\s*,\s*"([^"]*)"\s*,\s*"([^"]*)"\s*\]', js)}
+
+
+def soil(site: Site):
+    """The soil class at the point on the 日本土壌インベントリー soil map. The site
+    picks the nearest legend colour to what is under a click; neighbouring classes
+    differ by one unit of one channel, so only an exact match counts here."""
+    fx, fy = tile_xy(site.lat, site.lon, SOIL_Z)
+    url = SOIL_TILE.format(z=SOIL_Z, x=int(fx), y=int(fy))
+    view = f"https://soil-inventory.rad.naro.go.jp/figure.html?lat={site.lat:.6f}&lng={site.lon:.6f}&zoom=16"
+    src = f"— 出典：農研機構、日本土壌インベントリー (CC BY 4.0), {url}"
+    data = get_bytes(url)
+    if data is None:
+        return [f"- `data` Soil type: the soil map has no tile here (outside its coverage). {src}"], {"tile": url}
+    js = (get_bytes(SOIL_LEGEND) or b"").decode("utf-8", "replace")
+    classes = legend(js)
+    if not classes:
+        raise RuntimeError(f"no legend in {SOIL_LEGEND}")
+    px = np.asarray(Image.open(io.BytesIO(data)).convert("RGBA"))[int((fy % 1) * 256), int((fx % 1) * 256)]
+    rgb = tuple(int(v) for v in px[:3])
+    raw = {"tile": url, "legend": SOIL_LEGEND, "rgba": [*rgb, int(px[3])], "view": view}
+    if px[3] == 0:
+        return [f"- `data` Soil type: not mapped at this point (no colour on the soil map). {src}"], raw
+    if rgb not in classes:
+        return [f"- `data` Soil type: the map's colour here, RGB {rgb}, is not in its legend; not guessed. "
+                f"Look at the map: {view} {src}"], raw
+    code, name, text = classes[rgb]
+    raw["class"] = {"code": code, "name": name, "explanation": text}
+    return [f"- `data` Soil type: {name} ({code}). {text} The soil map contains errors (誤差を含む), "
+            f"read from the map colour at the point. {src}"], raw

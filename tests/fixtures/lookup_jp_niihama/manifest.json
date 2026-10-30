@@ -70,5 +70,8 @@
 "https://services8.arcgis.com/cW9ZoPyzxXOxrpu1/arcgis/rest/services/FudePolygonTemp_2026/FeatureServer/0/query?geometry=134.4454%2C34.0801&outFields=%2A&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson": "66280092df7f.json",
 "https://services8.arcgis.com/cW9ZoPyzxXOxrpu1/arcgis/rest/services/FudePolygonTemp_2026/FeatureServer/0/query?geometry=134.4454%2C34.0801&distance=100&units=esriSRUnit_Meter&outFields=polygon_uuid%2Cland_type%2Cissue_year&returnGeometry=false&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson": "f1bfcd480aac.json",
 "https://services8.arcgis.com/cW9ZoPyzxXOxrpu1/arcgis/rest/services/FudePolygonTemp_2026/FeatureServer/0/query?geometry=133.26414612740723%2C33.912408614720086&outFields=%2A&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson": "8283b78cd03e.json",
-"https://services8.arcgis.com/cW9ZoPyzxXOxrpu1/arcgis/rest/services/FudePolygonTemp_2026/FeatureServer/0/query?geometry=133.26414612740723%2C33.912408614720086&distance=100&units=esriSRUnit_Meter&outFields=polygon_uuid%2Cland_type%2Cissue_year&returnGeometry=false&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson": "1e091f0c6ca6.json"
+"https://services8.arcgis.com/cW9ZoPyzxXOxrpu1/arcgis/rest/services/FudePolygonTemp_2026/FeatureServer/0/query?geometry=133.26414612740723%2C33.912408614720086&distance=100&units=esriSRUnit_Meter&outFields=polygon_uuid%2Cland_type%2Cissue_year&returnGeometry=false&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson": "1e091f0c6ca6.json",
+"https://soil-inventory.rad.naro.go.jp/tile/figure/15/28621/13080.png": "e110fc85f931.png",
+"https://soil-inventory.rad.naro.go.jp/js/figureRGB.js": "8192fa07d61d.js",
+"https://soil-inventory.rad.naro.go.jp/tile/figure/15/28513/13099.png": "65158ee885c6.png"
 }

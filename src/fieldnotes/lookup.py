@@ -194,7 +194,7 @@ SOURCES = {"address_jp": lookup_jp.address, "parcel_jp": lookup_jp.parcel, "elev
            "landform_jp": lookup_jp.landform, "geology": geology_world, "geology_jp": geology_japan,
            "sheet_jp": lookup_jp.sheet,
            "faults_jp": lookup_jp.faults, "hazard_jp": lookup_jp.hazards,
-           "soil": soil, "soil_jp": lookup_jp.soil_hint, "wikipedia": wiki_nearby, "historic": history_osm}
+           "soil": soil, "soil_jp": lookup_jp.soil, "wikipedia": wiki_nearby, "historic": history_osm}
 JAPAN_ONLY = {k for k in SOURCES if k.endswith("_jp")}
 SECTIONS = [("Place", ["address_jp"]), ("Parcel", ["parcel_jp"]), ("Terrain", ["elevation_jp", "elevation", "landform_jp"]),
             ("Geology", ["geology_jp", "sheet_jp", "geology"]), ("Faults and hazards", ["faults_jp", "hazard_jp"]),

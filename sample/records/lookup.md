@@ -41,7 +41,7 @@ places with a name near the farm, worth reading about. Mark or correct them like
 ## Soil
 
 - `data` SoilGrids has no value at this point (masked, e.g. built-up land). — https://rest.isric.org/soilgrids/v2.0/properties/query?lon=134.4454&lat=34.0801&property=phh2o&property=soc&property=clay&property=sand&depth=0-5cm&depth=15-30cm&value=mean
-- `hypothesis` Soil type: not looked up (no point API). Check the 農研機構 日本土壌インベントリー soil map at this point and write the class here. — https://soil-inventory.rad.naro.go.jp/figure.html?lat=34.080100&lng=134.445400&zoom=15
+- `data` Soil type: 細粒質水田化褐色低地土 (F4c1t1). 次表層の土性が重埴土、シルト質埴土、軽埴土、砂質埴土、シルト質埴壌土、埴壌土、砂質埴壌土である水田化褐色低地土。 The soil map contains errors (誤差を含む), read from the map colour at the point. — 出典：農研機構、日本土壌インベントリー (CC BY 4.0), https://soil-inventory.rad.naro.go.jp/tile/figure/15/28621/13080.png
 
 ## History and places nearby
 

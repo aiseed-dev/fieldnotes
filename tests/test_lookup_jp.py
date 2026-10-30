@@ -87,7 +87,7 @@ def test_inside_a_zone_is_said_plainly(monkeypatch):
     assert raw["05_dosekiryukeikaikuiki"]["inside"] is True
 
 
-def test_lookup_in_japan_writes_place_hazards_and_soil_hint(tmp_path, monkeypatch, recorded):
+def test_lookup_in_japan_writes_place_hazards_and_soil(tmp_path, monkeypatch, recorded):
     monkeypatch.setattr(lookup, "get_json", lambda url, **kw: {"elevation": [97.0]} if "open-meteo" in url else {})
     assert cli.main(["--root", str(tmp_path), "init", "--place", "新居浜市, 愛媛県", "--country", "JP",
                      "--lat", str(LAT), "--lon", str(LON)]) == 0
@@ -97,7 +97,7 @@ def test_lookup_in_japan_writes_place_hazards_and_soil_hint(tmp_path, monkeypatc
     assert heads[:3] == ["## Place", "## Parcel", "## Terrain"] and "## Faults and hazards" in heads
     assert "the field point lies in no parcel" in text
     assert text.index("Elevation 97.1 m (DEM") < text.index("Elevation 97 m. — Open-Meteo")
-    assert "`hypothesis` Soil type: not looked up (no point API). Check the 農研機構 日本土壌インベントリー" in text
+    assert "`data` Soil type: 礫質水田化疑似グライ土 (H2c1p2)." in text and "出典：農研機構、日本土壌インベントリー (CC BY 4.0)" in text
     geology = text[text.index("## Geology"):text.index("## Faults and hazards")]
     assert "The 1:50,000 report 新居浜" in geology
     raw = json.loads((tmp_path / "records" / "lookup" / "faults_jp.json").read_text())
@@ -183,6 +183,30 @@ def test_parcel_area_on_the_ground(recorded):
     _, raw = lookup_jp.parcel(Site(lat=34.0801, lon=134.4454, country="JP"))
     mercator = raw["parcel"]["properties"]["SHAPE__Area"]
     assert raw["area_m2"] == pytest.approx(mercator * math.cos(math.radians(34.0801)) ** 2, rel=0.01)
+
+
+def test_the_soil_class_is_read_from_the_map_colour(recorded):
+    lines, raw = lookup_jp.soil(Site(lat=34.0801, lon=134.4454, country="JP"))  # the home field, Ishii
+    assert lines[0].startswith("- `data` Soil type: 細粒質水田化褐色低地土 (F4c1t1). 次表層の土性が重埴土")
+    assert "誤差を含む" in lines[0] and lines[0].endswith("tile/figure/15/28621/13080.png")
+    assert raw["rgba"] == [4, 136, 168, 255]
+    lines, raw = lookup_jp.soil(NIIHAMA)  # on the last pixel column of its tile
+    assert "礫質水田化疑似グライ土 (H2c1p2). 土壌表面から60cm以内に礫層が現れる" in lines[0]
+
+
+def test_a_colour_not_in_the_legend_is_not_guessed(monkeypatch):
+    legend = "var figureRGB =[\n\t[4,136,168,\"F4c1t1\",\"細粒質水田化褐色低地土\",\"...\"],\n];".encode()
+    def tile(rgba):
+        buf = io.BytesIO()
+        Image.fromarray(np.full((256, 256, 4), rgba, np.uint8)).save(buf, "PNG")
+        return buf.getvalue()
+    near = tile((4, 136, 169, 255))  # one unit off: the site would take the nearest; here it is not guessed
+    monkeypatch.setattr(lookup_jp, "get_bytes", lambda url: legend if url.endswith(".js") else near)
+    line = lookup_jp.soil(NIIHAMA)[0][0]
+    assert "RGB (4, 136, 169), is not in its legend; not guessed" in line and "F4c1t1" not in line
+    clear = tile((0, 0, 0, 0))
+    monkeypatch.setattr(lookup_jp, "get_bytes", lambda url: legend if url.endswith(".js") else clear)
+    assert "not mapped at this point" in lookup_jp.soil(NIIHAMA)[0][0]
 
 
 def test_no_fault_close_by_looks_wider(monkeypatch):
