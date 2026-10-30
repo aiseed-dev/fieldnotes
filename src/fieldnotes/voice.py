@@ -70,7 +70,11 @@ def to_wav(data: bytes) -> bytes:
     that is already mono 16-bit at 16 or 24 kHz is sent as it is)."""
     if _wav_ok(data):
         return data
-    import av  # PyAV: decodes m4a/aac/3gp/ogg/webm without an ffmpeg binary
+    try:
+        import av  # PyAV: decodes m4a/aac/3gp/ogg/webm without an ffmpeg binary
+    except ModuleNotFoundError as e:
+        from .ui import words
+        raise RuntimeError(words()("need.extra", extra="voice")) from e
 
     pcm = bytearray()
     with av.open(io.BytesIO(data)) as box:

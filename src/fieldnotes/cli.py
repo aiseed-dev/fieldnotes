@@ -265,7 +265,12 @@ def run(args: argparse.Namespace) -> int:
         mcp_server.run(root, http=args.http, port=args.port)
     elif args.cmd == "app":
         os.environ["FIELDNOTES_ROOT"] = str(root)  # app.py reads it when imported
-        from . import app
+        try:
+            from . import app
+        except ModuleNotFoundError as e:
+            if e.name != "flet":
+                raise
+            raise RuntimeError(words()("need.extra", extra="app")) from e
         app.run(port=args.port)
     return 0
 

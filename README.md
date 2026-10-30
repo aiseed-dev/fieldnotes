@@ -48,10 +48,13 @@ Everything in this repository: `src/fieldnotes/` (segment, describe, verify, rec
 ## Running
 
 ```bash
-python -m venv .venv && .venv/bin/pip install -e .
+pip install fieldnotes-farm                  # the command line, the records and the MCP server for your own AI
+pip install "fieldnotes-farm[app,voice]"     # plus the phone app (Flet) and decoding the phone's voice recordings (PyAV)
 # Meta Model API key (dev.meta.ai → API keys): either set MODEL_API_KEY,
 # or keep it in ~/.config/fieldnotes/model_api_key (chmod 600), which is read when the variable is unset.
 ```
+
+The package is `fieldnotes-farm` on PyPI (the name `fieldnotes` there is another project); the command and the import are `fieldnotes`. Without an extra, `fieldnotes app` and voice recordings other than plain WAV say which extra to install. From a checkout: `python -m venv .venv && .venv/bin/pip install -e ".[all]"`.
 
 ### Your own farm
 
@@ -128,7 +131,7 @@ You mark both like any other line. `fieldnotes timeline <field>` lists them day 
 
 **Checking the hypotheses on the photos.** The `hypothesis` lines in `records/site.md` (yours and the AI's) are things to check, not premises. `fieldnotes expect <field>` has the reading model write, from the text alone and before it sees any photo, what photos of that field would show for each one if it holds and if it fails, and whether a photo can show it at all (a flood 2000 years ago cannot): `records/_checks/<field>/expect.md`, one line per hypothesis (`h1`, `h2` ... in site.md order), which you mark or edit. From then on every `observe` of that field shows the day's photos and these expectations to the model in a call of its own and adds a `## Checks` section to the record: `- h3: agrees | disagrees | cannot tell: what the photos showed`, marked like any other line. `fieldnotes timeline <field>` ends with a table, one row per hypothesis and one column per day. Expectations come first so they cannot be bent to fit the photos; what the photos and the days answer is for you to carry into site.md.
 
-Tests run offline: `.venv/bin/pip install -e ".[dev]" && .venv/bin/pytest`.
+Tests run offline: `.venv/bin/pip install -e ".[dev]" && .venv/bin/pytest`. A release: `.venv/bin/python -m build && .venv/bin/twine check dist/*`, then upload with your own PyPI token.
 
 ### Phone app
 

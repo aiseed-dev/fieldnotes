@@ -6,3 +6,6 @@ __pycache__/
 **/photos/**/*.HEIC
 # phone uploads land here before being filed into photos/
 uploads/
+# python -m build
+dist/
+build/

@@ -1,9 +1,22 @@
 [project]
-name = "fieldnotes"
-version = "0.0.1"
-description = "Daily observation records for a natural-farming field: align, segment (SAM 3.1), describe (Muse Spark / Glimmer), verify (farmer + Muse Voice Transcribe)."
+# "fieldnotes" on PyPI is another project (a knowledge-graph tool); the import name stays fieldnotes
+name = "fieldnotes-farm"
+version = "0.1.0"
+description = "Read a natural-farming field from photos with Meta's models (SAM 3.1, Muse Spark), keep it as plain-text records the farmer marks right or wrong, and serve them to the farmer's own AI over MCP."
+readme = {file = "README.md", content-type = "text/markdown"}
 requires-python = ">=3.11"
 license = "AGPL-3.0-or-later"
+license-files = ["LICENSE"]
+authors = [{name = "Yasuhiro Niji"}]
+keywords = ["natural farming", "agriculture", "field records", "SAM", "Muse Spark", "MCP", "abandoned farmland"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: End Users/Desktop",
+  "Natural Language :: English",
+  "Natural Language :: Japanese",
+  "Programming Language :: Python :: 3",
+  "Topic :: Scientific/Engineering :: Image Recognition",
+]
 dependencies = [
   "openai>=3",
   "meta-sam-parser>=0.1",
@@ -12,13 +25,19 @@ dependencies = [
   "pyyaml",
   "pillow-heif",
   "httpx",
-  "av",  # decodes the phone's voice recordings (voice.py)
   "mcp>=2.3",  # the tools for the farmer's own AI (mcp_server.py)
-  "flet[all]==1.0.5",
 ]
 
 [project.optional-dependencies]
-dev = ["pytest"]
+app = ["flet[all]==1.0.5"]  # the phone app (fieldnotes app)
+voice = ["av"]  # decodes the phone's voice recordings (voice.py)
+all = ["fieldnotes-farm[app,voice]"]
+dev = ["pytest", "build", "twine", "fieldnotes-farm[app,voice]"]
+
+[project.urls]
+Homepage = "https://github.com/aiseed-dev/fieldnotes"
+Source = "https://github.com/aiseed-dev/fieldnotes"
+Issues = "https://github.com/aiseed-dev/fieldnotes/issues"
 
 [project.scripts]
 fieldnotes = "fieldnotes.cli:main"
