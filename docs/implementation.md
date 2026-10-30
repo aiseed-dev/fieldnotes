@@ -37,7 +37,7 @@ Nothing here changes what is built by 11-05. Checks that wait until after the de
 
 **Scope decision (the farmer, 2026-10-29):** what matters most is selling the produce. This Meta hackathon goes as far as **production**: read the field, propose, cut, record, verify. **Selling** (a buyer's AI reading the records) goes to a Claude hackathon if the farmer can enter one; if not, it is squeezed into the end of this one (11-02). So WP9a (the farmer's own AI connecting) is in; WP9b (`export`, `--buyer`) is **held** until that is decided (the farmer decides on 10-30).
 
-**Direction (the farmer, 2026-10-30 evening):** no more small experiments in the software (SAM phrases, river and relief lines, hazard detail, further hypothesis checks). What is built stays and runs. The experiments are in the field: **mixed planting and mixed sowing (多種の混植・混播)**, which the farmer names as the mark of 福岡正信's natural farming (『自然農法 わら一本の革命』: many species sown together, no tillage, no fertiliser), and the app's job is to **judge the field from many photos**: the farmer walks the field and shoots, the app reads the set as one field, and the days line up. WP13 below; it is the last package before the README and the video.
+**Direction (the farmer, 2026-10-30 evening):** fewer small experiments of the kind done so far; what is built stays and runs, and the land's data lines (river, relief, hazard depth) and the daily tuning (SAM phrases on new photos, the hypothesis checks) stay in the plan after WP13. The experiments are in the field: **mixed planting and mixed sowing (多種の混植・混播)**, which the farmer names as the mark of 福岡正信's natural farming (『自然農法 わら一本の革命』: many species sown together, no tillage, no fertiliser), and the app's job is to **judge the field from many photos**: the farmer walks the field and shoots, the app reads the set as one field, and the days line up. WP13 below; it is the last package before the README and the video.
 
 ## Rules for every package
 
@@ -289,7 +289,7 @@ Rules: Spark, `in_language`; the two steps never share a call; a hypothesis with
 - Cost: SAM ~3 s × 50 = ~3 min; one Spark request per field per day. `observe` prints progress per photo.
 - Tests offline: GPS from an EXIF fixture (and none), `index.json`, the set prompt with `FakeModel` (numbering and positions), batching, zone and emerging lines parsed and marked, the timeline rows. One real run on the farmer's 10-31 walk, the record committed with the run noted.
 
-Dropped from the plan (after the deadline only if the farmer wants them): 12b river, relief, hazard depth classes, more SAM phrases, more hypothesis checks beyond what runs already.
+After WP13, in this order and as time allows before the README: relief from DEM5A drawn on the map (with 11c, 11-01); 12b river and the hazard depth classes (11-02, before the README tidy); SAM phrases tried on each day's new photos and the hypothesis checks running on every `observe` are part of the daily runs, not extra packages.
 
 ## WP7: the demo — timeline, README, script
 
@@ -319,7 +319,9 @@ Dropped from the plan (after the deadline only if the farmer wants them): 12b ri
 | 12a | `soil_jp`: 日本土壌インベントリー class at the point from the tile colour (CC BY 4.0, credit 農研機構) | 10 | Opus | done, eff7a89 (85 tests) |
 | 12c | `fieldnotes expect <field>`: what a photo would show per hypothesis, then `observe` adds `## Checks` lines; first real run on Ishii | 1 | Opus | done, 34c8437 (92 tests; uncut: 29 hypotheses, 7 visible in a photo; on 10-28's photos 2 agree, 5 cannot tell) |
 | 12d | the same lines on every `observe`; a column per hypothesis in `timeline` | 12c | Opus | done, 34c8437 ("Hypotheses day by day" table at the end of `timeline`) |
-| 12+ | river, relief, hazard depth classes, B2 questions | – | – | dropped from the plan (after 11-05 only if wanted) |
+| 12b | `river`: nearest river from OSM, bank, bend inside/outside | – | Opus | 11-02, after WP13 and the map |
+| 12e | relief from DEM5A on the map; hazard depth classes (L1/L2, national vs prefectural river) | 11c | Opus | relief with 11c on 11-01; depth classes 11-02 |
+| 12+ | B2 questions to the farmer where data is missing | – | – | after 11-05 |
 | 13 | the field from many photos: GPS per photo, SAM per photo, Spark reads the set, `zone` and `emerging` lines, timeline | 1 | Opus; the farmer walks and shoots daily | 10-31 (brief above) |
 | – | Muse Code review (docs/muse-code.md Task 2) | – | farmer runs `muse` | by 11-02 |
 
@@ -333,7 +335,7 @@ Done for each package means: tests pass offline, one short real run when the pac
 | 10-30 Fri | real-voice check and second farm `init` when the Niihama recordings arrive; WP10 lookup JP in the idle time | morning: ✓/✗ on the cut proposal; cut, or reject with a reason; a stick of known length in the before photo; daily photos; decide 9b |
 | 10-31 Sat | WP13: GPS per photo, the set read as one field, zone and emerging lines, timeline; real run on the day's walk | cut if not yet, sow the mix on the cut strip; walk uncut and mix1 with the phone's location on, 20–50 photos each; the 1 m pin pole: mark its spot and the standing spot |
 | 11-01 Sun | WP11c `fieldnotes map` with the walk's photo points | the daily walk; planning session: `docs/demo.md` (walk → judgment → map), README structure |
-| 11-02 Mon | README final, code tidy, nova's fork checked for parts to merge; WP9b only if selling stays in this hackathon | Muse Code Task 2 review; photos |
+| 11-02 Mon | 12b river and the hazard depth classes first; then the Glimmer language fix, README final, code tidy; WP9b only if the farmer chooses it | Muse Code Task 2 review; the daily walk |
 | 11-03 Tue | – | video: field footage, screen recording from the own AI, edit |
 | 11-04 Wed | buffer | submission form (team members added here; public repo pushed) |
 | 11-05 Thu 11:00 JST | **deadline** | |
