@@ -16,6 +16,9 @@ and settle the place:
                   distance to, 土砂災害警戒区域 and 洪水浸水想定区域 (想定最大規模)
     sheet_jp      産総研 地質図カタログ (5万分の1地質図幅) → the sheet the point is on,
                   and its report: the report's text says what the deposits are made of
+    parcel_jp     農林水産省 筆ポリゴン (ArcGIS FeatureServer, by point) → the parcel the
+                  point lies in (area, 田/畑, the year read) and the parcels within 100 m;
+                  the outline is kept in the raw answer. 全国農地ナビ as a link
 
 Each returns (lines, raw) like the sources in lookup.py. A tile that is not
 there (404) means the layer has nothing in it; any other failure raises, and
@@ -31,6 +34,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
+from datetime import date
 
 import numpy as np
 from PIL import Image
@@ -96,6 +100,17 @@ HAZARD_Z, HAZARD_R = 15, 1  # 3×3 tiles: at least 1 km
 # pixel x and y of that corner, columns, rows). Placed by the sheets named after
 # towns (国土地理院 地名検索, 2026-10-30). Pages 9 and 16 (islands) are not on one grid.
 CATALOGUE = "https://www.gsj.jp/Map/JP/geology4-{}.html"
+
+# 筆ポリゴン (農林水産省 統計部), the year's public release as an ArcGIS FeatureServer.
+# land_type: 100 田, 200 畑, read by eye from satellite images. The terms (筆ポリゴンの利用規約,
+# 政府標準利用規約 2.0) ask for the source line and for this caveat to reach the reader.
+FUDE = "https://services8.arcgis.com/cW9ZoPyzxXOxrpu1/arcgis/rest/services/FudePolygonTemp_2026/FeatureServer/0/query"
+FUDE_NEAR_M = 100
+LAND_TYPE = {100: "田", 200: "畑"}
+FUDE_CAVEAT = ("筆ポリゴン are reference for the position and shape of farmland, drawn by hand over aerial "
+               "photos for the 面積調査 with 田/畑 read by eye; they show neither 筆界 nor rights")
+NOUCHI_NAVI = "https://map.maff.go.jp/"
+EARTH_R = 6371008.8
 SHEET_PX = (41.6, 34.2)
 SHEET_GRID = {
     1: (142.5, 271, 94, 118, 12, 10), 2: (142.5, 261, 94, 80, 14, 10), 3: (141.0, 274, 258, 15, 7, 13),
@@ -413,6 +428,62 @@ def sheet(site: Site):
     return [f"{head} This point ({cell}) is not on the 産総研 catalogue's 1:50,000 index maps "
             f"(the islands' pages are not read). — 出典：産総研地質調査総合センター 地質図カタログ, "
             f"https://www.gsj.jp/Map/JP/geology4.html"], raw
+
+
+def ring_area_m2(ring: list) -> float:
+    """Area of a lon/lat ring in m², on a local flat plane: well under 0.1 % off
+    for a field a few hundred metres across."""
+    k = math.pi / 180 * EARTH_R
+    corners = ring[:-1] if len(ring) > 1 and ring[0] == ring[-1] else ring
+    c = math.cos(math.radians(sum(p[1] for p in corners) / len(corners)))
+    pts = [(p[0] * k * c, p[1] * k) for p in ring]
+    return abs(sum(x1 * y2 - x2 * y1 for (x1, y1), (x2, y2) in zip(pts, pts[1:] + pts[:1]))) / 2
+
+
+def polygon_area_m2(geometry: dict) -> float:
+    polys = [geometry["coordinates"]] if geometry["type"] == "Polygon" else geometry["coordinates"]
+    return sum(ring_area_m2(rings[0]) - sum(ring_area_m2(h) for h in rings[1:]) for rings in polys)
+
+
+def _fude(params: dict) -> tuple[str, list[dict]]:
+    url = FUDE + "?" + urllib.parse.urlencode({**params, "geometryType": "esriGeometryPoint", "inSR": 4326,
+                                               "spatialRel": "esriSpatialRelIntersects", "outSR": 4326,
+                                               "f": "geojson"})
+    data = _json(url)
+    if not isinstance(data, dict) or "error" in data:
+        raise RuntimeError(f"筆ポリゴン: {(data or {}).get('error', {}).get('message', 'no answer')}")
+    return url, data.get("features", [])
+
+
+def parcel(site: Site):
+    """The 筆ポリゴン the point lies in, and the parcels within 100 m of it."""
+    point = f"{site.lon},{site.lat}"
+    url, here = _fude({"geometry": point, "outFields": "*"})
+    url_near, near = _fude({"geometry": point, "distance": FUDE_NEAR_M, "units": "esriSRUnit_Meter",
+                            "outFields": "polygon_uuid,land_type,issue_year", "returnGeometry": "false"})
+    hit = here[0] if here else None
+    props = (hit or {}).get("properties", {})
+    others = [f["properties"] for f in near if f["properties"].get("polygon_uuid") != props.get("polygon_uuid")]
+    kinds = [LAND_TYPE.get(p.get("land_type"), "?") for p in others]
+    split = ", ".join(f"{kinds.count(k)} {k}" for k in ("田", "畑", "?") if kinds.count(k))
+    around = f"within {FUDE_NEAR_M} m, {len(others)} {'other ' if hit else ''}parcels" + (f" ({split})" if split else "")
+    years = [p.get("issue_year") for p in [props, *others] if p.get("issue_year")]
+    year = years[0] if years else re.search(r"_(\d{4})/", FUDE)[1]  # the release the service is
+    used = date.today()
+    src = (f"— 出典：「筆ポリゴンデータ（{year}年度公開）」（農林水産省）（{used.year}年{used.month}月{used.day}日に利用）"
+           f"を加工して作成, {FUDE}")
+    raw = {"query": url, "parcel": hit, "near_query": url_near, "near": others}
+    if hit:
+        raw["area_m2"] = round(polygon_area_m2(hit["geometry"]), 1)
+        kind = LAND_TYPE.get(props.get("land_type"), f"land_type {props.get('land_type')}")
+        said = (f"the field point lies in a parcel of {raw['area_m2']:.0f} m², read as {kind} in "
+                f"{props.get('edit_year')} (id {props.get('polygon_uuid')}); {around}")
+    else:
+        said = f"the field point lies in no parcel (land outside the 面積調査, such as a garden); {around}"
+    nav = (f"- `reference` 全国農地ナビ (eMAFF農地ナビ): the 農業委員会's farmland map, with the 農振 zoning and "
+           f"whether a parcel is idle; it takes no coordinates in a link, so search the address above. "
+           f"— 農林水産省, {NOUCHI_NAVI}")
+    return [f"- `data` Parcel (筆ポリゴン): {said}. {FUDE_CAVEAT}. {src}", nav], raw
 
 
 def soil_hint(site: Site):

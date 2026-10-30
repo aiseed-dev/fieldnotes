@@ -4,7 +4,9 @@ tiles are kept as their red pixels only, except the field's own tile."""
 
 import io
 import json
+import math
 import urllib.error
+from datetime import date
 from pathlib import Path
 
 import numpy as np
@@ -92,7 +94,8 @@ def test_lookup_in_japan_writes_place_hazards_and_soil_hint(tmp_path, monkeypatc
     lookup.lookup(tmp_path / "records")
     text = (tmp_path / "records" / "lookup.md").read_text()
     heads = [x for x in text.splitlines() if x.startswith("## ")]
-    assert heads[:2] == ["## Place", "## Terrain"] and "## Faults and hazards" in heads
+    assert heads[:3] == ["## Place", "## Parcel", "## Terrain"] and "## Faults and hazards" in heads
+    assert "the field point lies in no parcel" in text
     assert text.index("Elevation 97.1 m (DEM") < text.index("Elevation 97 m. — Open-Meteo")
     assert "`hypothesis` Soil type: not looked up (no point API). Check the 農研機構 日本土壌インベントリー" in text
     geology = text[text.index("## Geology"):text.index("## Faults and hazards")]
@@ -110,6 +113,7 @@ def test_a_gsi_server_that_is_down_is_named(tmp_path, monkeypatch):
     lookup.lookup(tmp_path / "records")
     text = (tmp_path / "records" / "lookup.md").read_text()
     assert "(国土地理院 活断層図: not reached on" in text and "(ハザードマップポータルサイト: not reached on" in text
+    assert "(筆ポリゴン: not reached on" in text
     assert "Elevation 97 m. — Open-Meteo" in text
 
 
@@ -152,6 +156,33 @@ def test_a_catalogue_page_without_its_index_map_is_not_reached(monkeypatch):
     with pytest.raises(RuntimeError, match="no index map"):
         lookup_jp.sheet(NIIHAMA)
     assert "not on the 産総研 catalogue" in lookup_jp.sheet(Site(lat=26.21, lon=127.68, country="JP"))[0][0]  # 那覇
+
+
+def test_the_parcel_the_field_lies_in(recorded):
+    lines, raw = lookup_jp.parcel(Site(lat=34.0801, lon=134.4454, country="JP"))  # the home field, Ishii
+    used = date.today()
+    assert lines[0].startswith("- `data` Parcel (筆ポリゴン): the field point lies in a parcel of 602 m², read as 田 in 2020 "
+                               "(id afafc863-45b4-40b3-866a-21e3c55b1ed5); within 100 m, 24 other parcels (24 田).")
+    assert "they show neither 筆界 nor rights" in lines[0]
+    assert f"出典：「筆ポリゴンデータ（2026年度公開）」（農林水産省）（{used.year}年{used.month}月{used.day}日に利用）を加工して作成" in lines[0]
+    assert lines[1].startswith("- `reference` 全国農地ナビ") and lines[1].endswith("https://map.maff.go.jp/")
+    assert raw["parcel"]["geometry"]["type"] == "Polygon" and raw["area_m2"] == 601.7
+    lines, raw = lookup_jp.parcel(NIIHAMA)  # beside a house: no parcel
+    assert "the field point lies in no parcel (land outside the 面積調査, such as a garden); within 100 m, 40 parcels (36 田, 4 畑)" in lines[0]
+    assert raw["parcel"] is None
+
+
+def test_parcel_area_on_the_ground(recorded):
+    k = math.pi / 180 * lookup_jp.EARTH_R
+    square = [[134.0, 34.0], [134.001, 34.0], [134.001, 34.001], [134.0, 34.001], [134.0, 34.0]]
+    assert lookup_jp.ring_area_m2(square) == pytest.approx((0.001 * k) ** 2 * math.cos(math.radians(34.0005)), rel=1e-6)
+    hole = [[134.0004, 34.0004], [134.0006, 34.0004], [134.0006, 34.0006], [134.0004, 34.0006], [134.0004, 34.0004]]
+    with_hole = lookup_jp.polygon_area_m2({"type": "Polygon", "coordinates": [square, hole]})
+    assert with_hole == pytest.approx(lookup_jp.ring_area_m2(square) * (1 - 0.04), rel=1e-4)
+    # the service's own area is in Web-Mercator m²: cos² of the latitude brings it to the ground
+    _, raw = lookup_jp.parcel(Site(lat=34.0801, lon=134.4454, country="JP"))
+    mercator = raw["parcel"]["properties"]["SHAPE__Area"]
+    assert raw["area_m2"] == pytest.approx(mercator * math.cos(math.radians(34.0801)) ** 2, rel=0.01)
 
 
 def test_no_fault_close_by_looks_wider(monkeypatch):

@@ -15,6 +15,11 @@ places with a name near the farm, worth reading about. Mark or correct them like
 
 - `data` Address: 徳島県石井町 高川原 (市区町村コード 36341). — 出典：国土地理院 逆ジオコーダ, https://mreversegeocoder.gsi.go.jp/reverse-geocoder/LonLatToAddress?lat=34.0801&lon=134.4454
 
+## Parcel
+
+- `data` Parcel (筆ポリゴン): the field point lies in a parcel of 602 m², read as 田 in 2020 (id afafc863-45b4-40b3-866a-21e3c55b1ed5); within 100 m, 24 other parcels (24 田). 筆ポリゴン are reference for the position and shape of farmland, drawn by hand over aerial photos for the 面積調査 with 田/畑 read by eye; they show neither 筆界 nor rights. — 出典：「筆ポリゴンデータ（2026年度公開）」（農林水産省）（2026年10月30日に利用）を加工して作成, https://services8.arcgis.com/cW9ZoPyzxXOxrpu1/arcgis/rest/services/FudePolygonTemp_2026/FeatureServer/0/query
+- `reference` 全国農地ナビ (eMAFF農地ナビ): the 農業委員会's farmland map, with the 農振 zoning and whether a parcel is idle; it takes no coordinates in a link, so search the address above. — 農林水産省, https://map.maff.go.jp/
+
 ## Terrain
 
 - `data` Elevation 7 m (DEM: 1m（レーザ）). — 出典：国土地理院 標高API, https://cyberjapandata2.gsi.go.jp/general/dem/scripts/getelevation.php?lon=134.4454&lat=34.0801&outtype=JSON

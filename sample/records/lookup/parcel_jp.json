@@ -1,0 +1,197 @@
+{
+ "query": "https://services8.arcgis.com/cW9ZoPyzxXOxrpu1/arcgis/rest/services/FudePolygonTemp_2026/FeatureServer/0/query?geometry=134.4454%2C34.0801&outFields=%2A&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson",
+ "parcel": {
+  "type": "Feature",
+  "id": 21966911,
+  "geometry": {
+   "type": "Polygon",
+   "coordinates": [
+    [
+     [
+      134.44529962,
+      34.080242679
+     ],
+     [
+      134.445565392,
+      34.080243696
+     ],
+     [
+      134.445582618,
+      34.080011131
+     ],
+     [
+      134.44549147,
+      34.080009633
+     ],
+     [
+      134.445491538,
+      34.0800156780001
+     ],
+     [
+      134.445453246,
+      34.080016522
+     ],
+     [
+      134.445453178,
+      34.0800104790001
+     ],
+     [
+      134.445352119,
+      34.080008508
+     ],
+     [
+      134.445352272,
+      34.0800222440001
+     ],
+     [
+      134.445339077,
+      34.0800234440001
+     ],
+     [
+      134.44529962,
+      34.080242679
+     ]
+    ]
+   ]
+  },
+  "properties": {
+   "OBJECTID": 21966911,
+   "polygon_uuid": "afafc863-45b4-40b3-866a-21e3c55b1ed5",
+   "land_type": 100,
+   "issue_year": 2026,
+   "edit_year": 2020,
+   "history": "[{\"筆ポリゴンID\":\"001d6cfa-14ec-4aca-b13c-2abb9188161f\",\"更新年度\":2025,\"前年同一\":true},[{\"筆ポリゴンID\":\"8cdd6386-fe55-489f-85e9-11ebe76d3a7e\",\"更新年度\":2024,\"前年同一\":true},[{\"筆ポリゴンID\":\"58d452b5-2ac2-4b9c-b8dc-13aee20c1e72\",\"更新年度\":2023,\"前年同一\":true},[{\"筆ポリゴンID\":\"843595c6-031f-4670-b61d-54b9a11fdee6\",\"更新年度\":2022,\"前年同一\":true},[{\"筆ポリゴンID\":\"267e000d-ead7-4fd2-8daa-8301bbb1c71b\",\"更新年度\":2021,\"前年同一\":true},{\"筆ポリゴンID\":\"267e000d-ead7-4fd2-8daa-8301bbb1c71b\",\"発生年度\":2020}]]]]]",
+   "last_polygon_uuid": "001d6cfa-14ec-4aca-b13c-2abb9188161f",
+   "prev_last_polygon_uuid": "8cdd6386-fe55-489f-85e9-11ebe76d3a7e",
+   "local_government_cd": "363413",
+   "point_lng": 134.445447175,
+   "point_lat": 34.080129202,
+   "SHAPE__Area": 879.07421875,
+   "SHAPE__Length": 121.3076009457809
+  }
+ },
+ "near_query": "https://services8.arcgis.com/cW9ZoPyzxXOxrpu1/arcgis/rest/services/FudePolygonTemp_2026/FeatureServer/0/query?geometry=134.4454%2C34.0801&distance=100&units=esriSRUnit_Meter&outFields=polygon_uuid%2Cland_type%2Cissue_year&returnGeometry=false&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson",
+ "near": [
+  {
+   "polygon_uuid": "1d54b709-5cdb-45af-bc6a-a5ba07605b6f",
+   "land_type": 100,
+   "issue_year": 2026
+  },
+  {
+   "polygon_uuid": "8ee53cf0-366d-46d9-ba69-61bf8e3c36de",
+   "land_type": 100,
+   "issue_year": 2026
+  },
+  {
+   "polygon_uuid": "d3130beb-8a90-4825-a49b-bb897381d9d0",
+   "land_type": 100,
+   "issue_year": 2026
+  },
+  {
+   "polygon_uuid": "3da4306e-8da4-49ea-805e-9c25e2616269",
+   "land_type": 100,
+   "issue_year": 2026
+  },
+  {
+   "polygon_uuid": "280b877a-0067-4ce0-85cb-586f057daf2e",
+   "land_type": 100,
+   "issue_year": 2026
+  },
+  {
+   "polygon_uuid": "47267c63-567c-4933-99cf-bcf09a411afe",
+   "land_type": 100,
+   "issue_year": 2026
+  },
+  {
+   "polygon_uuid": "c81182ee-e808-43a2-a480-27fdc24c0c55",
+   "land_type": 100,
+   "issue_year": 2026
+  },
+  {
+   "polygon_uuid": "4acecb66-d352-4e8a-bad1-4ae35f06ede3",
+   "land_type": 100,
+   "issue_year": 2026
+  },
+  {
+   "polygon_uuid": "be82bab0-26dd-4367-b534-4ee35dac8a1d",
+   "land_type": 100,
+   "issue_year": 2026
+  },
+  {
+   "polygon_uuid": "51a62a04-8b47-4783-afe0-ea6adeca2068",
+   "land_type": 100,
+   "issue_year": 2026
+  },
+  {
+   "polygon_uuid": "0f1e668e-4d8a-4d86-a1b8-ac618dd018c3",
+   "land_type": 100,
+   "issue_year": 2026
+  },
+  {
+   "polygon_uuid": "0f69241c-1d91-4b19-88cb-259bf7870f2d",
+   "land_type": 100,
+   "issue_year": 2026
+  },
+  {
+   "polygon_uuid": "ee81e7cb-d61e-46f5-8dd0-e6a5168e49f4",
+   "land_type": 100,
+   "issue_year": 2026
+  },
+  {
+   "polygon_uuid": "d54b504e-b07c-45a1-b9e0-939b6134be87",
+   "land_type": 100,
+   "issue_year": 2026
+  },
+  {
+   "polygon_uuid": "06a4ed80-cfd8-47fb-b627-c7bf3a4f2f1c",
+   "land_type": 100,
+   "issue_year": 2026
+  },
+  {
+   "polygon_uuid": "9dd3e592-5ed2-436f-b642-f8598e58e1be",
+   "land_type": 100,
+   "issue_year": 2026
+  },
+  {
+   "polygon_uuid": "66ca7553-7a2b-4af2-a34d-47d4e1660d98",
+   "land_type": 100,
+   "issue_year": 2026
+  },
+  {
+   "polygon_uuid": "b3dee62c-0654-4630-bbbc-b79c80a62d14",
+   "land_type": 100,
+   "issue_year": 2026
+  },
+  {
+   "polygon_uuid": "13a821a9-c0a0-494c-8006-b8a164384a94",
+   "land_type": 100,
+   "issue_year": 2026
+  },
+  {
+   "polygon_uuid": "57b5aaf2-0d2c-4097-a437-ee16e43a3072",
+   "land_type": 100,
+   "issue_year": 2026
+  },
+  {
+   "polygon_uuid": "9cca265a-5858-4df6-b977-ff3d0b92dba2",
+   "land_type": 100,
+   "issue_year": 2026
+  },
+  {
+   "polygon_uuid": "576d009d-daf6-45ad-adee-943b6d69cd06",
+   "land_type": 100,
+   "issue_year": 2026
+  },
+  {
+   "polygon_uuid": "6f8548c1-c63f-4ff2-be41-d8c172047274",
+   "land_type": 100,
+   "issue_year": 2026
+  },
+  {
+   "polygon_uuid": "c243ac2c-8ee9-406e-a80a-d0d27f8d4019",
+   "land_type": 100,
+   "issue_year": 2026
+  }
+ ],
+ "area_m2": 601.7
+}
