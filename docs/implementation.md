@@ -267,6 +267,10 @@ Done 2026-10-30, 3c59854 (81 tests). `lookup_jp.sheet` (key `sheet_jp`), `sheet_
 
 Rules: Spark, `in_language`; the two steps never share a call; a hypothesis with "visible: no" never gets an "agrees". Tests offline with `FakeModel` (expect file shape, the checks section, marks kept on re-run, the timeline column). One real run on `sample` (expect, then observe on the latest photos), committed with the result noted. Half a day each; if 12d's timeline column does not fit on 10-31, the record lines come first and the column goes to 11-02 with the README.
 
+**12c and 12d done 2026-10-30, 34c8437 (92 tests).** As decided, with two departures accepted: the hypothesis's label lives in the expect file's front matter (h → the full site.md line), not in each line, and the timeline table shows its first 48 characters; the check call does not see the day's AI reading, so it looks at the photos themselves. The model is shown only visible, un-✗ed expectations, answers for ids it was not asked about are dropped, a failed check call never loses the reading, marks survive re-runs. Real run on `sample` `uncut`: 29 hypotheses, 7 visible in a photo; on the 10-28 photos h3 (ordinary floods do not reach it: no mud on the stems, no drift) and h12 (letting ogi grow is not harm: mixed species, no bare ground or die-off) agree, the other five cannot be told because the head-high stand hides the ground. Photos of the ground after the cut are what will move these lines: the farmer's cut on 10-30/31 is also the first real test of the checks.
+
+**The farmer's words on 10-30, for the README and the demo:** "これで、今までの栽培アプリよりはいいアプリになっていると思います。" and "特に、耕作放棄地を再生するのには最適なアプリ". Quote them as the farmer's words, in the farmer's voice, never as the product's claim; and story.md's rule stands: the plot is "land that came to look like abandoned farmland", and nothing says it was restored. "最適" is an opinion of the one farmer who has used it; the README says so.
+
 **After the deadline (kept here so they are not lost):** 12b river; relief from DEM5A (the field's height against the plain with the tilt removed, low bands like old channels; drawn on the map) — only on 11-01 if `fieldnotes map` is done early; hazard detail (L1/L2 depth classes, national vs prefectural river); B2 questions to the farmer where data is missing, answered by voice into records.
 
 ## WP7: the demo — timeline, README, script
@@ -295,8 +299,8 @@ Rules: Spark, `in_language`; the two steps never share a call; a hypothesis with
 | 11b | the plots as polygons, `records/fields/<field>.geojson` (format, loader) | 11a | farmer draws / Opus loads | by 11-01 morning |
 | 11c | `fieldnotes map`: aerial photo + parcel + plots coloured by state | 11a, 11b | Opus | 11-01, done by 11-02 evening |
 | 12a | `soil_jp`: 日本土壌インベントリー class at the point from the tile colour (CC BY 4.0, credit 農研機構) | 10 | Opus | done, eff7a89 (85 tests) |
-| 12c | `fieldnotes expect <field>`: what a photo would show per hypothesis, then `observe` adds `## Checks` lines; first real run on Ishii | 1 | Opus | 10-31 |
-| 12d | the same lines on every `observe`; a column per hypothesis in `timeline` | 12c | Opus | 10-31 (column by 11-02 at the latest) |
+| 12c | `fieldnotes expect <field>`: what a photo would show per hypothesis, then `observe` adds `## Checks` lines; first real run on Ishii | 1 | Opus | done, 34c8437 (92 tests; uncut: 29 hypotheses, 7 visible in a photo; on 10-28's photos 2 agree, 5 cannot tell) |
+| 12d | the same lines on every `observe`; a column per hypothesis in `timeline` | 12c | Opus | done, 34c8437 ("Hypotheses day by day" table at the end of `timeline`) |
 | 12+ | river, relief, hazard depth classes, B2 questions | – | – | after 11-05 (brief above) |
 | – | Muse Code review (docs/muse-code.md Task 2) | – | farmer runs `muse` | by 11-02 |
 
