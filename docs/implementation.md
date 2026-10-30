@@ -327,7 +327,7 @@ After WP13, in this order and as time allows before the README: relief from DEM5
 | 12e | relief from DEM5A on the map; hazard depth classes (L1/L2, national vs prefectural river) | 11c | Opus | **after 11-05** |
 | 12+ | B2 questions to the farmer where data is missing | – | – | after 11-05 |
 | 13 | the field from many photos: GPS per photo, SAM per photo, Spark reads the set, `zone` and `emerging` lines, timeline | 1 | Opus; the farmer walks and shoots daily | code done 10-30, 1ab669d (100 tests); the real run waits for the farmer's 10-31 walk |
-| 14 | packaging: distribution name `fieldnotes-farm` (the name `fieldnotes` is taken on PyPI), import name unchanged, version 0.1.0, project URLs and README in the metadata, extras `[app]` (flet) and `[voice]` (av), `python -m build`; the farmer uploads with their own token | 1 | Opus builds / the farmer uploads | 11-01, on PyPI before 11-02 12:00 |
+| 14 | packaging: distribution name `fieldnotes-farm` (the name `fieldnotes` is taken on PyPI), import name unchanged, version 0.1.0, project URLs and README in the metadata, extras `[app]` (flet) and `[voice]` (av), `python -m build`; the farmer uploads with their own token | 1 | Opus builds / the farmer uploads | built 10-31, b3e0350 (sdist and wheel in dist/, twine check passes, the wheel imports without flet or av, 100 tests); **the farmer uploads** with `.venv/bin/twine upload dist/*` before 11-02 12:00 |
 | – | Muse Code review (docs/muse-code.md Task 2) | – | farmer runs `muse` | by 11-02 |
 
 Done for each package means: tests pass offline, one short real run when the package calls the API, the README section updated, and the work committed on main (or a branch) with a summary of what was and was not verified.
@@ -341,7 +341,7 @@ Done for each package means: tests pass offline, one short real run when the pac
 | 10-29 Thu | WP8 cut proposal, tests, one real run on `uncut` | Niihama farm visit: photos, voice notes (the first real Japanese recording), three questions (who advises you, how do you sell, what would you pay to have solved). Evening on the LAN: `init` the second farm, send, `observe`, `voice` |
 | 10-30 Fri | real-voice check and second farm `init` when the Niihama recordings arrive; WP10 lookup JP in the idle time | morning: ✓/✗ on the cut proposal; cut, or reject with a reason; a stick of known length in the before photo; daily photos; decide 9b |
 | 10-31 Sat | WP13: GPS per photo, the set read as one field, zone and emerging lines, timeline; real run on the day's walk | cut if not yet, sow the mix on the cut strip; walk uncut and mix1 with the phone's location on, 20–50 photos each; the 1 m pin pole: mark its spot and the standing spot |
-| 11-01 Sun | WP14 packaging: `fieldnotes-farm` on PyPI (version 0.1.0, extras `[app]` and `[voice]`, build; the farmer uploads); README final with the command lines; code tidy | the daily walk; PyPI upload; planning session: `docs/demo.md` without the map, README structure |
+| 11-01 Sun | WP14 done early (10-31, b3e0350); README final; code tidy | the daily walk; PyPI upload; planning session: `docs/demo.md` without the map, README structure |
 | 11-02 Mon | nothing new for Meta: fixes from the real runs only (Opus is free for the Claude entry from 12:00) | Muse Code Task 2 review; the daily walk; Claude kickoff 12:00 |
 | 11-03 Tue | – | video (Meta): field footage, screen recording from the own AI, edit |
 | 11-04 Wed | buffer | Meta submission form (public repo pushed) |
