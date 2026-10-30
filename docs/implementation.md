@@ -310,36 +310,39 @@ After WP13, in this order and as time allows before the README: relief from DEM5
 | 3 | app views 読む, 名詞 | 1 | Sonnet session | done |
 | 4 | voice in the app (声を送る / 声で答える) | 2, 3 | Opus | done, 6ac6d09 |
 | 5 | native capture app | – | – | **dropped** |
-| 6 | real runs on the farmer's photos daily; SAM nouns and prompts tuned (10-29, 1b22108: goldenrod found by "yellow flower clusters", ogi by nothing yet); second farm (Niihama) from `init`; Glimmer language checked (10-29: still English, fix queued) | 1 | Opus + farmer | daily to 11-02 |
-| 7 | timeline, README, demo script | 1, 6, 8, 9 | Opus (timeline) / planning session (README, demo.md) | 11-01 – 11-02 |
+| 6 | real runs on the farmer's photos daily; SAM nouns and prompts tuned (10-29, 1b22108: goldenrod found by "yellow flower clusters", ogi by nothing yet); second farm (Niihama) from `init`; Glimmer language checked (10-29: still English; the fix moves to after 11-05, the demo uses Spark) | 1 | Opus + farmer | daily to 11-02 |
+| 7 | timeline, README, demo script | 1, 6, 8, 9 | Opus (README command lines) / planning session (README structure, demo.md) | 11-01 |
 | 8 | cut proposal | 1 | Opus | done, cf490d7, basis per plant 1b22108 (real run: `sample/records/_proposals/uncut/2026-10-29-cut.md`; the farmer's ✓/✗ and the cut follow on 10-30) |
 | 9a | MCP server for the farmer's own AI: `fields`, `read`, `observe`, `say`, `mark`, `propose`, `timeline`, `site`; README "From your own AI" | 1, 2, 8 | Opus | done, 2a07572 (real: stdio and `--http` with the SDK client; a Claude Code session itself still needs the farmer's sign-in) |
-| 9b | `export`, `--buyer` (selling) | 9a | Opus | **held**: Claude hackathon, else 11-02 |
+| 9b | `export`, `--buyer` (selling) | 9a | Opus | **after the hackathons** (selling is not forced into either entry) |
 | 10 | `lookup` for Japan: 国土地理院 address, 1 m elevation, landform class, fault and hazard distances; NARO soil deferred | 1 | Opus | done, ba2615b (real runs: Ishii and Niihama; 78 tests) |
 | 10b | `lookup` for Japan: the 1:50,000 地質図幅 report for the point as a `hypothesis` line (parent rock of the gravels) | 10 | Opus | done, 3c59854 (81 tests; Niihama → 新居浜 13［高知］-040 (2013) with the report PDF; Ishii → 13［高知］-033 unpublished) |
 | 11a | `parcel_jp`: the 筆ポリゴン the point lies in (area, 田/畑, neighbours), 全国農地ナビ link | 10 | Opus | done, d4ed8c4 (83 tests; Ishii 602 m² 田 2020, 24 田 around; 全国農地ナビ takes no coordinates in a link, so a top-page link with "search the address above") |
 | 11b | the plots as polygons, `records/fields/<field>.geojson` (format, loader) | 11a | farmer draws / Opus loads | optional, not needed for the video |
-| 11c | `fieldnotes map`: aerial photo + parcel + the walk's photo points coloured by cover and dominant, zone labels | 11a, 13 | Opus | 11-01, done by 11-02 evening |
+| 11c | `fieldnotes map`: aerial photo + parcel + the walk's photo points coloured by cover and dominant, zone labels | 11a, 13 | Opus | **after 11-05** (the farmer, 10-31: shrink the Meta remainder; the video does without the map) |
 | 12a | `soil_jp`: 日本土壌インベントリー class at the point from the tile colour (CC BY 4.0, credit 農研機構) | 10 | Opus | done, eff7a89 (85 tests) |
 | 12c | `fieldnotes expect <field>`: what a photo would show per hypothesis, then `observe` adds `## Checks` lines; first real run on Ishii | 1 | Opus | done, 34c8437 (92 tests; uncut: 29 hypotheses, 7 visible in a photo; on 10-28's photos 2 agree, 5 cannot tell) |
 | 12d | the same lines on every `observe`; a column per hypothesis in `timeline` | 12c | Opus | done, 34c8437 ("Hypotheses day by day" table at the end of `timeline`) |
-| 12b | `river`: nearest river from OSM, bank, bend inside/outside | – | Opus | 11-02, after WP13 and the map |
-| 12e | relief from DEM5A on the map; hazard depth classes (L1/L2, national vs prefectural river) | 11c | Opus | relief with 11c on 11-01; depth classes 11-02 |
+| 12b | `river`: nearest river from OSM, bank, bend inside/outside | – | Opus | **after 11-05** |
+| 12e | relief from DEM5A on the map; hazard depth classes (L1/L2, national vs prefectural river) | 11c | Opus | **after 11-05** |
 | 12+ | B2 questions to the farmer where data is missing | – | – | after 11-05 |
 | 13 | the field from many photos: GPS per photo, SAM per photo, Spark reads the set, `zone` and `emerging` lines, timeline | 1 | Opus; the farmer walks and shoots daily | code done 10-30, 1ab669d (100 tests); the real run waits for the farmer's 10-31 walk |
+| 14 | packaging: distribution name `fieldnotes-farm` (the name `fieldnotes` is taken on PyPI), import name unchanged, version 0.1.0, project URLs and README in the metadata, extras `[app]` (flet) and `[voice]` (av), `python -m build`; the farmer uploads with their own token | 1 | Opus builds / the farmer uploads | 11-01, on PyPI before 11-02 12:00 |
 | – | Muse Code review (docs/muse-code.md Task 2) | – | farmer runs `muse` | by 11-02 |
 
 Done for each package means: tests pass offline, one short real run when the package calls the API, the README section updated, and the work committed on main (or a branch) with a summary of what was and was not verified.
 
 ## Schedule to the deadline
 
+**Shrunk 10-31 (the farmer: 「Meta の残りをできるだけ縮めて」, so that the Claude entry gets the effort).** What Meta still needs: the WP13 real run on the 10-31 walk, WP14 packaging, the README, the video, the submission. Everything else (11c map, 12e relief and depth classes, 12b river, the Glimmer language fix, 11b, 9b) moves to after 11-05 and stays in the contract; nothing is dropped.
+
 | Day | Implementation (Opus) | Farmer |
 |---|---|---|
 | 10-29 Thu | WP8 cut proposal, tests, one real run on `uncut` | Niihama farm visit: photos, voice notes (the first real Japanese recording), three questions (who advises you, how do you sell, what would you pay to have solved). Evening on the LAN: `init` the second farm, send, `observe`, `voice` |
 | 10-30 Fri | real-voice check and second farm `init` when the Niihama recordings arrive; WP10 lookup JP in the idle time | morning: ✓/✗ on the cut proposal; cut, or reject with a reason; a stick of known length in the before photo; daily photos; decide 9b |
 | 10-31 Sat | WP13: GPS per photo, the set read as one field, zone and emerging lines, timeline; real run on the day's walk | cut if not yet, sow the mix on the cut strip; walk uncut and mix1 with the phone's location on, 20–50 photos each; the 1 m pin pole: mark its spot and the standing spot |
-| 11-01 Sun | WP11c `fieldnotes map` with the walk's photo points | the daily walk; planning session: `docs/demo.md` (walk → judgment → map), README structure |
-| 11-02 Mon | 12b river and the hazard depth classes first; then the Glimmer language fix, README final, code tidy; WP9b only if the farmer chooses it | Muse Code Task 2 review; the daily walk |
-| 11-03 Tue | – | video: field footage, screen recording from the own AI, edit |
-| 11-04 Wed | buffer | submission form (team members added here; public repo pushed) |
+| 11-01 Sun | WP14 packaging: `fieldnotes-farm` on PyPI (version 0.1.0, extras `[app]` and `[voice]`, build; the farmer uploads); README final with the command lines; code tidy | the daily walk; PyPI upload; planning session: `docs/demo.md` without the map, README structure |
+| 11-02 Mon | nothing new for Meta: fixes from the real runs only (Opus is free for the Claude entry from 12:00) | Muse Code Task 2 review; the daily walk; Claude kickoff 12:00 |
+| 11-03 Tue | – | video (Meta): field footage, screen recording from the own AI, edit |
+| 11-04 Wed | buffer | Meta submission form (public repo pushed) |
 | 11-05 Thu 11:00 JST | **deadline** | |
