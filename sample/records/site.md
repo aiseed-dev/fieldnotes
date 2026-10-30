@@ -48,6 +48,7 @@ The farmer's knowledge and the AI's guesses are treated the same way.
 
 ## Soil
 
+- `data` Soil class at the field point: 細粒質水田化褐色低地土 (F4c1t1), a brown lowland soil changed by paddy use whose subsoil is clay to clay loam (重埴土 … 砂質埴壌土). — 農研機構 日本土壌インベントリー, read by hand at 34.080137, 134.445458 on 2026-10-30, https://soil-inventory.rad.naro.go.jp/figure.html?lat=34.080137&lng=134.445458&zoom=16. Fine-textured, as the 1:200,000 MLIT map's 細粒灰色低地土壌 is.
 - `hypothesis` Formed from silt of black schist (黒色片岩, Sambagawa pelitic schist). — farmer. Check: NARO 日本土壌インベントリー (https://soil-inventory.rad.naro.go.jp/, read by hand), GSJ map.
 - `hypothesis` Low in organic matter: mineral silt from one flood, then a well-drained raised ground where organic matter decomposes fast. — farmer. Check: measure soil organic matter.
 - `hypothesis` Minerals are plentiful (black schist), but that only helps if the plants can take them up themselves. — farmer, 2026-10-28
@@ -82,7 +83,10 @@ The farmer's knowledge and the AI's guesses are treated the same way.
 - `record` 高川原城 stood near the field. — farmer, 2026-10-28. Not found by `fieldnotes search 高川原城` (ja Wikipedia within 10 km, OpenStreetMap names). The nearest castle there is 芝原城, 2.2 km NE. Check: 徳島県の中世城館跡調査, 石井町史.
 - `data` North of the river (飯尾川) are the indigo merchants' houses (藍屋敷): 武知家住宅 (「武知家の藍寝床」, national Important Cultural Property), 0.8 km N, and 田中家住宅, 1.1 km N. The village north of the river was called 藍畑村, 1.7 km N. — farmer; Wikipedia 武知家住宅, 藍畑村; OpenStreetMap (records/lookup.md).
 - `reference` 慶応2年寅の大水 (1866-09-15) has a flood-mark memorial 2.1 km NE at 国府町芝原. — OpenStreetMap node 8463027003, from the GSI 自然災害伝承碑 data (records/lookup.md).
-- Pending: GSI aerial photos (1940s onward) and old topographic maps for land use; town history (石井町史).
+- `record` The field is in the district of the 高川原用水, which was built later than the 麻名用水; it is not in the 麻名用水 district. — farmer, 2026-10-30, correcting a Gemini Deep Research report that put the field under the 麻名用水.
+- `data` The 麻名用水 runs east along the southern foot of the town's hills (「本町の南山麓に沿うて東に流れる麻名用水」) and feeds the 渡内川. — 木下覚・阿部近一「石井町の植物相」, 阿波学会 郷土研究発表会紀要 第32号, https://library.bunmori.tokushima.jp/digital/webkiyou/32/3204.html. The field lies on the plain north of the town centre, not along that foot.
+- `reference` The 麻名用水's water union of 1904 was formed by 無理山村, 牛島村 (麻植郡), 浦庄村, 石井町 and 高原村 (名西郡); 高川原村 is not among them. — Wikipedia「麻名用水」, citing 『角川日本地名大辞典 36 徳島県』 (1986); not read in the original.
+- Pending: GSI aerial photos (1940s onward) and old topographic maps for land use; town history (石井町史); the 高川原用水 (when it was built, where it takes its water), not found online on 2026-10-30.
 
 ## Farming
 
