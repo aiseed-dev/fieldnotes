@@ -39,6 +39,11 @@ The farmer's knowledge and the AI's guesses are treated the same way.
 - `hypothesis` Ordinary floods do not inundate it. — farmer. Check: MLIT flood hazard and past-inundation maps.
 - `hypothesis` Underflow (伏流水) runs about 4 m below the surface. — farmer. Check: well records, groundwater surveys.
 - `refuted` "High water table" — AI guess from the presence of ogi; the farmer puts the underflow at about 4 m.
+- `hypothesis` In great floods the water was thrown outward at the bend of the 飯尾川 (at times a channel of the Yoshino) next to the field, and what it carried was laid here. — farmer, 2026-10-30
+- `data` The 飯尾川 turns left by about 100° (from ENE to NNW) just north-west of the field; the field lies on the outside (east bank) of that bend, 62 m from the channel. — OpenStreetMap ways 250491669 and 250491668 (ODbL), measured 2026-10-30
+- `data` With the plain's slope taken out (0.5 m per km falling east), the ground on the outside of the bend, south-east of the river, is a broad rise 0.2–0.5 m above its surroundings, and the field is on it; inside and north of the bend run low belts 0.5–1 m below, shaped like old channels. — 国土地理院 DEM5A (5 m), tiles z15, read 2026-10-30
+- `data` The flood zones over the field are those of the river managed by the state (吉野川) when its levee fails: 0.5–3 m deep at the planned scale (L1), 5–10 m at the maximum scale (L2). The prefecture-managed rivers' layer shows nothing on this tile. — ハザードマップポータルサイト, layers 01_flood_l1_shinsuishin_newlegend_kuni_data and 01_flood_l2_shinsuishin_kuni_data, z16, read 2026-10-30. Fits "ordinary floods do not inundate it".
+  - Open: the cause may run the other way (the river turned where it met high ground that was already there), or both. Whether today's bend is the bend of the floods that laid the soil: check the 1960s–70s GSI aerial photos and old maps. If the deposit came over the outer bank, it should be sandier near the river and finer away from it: dig at the field's near and far ends and compare.
 
 ## Geology
 
