@@ -52,7 +52,8 @@ def walk_photos(root, day=DAY, field=FIELD):
 def parcel(root):
     (root / "records" / "lookup").mkdir(parents=True, exist_ok=True)
     (root / "records" / "lookup" / "parcel_jp.json").write_text(
-        json.dumps({"parcel": PARCEL, "near": {"type": "FeatureCollection", "features": []}}), encoding="utf-8")
+        json.dumps({"parcel": PARCEL, "near": [{"polygon_uuid": "x", "land_type": 100, "issue_year": 2026}]}),
+        encoding="utf-8")  # as lookup_jp.py writes it: the neighbours without shapes
 
 
 def test_gps_and_time_go_into_the_index(root):

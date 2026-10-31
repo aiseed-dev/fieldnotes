@@ -82,13 +82,13 @@ def _rings(geom: dict) -> list[list[list[float]]]:
 
 
 def parcels(records_root: Path) -> list[list[list[float]]]:
-    """The outer rings of the parcel at the farm's point and its neighbours, as looked up."""
+    """The outer rings of the parcel at the farm's point, as looked up (lookup_jp.py keeps the
+    neighbours' properties only, without their shapes)."""
     p = records_root / "lookup" / "parcel_jp.json"
     if not p.exists():
         return []
-    raw = json.loads(p.read_text(encoding="utf-8"))
-    feats = [raw.get("parcel")] + list((raw.get("near") or {}).get("features") or [])
-    return [r for f in feats if f and f.get("geometry") for r in _rings(f["geometry"])]
+    hit = json.loads(p.read_text(encoding="utf-8")).get("parcel")
+    return _rings(hit["geometry"]) if hit and hit.get("geometry") else []
 
 
 def inside(lon: float, lat: float, ring: list[list[float]]) -> bool:
