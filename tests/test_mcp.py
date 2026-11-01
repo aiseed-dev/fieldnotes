@@ -11,7 +11,7 @@ from fieldnotes import mcp_server, timeline
 from fieldnotes.records import Record
 
 D = DAY.isoformat()
-TOOLS = {"fields", "read", "observe", "say", "mark", "propose", "timeline", "site"}
+TOOLS = {"fields", "read", "observe", "say", "mark", "propose", "timeline", "site", "note"}
 
 
 def call(server, *calls):

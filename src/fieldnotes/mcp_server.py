@@ -21,7 +21,7 @@ from pathlib import Path
 from mcp.server.mcpserver import MCPServer
 from mcp.server.mcpserver.exceptions import ToolError
 
-from . import check, pipeline, propose, timeline as timeline_mod, voice
+from . import check, note, pipeline, propose, timeline as timeline_mod, voice
 from .appdata import photo_days
 from .inbox import list_fields
 from .llm import Backend
@@ -30,7 +30,7 @@ from .site import Site
 
 INSTRUCTIONS = """fieldnotes keeps the records of a natural-farming farm: per field and day, the photos, what Meta's models read in them (SAM 3.1 cover, Muse Spark's lines), what the farmer did and saw, and the farmer's right/wrong on every AI line.
 In the records, a line ending in "→ farmer: right" or "→ farmer: wrong (reason)" was checked by the farmer; a line without it is only the AI's reading. Keep the two apart when you tell the farmer or anyone else what the records say.
-Mark a line right or wrong only when the farmer says so; never on your own judgement. Pass what the farmer tells you about the field to `say`, in their words."""
+Mark a line right or wrong only when the farmer says so; never on your own judgement. Pass what the farmer tells you about the field to `say`, in their words; what they know about the land's past, soil or water, or what a document they show you says, to `note`."""
 
 
 def _day(day: str | None, default: date | None = None) -> date | None:
@@ -146,6 +146,19 @@ def build(root: Path, buyer: bool = False) -> MCPServer:
         and the open data looked up for it (records/lookup.md)."""
         parts = [p.read_text(encoding="utf-8") for p in (records / "site.md", records / "lookup.md") if p.exists()]
         return "\n\n".join(parts) or "(no records/site.md yet; run fieldnotes init)"
+
+    @server.tool(name="note")
+    @_said
+    def note_(text: str, source: str | None = None, section: str = "history") -> str:
+        """Add one line to the farm's records/site.md, which the reading model takes as background: what the farmer
+        knows about the land, in their words (no source: a `record` line), or what a document says (source = the
+        document and page, e.g. "石井町史 (1991) p.833": a `data` line). section: history, geology, terrain or
+        works. Only what the farmer said or showed; never the AI's own reading. Returns the line."""
+        if section not in note.SECTIONS:
+            raise ValueError(f"section is one of {', '.join(note.SECTIONS)}, not {section!r}")
+        written = note.line(text, source, date.today())
+        note.add(records, section, [written])
+        return written
 
     return server
 

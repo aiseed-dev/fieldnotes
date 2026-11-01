@@ -8,7 +8,9 @@ tell where every line came from:
 
     elevation   Open-Meteo elevation API (Copernicus DEM, 90 m)
     geology     Macrostrat geologic map units (CC BY 4.0; world maps are coarse)
-                and, in Japan, the GSJ 20万分の1日本シームレス地質図 V2 legend API
+                and, in Japan, the GSJ 20万分の1日本シームレス地質図 V2 legend API, at the
+                point and at the first hard rock in eight directions (what a plain's
+                deposits can be made of)
     soil        ISRIC SoilGrids 2.0 (pH, organic carbon, clay, sand; 250 m model;
                 no value where the map is masked, e.g. built-up land)
     Japan       国土地理院 (address, 1 m elevation, landform, active faults), the
@@ -36,6 +38,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date
 from pathlib import Path
 
@@ -129,6 +132,48 @@ def geology_japan(site: Site):
     return [f"- `data` 地質（シームレス地質図 V2）: {' / '.join(parts)}。 — 産総研 地質調査総合センター, {url}"], raw
 
 
+ROCK_DIRECTIONS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
+ROCK_STEPS_KM = range(1, 16)  # walk out 1 km at a time, up to 15 km
+
+
+def _offset(site: Site, km: float, direction: str) -> tuple[float, float]:
+    a = math.radians(ROCK_DIRECTIONS.index(direction) * 45)
+    return (round(site.lat + km * math.cos(a) / 111.0, 5),
+            round(site.lon + km * math.sin(a) / (111.0 * math.cos(math.radians(site.lat))), 5))
+
+
+def rocks_japan(site: Site):
+    """On a plain the point's own unit says only "river deposits". What they are made
+    of comes from the rock of the hills around, so walk out from the field in eight
+    directions and name the first unit that is not a Quaternary deposit."""
+    found, raw = {}, {}
+
+    def walk(d: str):
+        for km in ROCK_STEPS_KM:
+            lat, lon = _offset(site, km, d)
+            u = get_json(f"https://gbank.gsj.jp/seamless/v2/api/1.2/legend.json?point={lat},{lon}")
+            raw[f"{d} {km} km"] = u
+            if u.get("lithology_ja") and "第四紀" not in (u.get("formationAge_ja") or ""):
+                return d, km, u
+        return d, None, None
+
+    with ThreadPoolExecutor(len(ROCK_DIRECTIONS)) as pool:
+        for d, km, u in pool.map(walk, ROCK_DIRECTIONS):
+            if u:
+                found.setdefault((u["lithology_ja"], u.get("group_ja", ""), u.get("formationAge_ja", "")), []).append((km, d))
+    url = "https://gbank.gsj.jp/seamless/v2/api/1.2/legend.json"
+    lines = []
+    for (lith, group, age), where in sorted(found.items(), key=lambda kv: min(kv[1])):
+        at = ", ".join(f"{d} {km} km" for km, d in sorted(where))
+        lines.append(f"- `data` 周りの岩（シームレス地質図 V2）: {at}: {lith} / {group} / {age}。 — 産総研 地質調査総合センター, {url}")
+    none = [d for d in ROCK_DIRECTIONS if not any(d == x for w in found.values() for _, x in w)]
+    if lines:
+        lines.append(f"- `data` Rocks around: the first unit that is not a Quaternary deposit, walking out 1 km at a time "
+                     f"in eight directions{'; none within 15 km to ' + ', '.join(none) if none else ''}. "
+                     "The map does not say which of them the river brought here. — 産総研 シームレス地質図 V2")
+    return lines, raw
+
+
 def soil(site: Site):
     q = [("lon", site.lon), ("lat", site.lat), *[("property", p) for p in SOIL],
          ("depth", "0-5cm"), ("depth", "15-30cm"), ("value", "mean")]
@@ -184,20 +229,20 @@ def history_osm(site: Site):
     return _osm_lines(site, raw.get("elements", [])), raw
 
 
-NAMES = {"elevation": "Open-Meteo elevation", "geology": "Macrostrat", "geology_jp": "GSJ シームレス地質図",
+NAMES = {"elevation": "Open-Meteo elevation", "geology": "Macrostrat", "geology_jp": "GSJ シームレス地質図", "rocks_jp": "GSJ シームレス地質図（周囲）",
          "soil": "ISRIC SoilGrids", "wikipedia": "Wikipedia", "historic": "OpenStreetMap",
          "address_jp": "国土地理院 逆ジオコーダ", "elevation_jp": "国土地理院 標高API",
          "landform_jp": "国土地理院 地形分類", "faults_jp": "国土地理院 活断層図",
          "hazard_jp": "ハザードマップポータルサイト", "sheet_jp": "産総研 地質図カタログ", "parcel_jp": "筆ポリゴン",
          "soil_jp": "日本土壌インベントリー"}
 SOURCES = {"address_jp": lookup_jp.address, "parcel_jp": lookup_jp.parcel, "elevation_jp": lookup_jp.elevation, "elevation": elevation,
-           "landform_jp": lookup_jp.landform, "geology": geology_world, "geology_jp": geology_japan,
+           "landform_jp": lookup_jp.landform, "geology": geology_world, "geology_jp": geology_japan, "rocks_jp": rocks_japan,
            "sheet_jp": lookup_jp.sheet,
            "faults_jp": lookup_jp.faults, "hazard_jp": lookup_jp.hazards,
            "soil": soil, "soil_jp": lookup_jp.soil, "wikipedia": wiki_nearby, "historic": history_osm}
 JAPAN_ONLY = {k for k in SOURCES if k.endswith("_jp")}
 SECTIONS = [("Place", ["address_jp"]), ("Parcel", ["parcel_jp"]), ("Terrain", ["elevation_jp", "elevation", "landform_jp"]),
-            ("Geology", ["geology_jp", "sheet_jp", "geology"]), ("Faults and hazards", ["faults_jp", "hazard_jp"]),
+            ("Geology", ["geology_jp", "rocks_jp", "sheet_jp", "geology"]), ("Faults and hazards", ["faults_jp", "hazard_jp"]),
             ("Soil", ["soil", "soil_jp"]), ("History and places nearby", ["historic", "wikipedia"])]
 
 

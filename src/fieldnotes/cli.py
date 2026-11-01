@@ -12,6 +12,8 @@
     fieldnotes surroundings                          fetch maps + read once
     fieldnotes lookup                                geology, soil, history from open data
     fieldnotes search <words> [--save]               look for a name near the farm
+    fieldnotes note [text] [--source S] [--page PHOTO] [--section history|geology|terrain|works] [--date D]
+                                                     what you know, or what a document says, into site.md
     fieldnotes consent [yes|no]                      may Meta train on what Spark is sent
     fieldnotes reader [spark|glimmer] [--url URL] [--model NAME] [--check]
                                                      which model reads the fields
@@ -34,7 +36,7 @@ import tempfile
 from datetime import date
 from pathlib import Path
 
-from . import check, concepts, lookup, pipeline, propose, site, surroundings, timeline, voice
+from . import check, concepts, lookup, note, pipeline, propose, site, surroundings, timeline, voice
 from . import llm
 from .llm import Backend
 from .records import Record
@@ -113,6 +115,13 @@ def build_parser() -> argparse.ArgumentParser:
     s = sub.add_parser("search", help="look for a name near the farm (Wikipedia, OpenStreetMap)")
     s.add_argument("words", nargs="+")
     s.add_argument("--save", action="store_true", help="add what was found to records/lookup.md")
+
+    s = sub.add_parser("note", help="put what you know, or what a document says, into records/site.md")
+    s.add_argument("text", nargs="*", help="in your own words; without --page")
+    s.add_argument("--source", help='a document and page, e.g. "石井町史 (1991) p.833"; without it the line is your own record')
+    s.add_argument("--page", type=Path, help="a photo of the document's page: the reading model copies out what concerns the farm")
+    s.add_argument("--section", choices=list(note.SECTIONS), default="history")
+    s.add_argument("--date", type=_day, default=None, help="when you said or wrote it down (default today)")
 
     s = sub.add_parser("app", help="serve the phone app")
     s.add_argument("--port", type=int, default=8550)
@@ -220,6 +229,19 @@ def run(args: argparse.Namespace) -> int:
     elif args.cmd == "lookup":
         _say(w("cli.looking_up"))
         print(lookup.lookup(records).read_text(encoding="utf-8"))
+    elif args.cmd == "note":
+        if args.page:
+            if not args.source:
+                raise ValueError("--page needs --source (the document and page)")
+            lines = note.read_page(records, args.page, args.source, args.date or today)
+        elif args.text:
+            lines = [note.line(" ".join(args.text), args.source, args.date or today)]
+        else:
+            raise ValueError("say what to note, or give --page")
+        if lines:
+            path = note.add(records, args.section, lines)
+            _say(w("cli.saved", path=path))
+        print("\n".join(lines) or w("cli.nothing"))
     elif args.cmd == "search":
         query = " ".join(args.words)
         found = lookup.search(records, query)
