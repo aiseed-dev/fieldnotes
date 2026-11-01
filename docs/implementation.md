@@ -328,7 +328,7 @@ After WP13, in this order and as time allows before the README: relief from DEM5
 | 12+ | B2 questions to the farmer where data is missing | – | – | after 11-05 |
 | 13 | the field from many photos: GPS per photo, SAM per photo, Spark reads the set, `zone` and `emerging` lines, timeline | 1 | Opus; the farmer walks and shoots daily | code done 10-30, 1ab669d (100 tests); the real run waits for the farmer's 10-31 walk |
 | 14 | packaging: distribution name `fieldnotes-farm` (the name `fieldnotes` is taken on PyPI), import name unchanged, version 0.1.0, project URLs and README in the metadata, extras `[app]` (flet) and `[voice]` (av), `python -m build`; the farmer uploads with their own token; so that anyone can `pip install` it | 1 | Opus builds / the farmer uploads | built 10-31, b3e0350 (sdist and wheel in dist/, twine check passes, the wheel imports without flet or av, 100 tests); **the farmer uploads** with `.venv/bin/twine upload dist/*` |
-| – | Muse Code review (docs/muse-code.md Task 2) | – | farmer runs `muse` | by 11-02 |
+| – | Muse Code: Task 2 review, Task 3 fixes from it, Task 4 tuning of the Meta API calls (docs/muse-code.md) | – | farmer runs `muse`; Opus merges | Task 2 and 3 on 11-01, Task 4 on 11-02; freeze at the end of 11-02 |
 
 Done for each package means: tests pass offline, one short real run when the package calls the API, the README section updated, and the work committed on main (or a branch) with a summary of what was and was not verified.
 
@@ -336,13 +336,15 @@ Done for each package means: tests pass offline, one short real run when the pac
 
 **Shrunk 10-31 (the farmer: 「Meta の残りをできるだけ縮めて」).** What Meta still needs: the WP13 real run on the 10-31 walk, WP14 packaging, the README, the video, the submission. Everything else (11c map, 12e relief and depth classes, 12b river, the Glimmer language fix, 11b, 9b) moves to after 11-05 and stays in the contract; nothing is dropped.
 
-| Day | Implementation (Opus) | Farmer |
+**11-01 (the farmer: 「meta codeを使った方がいいですね」).** From today the code that is still to be written goes to **Muse Code** where it can: the review (Task 2), the fixes the review finds (Task 3), and the tuning of the calls to Meta's own API (Task 4), each commit ending with `Written with Muse Code`, on `muse/*` branches, merged by Opus after the farmer says so. Opus keeps what needs the whole picture: the WP13 real run, the merge and the check after it, the README's command lines. The README claims Muse Code's work only for commits that carry the line (the rule stands). Code freeze at the end of 11-02 JST so that 11-03 is the video and 11-04 the form.
+
+| Day | Implementation (Opus) | Muse Code (the farmer runs `muse`) and the farmer |
 |---|---|---|
 | 10-29 Thu | WP8 cut proposal, tests, one real run on `uncut` | Niihama farm visit: photos, voice notes (the first real Japanese recording), three questions (who advises you, how do you sell, what would you pay to have solved). Evening on the LAN: `init` the second farm, send, `observe`, `voice` |
 | 10-30 Fri | real-voice check and second farm `init` when the Niihama recordings arrive; WP10 lookup JP in the idle time | morning: ✓/✗ on the cut proposal; cut, or reject with a reason; a stick of known length in the before photo; daily photos; decide 9b |
 | 10-31 Sat | WP13: GPS per photo, the set read as one field, zone and emerging lines, timeline; real run on the day's walk | cut if not yet, sow the mix on the cut strip; walk uncut and mix1 with the phone's location on, 20–50 photos each; the 1 m pin pole: mark its spot and the standing spot |
-| 11-01 Sun | WP14 done early (10-31, b3e0350); README final; code tidy | the daily walk; PyPI upload; planning session: `docs/demo.md` without the map, README structure |
-| 11-02 Mon | nothing new: fixes from the real runs only | Muse Code Task 2 review; the daily walk |
-| 11-03 Tue | – | video (Meta): field footage, screen recording from the own AI, edit |
-| 11-04 Wed | buffer | Meta submission form (public repo pushed) |
+| 11-01 Sun | WP14 done early (10-31, b3e0350). **The WP13 real run** on today's walk as soon as the photos are in (nothing of 10-31 or 11-01 is in `sample/records/` yet); fixes that the run forces, in `walk.py` only. Then the README's command lines | **Muse Code, Task 2** (the review, `muse/review`), then **Task 3** (the fixes it finds that are real, one commit each, `Written with Muse Code`). The daily walk with the phone's location on; PyPI upload of `fieldnotes-farm` 0.1.0 (own token) |
+| 11-02 Mon | merge the Muse Code branches when the farmer says so; one real run of `observe` and `walk` after the merge to see that nothing broke; **code freeze at the end of 11-02 (JST)**: after it, no code goes into `main` except a fix that a real run shows is needed, and only with the farmer's word | **Muse Code, Task 4** (the parts of the SAM and Spark calls the real runs show as weak: the prompt text, the retry on a failed call, the `in_language` rule; small, each one a commit). The daily walk. Decide on the Glimmer line in the README |
+| 11-03 Tue | – (docs only: the README's final read, `docs/demo.md` against what the code actually prints) | video (Meta): field footage, screen recording from the own AI, edit |
+| 11-04 Wed | buffer; the README's "Development" row names the commits that carry `Written with Muse Code` | Meta submission form (public repo pushed); the form's "use of Meta products" names SAM 3.1, Muse Spark, Muse Voice Transcribe, and Muse Code for the commits that carry its line |
 | 11-05 Thu 11:00 JST | **deadline** | |

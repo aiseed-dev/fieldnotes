@@ -24,7 +24,7 @@ Add offline pytest tests (fake HTTP). Then one real call on a short Japanese WAV
 Commit on a new branch named muse/voice, message ending with "Written with Muse Code". Do not push.
 ```
 
-## Task 2: check the code (review only) — open, by 11-02
+## Task 2: check the code (review only) — 11-01
 
 ```
 Review src/fieldnotes/pipeline.py, cli.py, app.py, appdata.py, concepts.py, records.py and voice.py against
@@ -35,4 +35,26 @@ concrete failing case, to docs/reviews/muse-code-review.md. Commit only that fil
 muse/review, message ending with "Written with Muse Code". Do not push.
 ```
 
-When a task is done, the main Claude session merges the branch after the farmer says so, the same as the Sonnet branches.
+## Task 3: fix what the review found (11-01, after Task 2)
+
+```
+Read docs/reviews/muse-code-review.md (your own findings) and docs/implementation.md (rules). Fix only the
+findings that are real bugs, most serious first; leave style alone. One commit per fix, each with an offline
+pytest test that fails before and passes after. Run the whole suite (.venv/bin/pytest -q) before each commit.
+Never print or log the API key. Branch muse/fixes, every message ending with "Written with Muse Code". Do not push.
+Stop after the real bugs; list what you chose not to fix, with the reason, at the end of the review file.
+```
+
+## Task 4: the calls to Meta's API (11-02, before the freeze at the end of the day)
+
+```
+Read docs/implementation.md (rules; "Reading" and "Voice (WP2)"), src/fieldnotes/llm.py, describe.py, walk.py,
+voice.py and the latest records under sample/records/ (the real runs of 10-31 and 11-01). Improve only the parts
+that talk to Meta's API: the SAM 3.1 concept prompts that found nothing in the real runs, the retry and the error
+line when a call fails (the record must say "not reached" rather than crash), and the in_language rule so Spark
+answers in the farmer's language. Small changes, one commit each, offline tests with the fake model, then one
+real run of `fieldnotes observe` on sample with the result noted in the commit. Branch muse/api, messages ending
+with "Written with Muse Code". Do not push. Do not touch the app (app.py) or the record format.
+```
+
+When a task is done, the main Claude session (Opus) merges the branch after the farmer says so, runs the suite and one real run, and the README's "Development" row lists the commits that carry the line. Code freeze at the end of 11-02 JST: after it, only a fix that a real run shows is needed, with the farmer's word.
