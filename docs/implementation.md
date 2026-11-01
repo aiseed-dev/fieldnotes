@@ -341,6 +341,8 @@ Done for each package means: tests pass offline, one short real run when the pac
 
 **11-01 (the farmer: 「meta codeを使った方がいいですね」).** From today the code that is still to be written goes to **Muse Code** where it can: the review (Task 2), the fixes the review finds (Task 3), and the tuning of the calls to Meta's own API (Task 4), each commit ending with `Written with Muse Code`, on `muse/*` branches, merged by Opus after the farmer says so. Opus keeps what needs the whole picture: the WP13 real run, the merge and the check after it, the README's command lines. The README claims Muse Code's work only for commits that carry the line (the rule stands). Code freeze at the end of 11-02 JST so that 11-03 is the video and 11-04 the form.
 
+**The record format is fixed from 11-02** and written down in `docs/records.md` (what every file and line in a farm folder means, from the code). Other programs and other AIs read the farm folder by that page; a change to the format is written there first, with its date, before any code writes it. This holds after the freeze too.
+
 | Day | Implementation (Opus) | Muse Code (the farmer runs `muse`) and the farmer |
 |---|---|---|
 | 10-29 Thu | WP8 cut proposal, tests, one real run on `uncut` | Niihama farm visit: photos, voice notes (the first real Japanese recording), three questions (who advises you, how do you sell, what would you pay to have solved). Evening on the LAN: `init` the second farm, send, `observe`, `voice` |
