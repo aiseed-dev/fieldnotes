@@ -50,7 +50,7 @@ Stop after the real bugs; list what you chose not to fix, with the reason, at th
 ```
 Read docs/implementation.md (rules; "Reading" and "Voice (WP2)"), src/fieldnotes/llm.py, describe.py, walk.py,
 voice.py and the latest records under sample/records/ (the real runs of 10-31 and 11-01). Improve only the parts
-that talk to Meta's API: the SAM 3.1 concept prompts that found nothing in the real runs, the retry and the error
+that talk to Meta's API: the SAM 3.1 concept prompts that found nothing in the real runs (11-02, 6畝地: tall dense stands gave zero on photos 1–5 and 17; "leaf" caught only broad vine leaves), the `emerging` definition in the Spark prompt (emerging = sown crops coming up; a mature self-sown pumpkin with ripe fruit is not emerging), the retry and the error
 line when a call fails (the record must say "not reached" rather than crash), and the in_language rule so Spark
 answers in the farmer's language. Small changes, one commit each, offline tests with the fake model, then one
 real run of `fieldnotes observe` on sample with the result noted in the commit. Branch muse/api, messages ending
