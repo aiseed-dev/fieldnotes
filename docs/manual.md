@@ -1,167 +1,167 @@
-# fieldnotes ユーザーマニュアル
+# fieldnotes user manual
 
-2026-11-03 時点のコード(`fieldnotes --help` と各サブコマンドのヘルプ、`src/fieldnotes/app.py`)から書いたもの。英語の全体説明は [README.md](../README.md)、記録ファイルの一行一行の意味は [records.md](records.md) にある。ここには「毎日どう使うか」だけを書く。
+Written from the code as of 2026-11-03 (`fieldnotes --help` and every subcommand's help, `src/fieldnotes/app.py`). The README gives the whole picture; [records.md](records.md) says what every file and line in a farm folder means. This page says only how to use it day by day. Japanese version: [manual.ja.md](manual.ja.md).
 
-## 1. これは何か
+## 1. What it is
 
-畑を AI と一緒に読み、その読みを家の中に平文の記録として残す道具。農家がすることは、写真を撮ることと話すことだけ。
+fieldnotes reads a farmer's field together with AI and keeps the reading as plain-text records at home. The farmer only takes photos and talks.
 
-- **SAM 3.1** が写真の中の作物・草・裸地を切り出し、被覆率(%)を出す。
-- **Muse Spark** が写真を、前の日の記録と土地の公開データと照らして読み、行にして書く。
-- **Muse Voice Transcribe** が畑で話した録音を文字にし、Spark が「したこと」「見たこと」「AI の行への ✓ ✗」に仕分ける。
+- **SAM 3.1** segments crops, weeds and bare soil in each photo and gives their cover (%).
+- **Muse Spark** reads the photos against the previous days and the public data about the land, and writes lines.
+- **Muse Voice Transcribe** writes down what the farmer said in the field; Spark sorts it into what was done, what was seen, and ✓ / ✗ on the AI's lines.
 
-AI の書いた行はすべて「right(✓)」「wrong(✗)」と理由を付けられ、その訂正が次の読みに戻る。チャット画面はない。いつも使っている AI(Claude、ChatGPT、Muse Code など)から MCP でつなぐか、コマンドかスマホアプリを使う。記録は Markdown で、人も別の AI も読める。
+Every line the AI writes can be marked `right` (✓) or `wrong` (✗) with a reason, and the corrections feed the next reading. There is no chat screen: connect from the AI you already use (Claude, ChatGPT, Muse Code ...) over MCP, or use the command line or the phone app. The records are Markdown that any person or model can read.
 
-## 2. 準備
+## 2. Setting up
 
-### 2.1 インストール
+### 2.1 Install
 
-リポジトリからそのまま使う場合(今の農家の PC の状態):
+From the repository as it is (the farmer's PC today):
 
 ```bash
 cd /home/dev/dev/fieldnotes
 .venv/bin/fieldnotes --help
 ```
 
-新しく入れる場合:
+A fresh install:
 
 ```bash
 python -m venv .venv && .venv/bin/pip install -e ".[all]"
 ```
 
-`[all]` にはスマホアプリ(Flet)と音声ファイルの変換(PyAV)が入る。`fieldnotes` コマンドが見つからないときは `.venv/bin/python -m fieldnotes ...` でも同じ。
+`[all]` adds the phone app (Flet) and the decoding of the phone's voice recordings (PyAV). If the `fieldnotes` command is not found, `.venv/bin/python -m fieldnotes ...` does the same.
 
-PyPI の `fieldnotes-farm` は 2026-11-03 時点でまだ公開されていない(README の `pip install fieldnotes-farm` は公開後に使える)。
+The package `fieldnotes-farm` is not on PyPI yet as of 2026-11-03; the README's `pip install fieldnotes-farm` works once it is uploaded.
 
-### 2.2 Meta のキー
+### 2.2 The Meta key
 
-dev.meta.ai で作った Model API のキーを、どちらかに置く。
+Put the Model API key from dev.meta.ai in one of two places:
 
-- 環境変数 `MODEL_API_KEY`
-- ファイル `~/.config/fieldnotes/model_api_key`(`fieldnotes` は**フォルダ**、その中の `model_api_key` が**ファイル**。権限は 600)
+- the environment variable `MODEL_API_KEY`;
+- the file `~/.config/fieldnotes/model_api_key` (`fieldnotes` is a **folder**, `model_api_key` the **file** inside it; permissions 600).
 
 ```bash
 mkdir -p ~/.config/fieldnotes && chmod 700 ~/.config/fieldnotes
-# キーを ~/.config/fieldnotes/model_api_key に書き、chmod 600 する
+# write the key to ~/.config/fieldnotes/model_api_key and chmod 600 it
 ```
 
-キーは呼び出すたびに読むので、置き直しても再起動はいらない。見つからないと `no Meta Model API key: set MODEL_API_KEY or write it to ...` と出る。
+The key is read at every call, so nothing needs restarting after you place it. When it is missing, the error reads `no Meta Model API key: set MODEL_API_KEY or write it to ...`.
 
-### 2.3 最初の設定(どれも引数なしで今の値を表示)
+### 2.3 First settings (each prints its current value when given no argument)
 
-| コマンド | 意味 |
+| Command | Meaning |
 |---|---|
-| `fieldnotes consent yes` / `no` | Muse Spark に送るものを Meta が学習に使ってよいか。アプリは初回起動時に同じことをダイアログで聞く(右上の歯車からいつでも変えられる) |
-| `fieldnotes language ja` / `en` / `auto` | AI が書く言語。`auto`(既定)は使っている PC やスマホの言語 |
-| `fieldnotes reader spark` / `glimmer` | 畑を読むモデル。`glimmer` は家の中の llama.cpp サーバー(既定 `http://192.168.100.6:11434/v1`、`--url` と `--model` で変更、`--check` で応答確認)。動画やふだんは `spark` |
+| `fieldnotes consent yes` / `no` | whether Meta may train on what is sent to Muse Spark. The app asks the same thing in a dialog on first start (the gear icon changes it later) |
+| `fieldnotes language ja` / `en` / `auto` | the language the AI writes in. `auto` (default) is each phone's or PC's own |
+| `fieldnotes reader spark` / `glimmer` | the model that reads the fields. `glimmer` is a llama.cpp server in the house (default `http://192.168.100.6:11434/v1`; `--url` and `--model` change it, `--check` asks whether it answers). Day to day, and for the video: `spark` |
 
-## 3. 農場フォルダを作る
+## 3. Starting a farm
 
-農場ひとつ = フォルダひとつ(`photos/` と `records/` を持つ)。コマンドはそのフォルダの中で実行するか、`--root DIR` を**サブコマンドの前**に付ける。既定は環境変数 `FIELDNOTES_ROOT`、なければ今いるフォルダ。
+One farm = one folder with `photos/` and `records/`. Run the commands inside that folder, or give `--root DIR` **before** the subcommand. The default is `$FIELDNOTES_ROOT`, else the current folder.
 
 ```bash
 mkdir ~/farm/myfarm && cd ~/farm/myfarm
-fieldnotes init --place "新居浜市 萩生" --country JP --lat 33.912172 --lon 133.264208 \
-  --climate "warm temperate, humid" --method "元は水田。不耕起・無肥料・刈り敷きは前提ではない。農薬は使わない"
+fieldnotes init --place "Niihama, Ehime, Japan" --country JP --lat 33.912172 --lon 133.264208 \
+  --climate "warm temperate, humid" --method "former paddy; no tillage, no fertiliser and cutting are not premises; no pesticide"
 ```
 
-- `--method` は「この畑をどう作っているか」を自分の言葉で。これが毎回のプロンプトに入る。アプリ自身には既定の農法がない。省くと `site.md` に `method: not recorded yet` と書かれ、プロンプトにもそう入る。あとで `records/site.md` の `method:` 行を直せばよい。
-- 二度目の `init` は既存の `site.md` を上書きしない(「もうあります」と出る)。
+- `--method` is how the farm is worked, in your own words. It goes into every prompt. The app has no method of its own: leave it out and `site.md` says `method: not recorded yet`, and so do the prompts. Edit the `method:` line in `records/site.md` whenever you want.
+- A second `init` does not overwrite an existing `site.md` (it says so and stops).
 
-続けて土地の公開データを取る:
+Then fetch the public data about the spot:
 
 ```bash
-fieldnotes lookup                 # 標高・地質・土壌・活断層・ハザード・筆ポリゴン・地質図幅・近くの史跡 → records/lookup.md
-fieldnotes search 城 --save       # 近くの名前を Wikipedia と OpenStreetMap で探し、lookup.md に足す
-fieldnotes surroundings           # 畑のまわりの地図タイルを一度だけ読む(--force でやり直し)
+fieldnotes lookup                 # elevation, bedrock, soil, active faults, hazard zones, the farmland parcel, the geological map sheet, places nearby → records/lookup.md
+fieldnotes search castle --save   # look for a word near the farm (Wikipedia, OpenStreetMap) and add it to lookup.md
+fieldnotes surroundings           # read the map tiles around the farm once (--force to redo)
 ```
 
-自分の知っていることは `note` で `records/site.md` に入れる。行には必ず種類が付く。
+What you know goes into `records/site.md` with `note`; every line carries its kind.
 
 ```bash
-fieldnotes note "棒は 20 cm くらいで止まる。抜くのに力がいる"                 # 自分の言葉 → record 行
-fieldnotes note --source "石井町史 (1991) p.833" --section history "……"    # 文書の記述 → data 行(出典付き)
-fieldnotes note --page 写真.jpg                                              # 文書のページ写真から、畑に関わる部分を読み手が書き写す
+fieldnotes note "the pole goes in about 20 cm and takes force to pull out"       # your own words → a `record` line
+fieldnotes note --source "Ishii town history (1991) p.833" --section history "..." # what a document says → a `data` line with its source
+fieldnotes note --page page.jpg                                                   # a photographed page: the reading model copies out what concerns the farm
 ```
 
-`--section` は `terrain` / `geology` / `history` / `works`、`--date` は言った日(既定は今日)。`hypothesis`(仮説)の行は前提ではなく「確かめること」として扱われる。
+`--section` is `terrain`, `geology`, `history` or `works`; `--date` is when you said it (default today). `hypothesis` lines are things to check, never premises.
 
-## 4. 毎日の使い方
+## 4. Daily use
 
-### 4.1 畑を歩いて撮る
+### 4.1 Walk the field and shoot
 
-- 同じ経路を毎日歩き、スマホの**位置情報をオン**にして 20〜50 枚撮る。1 回の読みで送れるのは 50 枚まで。超えると分けて読んでからまとめる。
-- 写真は撮影時刻順に `photos/<畑>/<日付>/` に並び、`index.json` に時刻・位置・向きが残る。
-- 読みの中で写真は「3 of 42, 10:21, NW corner, facing W」と呼ばれる。位置の言葉(NW corner、middle、S edge など)は、写真の半分以上が入る**筆ポリゴン**を枠にして付く。半分に満たないときは歩いた範囲が枠になり、各写真に `in the parcel` か `outside the parcel, 35 m S`(区画の縁からの距離と方角)が付く。この場合の「S edge」は歩いた範囲の南端であって畑の南端ではない。区画外の写真だけで見えた zone には読み手が「outside the parcel」と距離を書くよう指示される。
-- 畑のまわり(隣の畑、畦、川岸、放棄地)もときどき撮る。アプリでは「近所(畑のまわり)」を選ぶ。コマンドなら畑名 `_around` に送り、`fieldnotes observe _around` で読む(SAM は使わない)。家や人は撮らない。
+- Walk the same route each day with the phone's **location on** and take 20–50 photos. One reading takes up to 50 photos; a longer walk is read in parts and then combined.
+- The photos are filed in capture order under `photos/<field>/<date>/`, with `index.json` holding each photo's time, GPS point and facing.
+- In the reading each photo is called "3 of 42, 10:21, NW corner, facing W". The position words (NW corner, middle, S edge ...) are relative to the **farmland parcel** (筆ポリゴン) when it holds at least half of the photo points. Otherwise the frame is the area the walk covered, and each photo also says `in the parcel` or `outside the parcel, 35 m S` (distance and direction from the parcel's nearest edge). In that case "S edge" is the south end of the walk, not of the field, and the model is told to write "outside the parcel" with the distance into any zone seen only in such photos.
+- Now and then photograph around the fields too (the neighbours' fields, verges, the river bank, abandoned land). In the app choose "Neighbourhood (around the fields)"; on the command line the field is named `_around`, and `fieldnotes observe _around` reads it (no SAM). Land, not houses or people.
 
-### 4.2 スマホアプリ
+### 4.2 The phone app
 
-PC で起動し、スマホのブラウザから開く(家の中のネットワーク限定。ログインはない)。
+Start it on the PC and open it in the phone's browser (home network only; there is no sign-in).
 
 ```bash
-fieldnotes --root ~/farm/myfarm app --port 8550     # スマホで http://<PC のアドレス>:8550
+fieldnotes --root ~/farm/myfarm app --port 8550     # on the phone: http://<the PC's address>:8550
 ```
 
-下の 3 つのタブ:
+Three views at the bottom:
 
-| タブ | 何をする |
+| View | What it does |
 |---|---|
-| **送る** | 畑と日付を選び「撮る・選んで送る」で写真を送る(新しい畑名もここで作れる)。「声を送る(したこと・見たこと)」でスマホの録音アプリのファイルを送る |
-| **読む** | 畑と日付を選び「読む」で観察を実行(数分)。写真と SAM の重ね描きを見て、AI の各行を ✓ か ✗(理由入力)で判定。「声で答える(✓ ✗ と理由)」で声でも判定できる |
-| **名詞** | SAM に探させる名詞句(「yellow flower clusters」など)と前回それが何%見つけたか。✓ ✗ と置き換えの名詞を付けられる |
+| **Send** | pick the field and the day, "Take or choose, and send" for photos (a new field name can be made here). "Send your voice (what you did and saw)" sends a file from the phone's recorder |
+| **Read** | pick the field and the day, "Read" runs the observation (minutes). Look at the photos and the SAM overlays, mark each AI line ✓ or ✗ (with a reason). "Answer by voice (✓ ✗ and why)" does the marking by voice |
+| **Nouns** | the noun phrases SAM is asked to find ("yellow flower clusters" ...) and what each found last time; ✓ / ✗ and a replacement noun |
 
-右上: 文A ボタンで画面と AI の言語、歯車で学習同意の変更。ブラウザのマイクは HTTPS か localhost でしか使えないので、録音はスマホ標準の録音アプリで行い、そのファイル(m4a、3gp、ogg、webm、WAV)を送る。
+Top right: the 文A button sets the screen's and the AI's language, the gear changes the training consent. Browsers allow the microphone only on HTTPS or localhost, so record with the phone's own recorder and send the file (m4a, 3gp, ogg, webm or WAV).
 
-PC のブラウザペインで開くと日本語が □ になることがあるが、これは描画側のフォントの問題で、スマホでは正常に出る。
+In a desktop browser pane the Japanese text may show as boxes; that is the renderer's font, not the app. The phone shows it properly.
 
-### 4.3 コマンドで同じことをする
+### 4.3 The same from the command line
 
 ```bash
-fieldnotes observe uncut 2026-11-03       # 天気 → SAM → Muse Spark → records/uncut/2026-11-03.md(+ overlay 画像)。日付省略で今日
-fieldnotes show uncut                     # 最新の記録を表示(日付を付ければその日)
-fieldnotes voice uncut memo.m4a 2026-11-03   # 録音を文字にし、work / seen / ✓✗ に仕分けて記録に入れる
+fieldnotes observe uncut 2026-11-03       # weather → SAM → Muse Spark → records/uncut/2026-11-03.md (+ overlay images); without a date: today
+fieldnotes show uncut                     # the latest record (or the given day's)
+fieldnotes voice uncut memo.m4a 2026-11-03   # transcribe the recording and sort it into work / seen / ✓✗ in the record
 fieldnotes mark uncut 2026-11-03 dominant right
-fieldnotes mark uncut 2026-11-03 overall wrong "むらがある。一様ではない"
-fieldnotes mark uncut 2026-11-03 zone#2 wrong "それは隣の田んぼ"     # 同じ key が複数あるときは #2, #3
-fieldnotes concept uncut goldenrod wrong "オギも拾う" --replace "yellow flower clusters"
-fieldnotes timeline uncut                 # 日ごとの一覧 + 表「出てきた種 × 日」「仮説 × 日」(--since 日付)
+fieldnotes mark uncut 2026-11-03 overall wrong "it is uneven, not even"
+fieldnotes mark uncut 2026-11-03 zone#2 wrong "that is the neighbour's paddy"   # key#2, key#3 when a key appears more than once
+fieldnotes concept uncut goldenrod wrong "finds ogi too" --replace "yellow flower clusters"
+fieldnotes timeline uncut                 # day by day, plus the tables "species coming up × day" and "hypotheses × day" (--since DATE)
 ```
 
-- `observe` を同じ日にもう一度走らせると AI の行は書き直されるが、✓ ✗ とメモは残る。文言が変わった判定済みの行は `## Earlier AI lines` の下に移る。
-- AI の行の key: `overall`、`dominant`、`crops`、`acidity`、`fertility`、`dryness`、`zone`、`emerging`、`leaf_colour`、`weed_height`、`soil`、`animal`、`other`。農家の声からの行: `work`、`seen`。
+- Running `observe` again on the same day rewrites the AI lines but keeps your ✓ / ✗ and note. A marked line whose wording changed moves under `## Earlier AI lines`.
+- The AI's line keys: `overall`, `dominant`, `crops`, `acidity`, `fertility`, `dryness`, `zone`, `emerging`, `leaf_colour`, `weed_height`, `soil`, `animal`, `other`. From the farmer's voice: `work`, `seen`.
 
-### 4.4 提案と仮説の確認
+### 4.4 Proposals and checking hypotheses
 
 ```bash
-fieldnotes propose uncut --cut                          # まずどこを何cmで刈るか → records/_proposals/uncut/<日付>-cut.md
-fieldnotes propose uncut --seeds "クリムソンクローバー, ライムギ"   # 手元の種で緑肥の混播案
-fieldnotes mark uncut 2026-11-03 height wrong "高すぎる" --proposal cut
+fieldnotes propose uncut --cut                          # where to cut first and how high → records/_proposals/uncut/<date>-cut.md
+fieldnotes propose uncut --seeds "crimson clover, rye"  # a cover-crop mix from the seeds on hand
+fieldnotes mark uncut 2026-11-03 height wrong "too high" --proposal cut
 
-fieldnotes expect uncut                                 # 写真を見る前に、site.md の各仮説が成り立つなら写真に何が写るかを書かせる → records/_checks/uncut/expect.md
-fieldnotes mark uncut 2026-11-03 h3 wrong "写真では分からない" --proposal expect
-fieldnotes compare                                      # 各畑の最新記録を並べて雑草バロメーターで比べる → records/_compare/<日付>.md
+fieldnotes expect uncut                                 # before any photo: what photos would show for each hypothesis in site.md → records/_checks/uncut/expect.md
+fieldnotes mark uncut 2026-11-03 h3 wrong "photos cannot show this" --proposal expect
+fieldnotes compare                                      # the fields side by side on the weed barometers, from each one's newest record → records/_compare/<date>.md
 ```
 
-`expect` を一度書くと、その後の `observe` は毎回 `## Checks` を記録に足す(仮説ごとに `agrees` / `disagrees` / `cannot tell`)。種をまく前は `cannot tell` が正しい答えになることが多い。`timeline` の末尾の表で日ごとの答えが並ぶ。
+Once `expect` has been written, every later `observe` adds a `## Checks` section to the record (`agrees` / `disagrees` / `cannot tell` per hypothesis). Before sowing, `cannot tell` is often the right answer. The table at the end of `timeline` shows the answers day by day.
 
-## 5. 自分の AI からつなぐ(MCP)
+## 5. From your own AI (MCP)
 
-写真と声はアプリから入れ、読みや判定はふだんの AI に頼む。
+Photos and voice still come in through the app; the reading and the marking you ask your usual AI for.
 
 ```bash
 # Claude Code
 claude mcp add fieldnotes -- /home/dev/dev/fieldnotes/.venv/bin/fieldnotes --root /home/dev/farm/rokuse mcp
 ```
 
-Claude Desktop(`claude_desktop_config.json`):
+Claude Desktop (`claude_desktop_config.json`):
 
 ```json
 {"mcpServers": {"fieldnotes": {"command": "/home/dev/dev/fieldnotes/.venv/bin/fieldnotes",
                                "args": ["--root", "/home/dev/farm/rokuse", "mcp"]}}}
 ```
 
-Muse Code(`~/.config/muse/settings.json`):
+Muse Code (`~/.config/muse/settings.json`):
 
 ```json
 {"schema_version": 1,
@@ -169,55 +169,55 @@ Muse Code(`~/.config/muse/settings.json`):
                                 "args": ["--root", "/home/dev/farm/rokuse", "mcp"], "mode": "optional"}}}
 ```
 
-ツール: `fields`(畑一覧)、`read`(記録)、`observe`(数分かかる)、`say`(AI に話したことを原文のまま残し、work / seen / ✓✗ に仕分け)、`mark`(自分が言ったことだけ)、`propose`(`cut` か `cover_crop`)、`timeline`、`site`、`note`。`→ farmer: right/wrong` の付いた行だけが農家の判断で、付いていない行は AI の読みに過ぎない、とサーバーが AI に伝える。
+The tools: `fields`, `read`, `observe` (takes minutes), `say` (what you tell your AI about a field, kept word for word and sorted into work, seen and ✓ / ✗), `mark` (only what you say), `propose` (`cut` or `cover_crop`), `timeline`, `site`, `note`. The server tells your AI that only lines with `→ farmer: right/wrong` are yours; a line without a mark is the AI's reading alone.
 
-別の機械の AI からは `fieldnotes mcp --http`(ポート 8551、`http://<PC>:8551/mcp`)。サインインはないので家の中だけで使う。
+For an AI on another machine: `fieldnotes mcp --http` (port 8551, `http://<the PC>:8551/mcp`). No sign-in, so keep it on the home network.
 
-## 6. 記録の読み方
+## 6. Reading a record
 
-一行の形はどれも同じ:
-
-```
-- <key>: <本文> [0.85]  → farmer: right | wrong (理由)
-```
-
-`[0.85]` は AI の確信度(0〜1)。`→ farmer:` は `mark` が後から付けるもので、AI は書かない。付いていない行は未判定。
-
-`records/site.md` の行は種類で始まる: `data`(出典付きの公開データや文書)、`record`(農家がした・見たこと)、`hypothesis`(未確認の読み)、`supported` / `refuted`(確かめたもの)。AI が写真から読んだことは `site.md` に入れない。入れると次の読みがそれを事実として繰り返す。
-
-主なファイル(全部は [records.md](records.md)):
+Every line has the same shape:
 
 ```
-photos/<畑>/<日付>/                 写真、録音、index.json
-records/<畑>/<日付>.md              その日の観察(AI の行、Checks、農家の声、✓✗)
-records/<畑>/<日付>-overlay-<n>.jpg  SAM が見つけたものを写真 n に描いたもの
-records/site.md                     土地について分かっていること・信じていること
-records/lookup.md                   lookup の結果(出典付き)
-records/_proposals/<畑>/            刈る・緑肥の提案
-records/_checks/<畑>/expect.md      仮説ごとの「写真に何が写るはずか」
-records/_concepts/<畑>.md           SAM に頼む名詞
-records/_plants/<属_種>.md          優占草がなぜ優占するか(AI の読み)
+- <key>: <text> [0.85]  → farmer: right | wrong (reason)
 ```
 
-`sample/` はこの形の実例(徳島の畑、日本語)。`sample-en/` は同じ写真を英語で読み直したもの。
+`[0.85]` is the AI's confidence (0 to 1). `→ farmer:` is added later by `mark`; the AI never writes it. A line without it has not been judged.
 
-## 7. 困ったとき
+Lines in `records/site.md` begin with their kind: `data` (public data or a document, with its source), `record` (what the farmer did or saw), `hypothesis` (a reading not yet checked), `supported` / `refuted` (checked). What the AI read from photos never goes into `site.md`: if it did, the next reading would repeat it as fact.
 
-| 症状 | 対処 |
+The main files (all of them in [records.md](records.md)):
+
+```
+photos/<field>/<date>/                photos, recordings, index.json
+records/<field>/<date>.md             one day's observation (AI lines, Checks, the farmer's voice, ✓ / ✗)
+records/<field>/<date>-overlay-<n>.jpg what SAM found, drawn on photo n
+records/site.md                       what is known or believed about the land
+records/lookup.md                     what lookup found, with sources
+records/_proposals/<field>/           cut and cover-crop proposals
+records/_checks/<field>/expect.md     what the photos would show for each hypothesis
+records/_concepts/<field>.md          the nouns SAM is asked for
+records/_plants/<Genus_species>.md    why a dominant weed dominates (the AI's reading)
+```
+
+`sample/` is a real farm folder in this form (Tokushima, in Japanese); `sample-en/` is the same photos read again in English.
+
+## 7. When something goes wrong
+
+| Symptom | What to do |
 |---|---|
-| `no Meta Model API key` | 2.2 のどちらかに置く。フォルダ名とファイル名を確認 |
-| `fieldnotes: command not found` | `.venv/bin/fieldnotes` をフルパスで。または `.venv/bin/pip install -e .` |
-| `fieldnotes app` や m4a の録音が extra を要求する | `.venv/bin/pip install -e ".[app,voice]"` |
-| 読みの位置が畑と合わない(「S edge」が隣の段など) | 4.1 の通り、写真の半分以上が筆ポリゴンに入らないと歩いた範囲が枠になる。`in the parcel` / `outside the parcel, … m` の表記を見る。区画の中心から歩く |
-| SAM の被覆率がほぼ 0 | 背の高い密な草、刈り株、黒マルチ、水面は今の名詞では拾えないことが多い。「名詞」タブか `concept --replace` で言い換えを試す。読みの `basis` 行に、どの数字が SAM のもので、どれが AI の目視かが書かれる |
-| 写真を別のディスクから取り込めない(`Invalid cross-device link`) | 2026-11-03 のコードで直っている。古い版なら同じディスクに置いてから送る |
-| 同じ日を読み直したい | `observe` をもう一度。✓ ✗ とメモは残る |
-| AI が前の自分の読みを事実として繰り返す | `site.md` に AI の読みが入っていないか見る。`_plants/` のメモは AI の読み |
-| スマホからアプリが開けない | PC と同じ Wi-Fi か、ポート 8550 が開いているか。アドレスは `http://<PC の IP>:8550` |
+| `no Meta Model API key` | put it in one of the two places of 2.2; check the folder and file names |
+| `fieldnotes: command not found` | use the full path `.venv/bin/fieldnotes`, or `.venv/bin/pip install -e .` |
+| `fieldnotes app` or an m4a recording asks for an extra | `.venv/bin/pip install -e ".[app,voice]"` |
+| the positions do not match the field ("S edge" is the terrace next door) | see 4.1: when fewer than half the photos lie in the parcel, the walk is the frame. Look for `in the parcel` / `outside the parcel, … m` in the labels; walk from the middle of the parcel |
+| SAM's cover is near zero | tall dense stands, stubble, black mulch and water are often missed by the current nouns. Try another phrase in the Nouns view or with `concept --replace`. The proposal's `basis` line says which numbers are SAM's and which are the AI's own reading |
+| photos from another disk fail with `Invalid cross-device link` | fixed in the code of 2026-11-03; on an older version copy them to the same disk first |
+| you want to read the same day again | run `observe` again; ✓ / ✗ and the note stay |
+| the AI repeats its own earlier reading as fact | check that no AI reading got into `site.md`; the notes under `_plants/` are the AI's |
+| the phone cannot open the app | same Wi-Fi as the PC, port 8550 open; the address is `http://<the PC's IP>:8550` |
 
-## 8. 言葉
+## 8. Terms
 
-- **畑(field)**: 農場の中の名前の付いた区画(`uncut`、`mix1`、`row1`、`main` など)。フォルダ名そのもの。
-- **筆ポリゴン**: 農林水産省の農地区画データ。位置と形の参考情報で、境界や権利を示すものではない。
-- **zone**: 畑の中で他と違う部分。`emerging`: まいた・植えたものが出てきたこと(自生や成株は含まない)。
-- **Checks / h1, h2 …**: `site.md` の仮説の番号(並び順)と、その日の写真が仮説に対してどちらを向いたか。
+- **field**: a named part of the farm (`uncut`, `mix1`, `row1`, `main` ...); the folder's name.
+- **筆ポリゴン (farmland parcel)**: 農林水産省's farmland parcel data; reference information for position and shape, showing neither boundaries nor rights.
+- **zone**: a part of the field that differs from the rest. **emerging**: a sown or planted species coming up (not a self-sown or mature plant).
+- **Checks / h1, h2 ...**: the hypotheses of `site.md` by their order, and which way the day's photos pointed for each.

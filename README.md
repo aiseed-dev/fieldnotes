@@ -52,7 +52,7 @@ pip install "fieldnotes-farm[app,voice]"     # plus the phone app (Flet) and dec
 # or keep it in ~/.config/fieldnotes/model_api_key (chmod 600), which is read when the variable is unset.
 ```
 
-A user manual in Japanese, from the commands as they are: [docs/manual.md](docs/manual.md).
+A user manual, from the commands as they are: [docs/manual.md](docs/manual.md) (Japanese: [docs/manual.ja.md](docs/manual.ja.md)).
 
 The package is `fieldnotes-farm` on PyPI (the name `fieldnotes` there is another project); the command and the import are `fieldnotes`. Without an extra, `fieldnotes app` and voice recordings other than plain WAV say which extra to install. From a checkout: `python -m venv .venv && .venv/bin/pip install -e ".[all]"`.
 
