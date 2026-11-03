@@ -187,6 +187,12 @@ checked: 2026-10-28
 
 `place`, `country`, `lat`, `lon`, `climate`, `method` are what the code needs
 (prompts, weather, which map service). A farm without `site.md` still runs.
+From 2026-11-03 the app has no `method` of its own: `fieldnotes init` without
+`--method` writes `method: not recorded yet`, and the prompts then read "a
+field in <place> (<climate>; how the farm is worked: not recorded yet)" until
+the farmer writes the line. Before that date the code's default was the first
+farm's line ("no tillage, no fertiliser, no pesticide; weeds are cut, not
+pulled") and the prompts said "a natural-farming field".
 
 ### Lines
 
@@ -324,6 +330,14 @@ when it holds at least half of the points (`NW corner`, `N edge`, `NE corner`,
 relative to the walk's own extent, else by number alone. `zone` and
 `emerging` lines use these words and `(photos n, m)` so a reader can go back
 to the photos.
+
+From 2026-11-03: when the frame is the walk and the farm has a parcel, each
+photo's label also says `in the parcel` or `outside the parcel, 35 m S` (the
+distance and direction from the nearest edge of the 筆ポリゴン), and the model
+is told that the corners and edges are the walk's, not the field's, and to
+write `outside the parcel` with the distance into any `zone` line that rests
+only on such photos. (Niihama, 2026-10-29: 2 of 24 photos lay in the parcel;
+the "S edge" was a terrace 30–40 m south of it.)
 
 ## 8. Reading the folder from outside
 

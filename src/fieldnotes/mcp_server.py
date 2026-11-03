@@ -28,7 +28,7 @@ from .llm import Backend
 from .records import Record
 from .site import Site
 
-INSTRUCTIONS = """fieldnotes keeps the records of a natural-farming farm: per field and day, the photos, what Meta's models read in them (SAM 3.1 cover, Muse Spark's lines), what the farmer did and saw, and the farmer's right/wrong on every AI line.
+INSTRUCTIONS = """fieldnotes keeps the records of a farm: per field and day, the photos, what Meta's models read in them (SAM 3.1 cover, Muse Spark's lines), what the farmer did and saw, and the farmer's right/wrong on every AI line.
 In the records, a line ending in "→ farmer: right" or "→ farmer: wrong (reason)" was checked by the farmer; a line without it is only the AI's reading. Keep the two apart when you tell the farmer or anyone else what the records say.
 Mark a line right or wrong only when the farmer says so; never on your own judgement. Pass what the farmer tells you about the field to `say`, in their words; what they know about the land's past, soil or water, or what a document they show you says, to `note`."""
 

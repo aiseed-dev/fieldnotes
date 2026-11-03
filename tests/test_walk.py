@@ -91,10 +91,54 @@ def test_positions_in_the_parcel_else_the_walk_else_none(root):
     # the walk reached only the parcel's west half, so the middle photo is at the walk's east end
     assert walk.labels(found, root / "records")["101000-b.jpg"] == "2 of 3, 10:10, E edge"
     assert "the area the walk covered" in walk.frame_note(found, root / "records")
+    assert "outside the parcel" not in walk.frame_note(found, root / "records")
 
     bare = [{**e, "lat": None, "lon": None, "facing": None} for e in found]
     assert walk.labels(bare, root / "records")["100000-a.jpg"] == "1 of 3, 10:00"
     assert "no location" in walk.frame_note(bare, root / "records")
+
+
+def test_photos_outside_the_parcel_say_so_with_their_distance(root):
+    """Niihama 2026-10-29: 2 of 24 photos in the parcel; Spark's "S edge" was a terrace 30-40 m S of it.
+    When the walk is the frame, its corners are the walk's, and every photo says where the parcel is."""
+    up = root / "upload"
+    up.mkdir(exist_ok=True)
+    d = DAY.strftime("%Y:%m:%d")
+    shot(up / "a.jpg", f"{d} 10:00:00", (S + N) / 2, (W + E) / 2)  # in the parcel
+    shot(up / "b.jpg", f"{d} 10:10:00", S - 35 / walk.EARTH_M_PER_DEG, (W + E) / 2, 180.0)  # a terrace 35 m S
+    shot(up / "c.jpg", f"{d} 10:20:00", S - 35 / walk.EARTH_M_PER_DEG, E + 0.00004)  # SE of the parcel
+    for name in ("a", "b", "c"):
+        inbox.file_photo(up / f"{name}.jpg", FIELD, DAY, root / "photos")
+    found = walk.entries(root, FIELD, DAY.isoformat())
+    parcel(root)
+    labels = walk.labels(found, root / "records")
+    assert labels["100000-a.jpg"] == "1 of 3, 10:00, NW corner, in the parcel"  # the walk's corner
+    assert labels["101000-b.jpg"] == "2 of 3, 10:10, SW corner, outside the parcel, 35 m S, facing S"
+    assert labels["102000-c.jpg"].startswith("3 of 3, 10:20, SE corner, outside the parcel, 35 m S")
+    note = walk.frame_note(found, root / "records")
+    assert "the area the walk covered" in note and "only 1 of 3 lie in the farm's parcel" in note
+    assert "never a corner or edge of the field" in note
+
+    assert walk.outside(E + 10 / walk.EARTH_M_PER_DEG, (S + N) / 2, PARCEL["geometry"]["coordinates"][0])[1] == "E"
+    assert walk.outside((W + E) / 2, (S + N) / 2, PARCEL["geometry"]["coordinates"][0]) is None
+
+
+def test_a_photo_uploaded_from_another_disk_is_filed(root, monkeypatch):
+    """Niihama 2026-11-03: Path.replace fails across file systems (EXDEV); the photo is copied instead."""
+    import errno
+    import os
+    up = root / "upload"
+    up.mkdir(exist_ok=True)
+    shot(up / "x.jpg", DAY.strftime("%Y:%m:%d") + " 09:00:00")
+    real = os.rename
+
+    def cross_device(src, dst, *a, **k):
+        raise OSError(errno.EXDEV, "Invalid cross-device link", str(src), 0, str(dst))
+
+    monkeypatch.setattr(os, "rename", cross_device)
+    dest = inbox.file_photo(up / "x.jpg", FIELD, DAY, root / "photos")
+    monkeypatch.setattr(os, "rename", real)
+    assert dest.exists() and dest.name == "090000-x.jpg" and not (up / "x.jpg").exists()
 
 
 def test_sample_spreads_along_the_walk():

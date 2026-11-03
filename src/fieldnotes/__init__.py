@@ -1,1 +1,1 @@
-"""fieldnotes: daily observation records for a natural-farming field."""
+"""fieldnotes: daily observation records for a farmer's field."""

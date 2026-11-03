@@ -65,7 +65,9 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--lat", type=float, required=True)
     s.add_argument("--lon", type=float, required=True)
     s.add_argument("--climate", default="", help='e.g. "warm temperate, humid"')
-    s.add_argument("--method", default=site.METHOD, help="how the farm is worked")
+    s.add_argument("--method", default=site.METHOD,
+                   help='how the farm is worked, in your own words (e.g. "no tillage, no fertiliser; weeds are cut"); '
+                        'without it site.md says "not recorded yet" and so do the prompts')
 
     s = sub.add_parser("observe", help="run the pipeline on a day's photos")
     s.add_argument("field")

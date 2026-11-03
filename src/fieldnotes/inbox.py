@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import json
 import re
+import shutil
 from datetime import date, datetime
 from pathlib import Path
 
@@ -135,7 +136,7 @@ def file_photo(src: Path, field: str, chosen: date, photos_root: Path) -> Path:
             n += 1
             dest = dest_dir / f"{stamp}-{Path(src.name).stem}-{n}.jpg"
         if img.format == "JPEG":
-            src.replace(dest)
+            shutil.move(src, dest)  # not Path.replace: the upload may sit on another disk (EXDEV)
         else:
             exif = img.getexif()
             img.convert("RGB").save(dest, "JPEG", quality=92, exif=exif.tobytes() if exif else b"")

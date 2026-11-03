@@ -126,7 +126,7 @@ def vocabulary(field: str, records_root: Path) -> list[str]:
 
 # ---- sorting what was said ----------------------------------------------
 
-SYSTEM = """A farmer on a natural-farming field recorded what they said, and it was written down.
+SYSTEM = """A farmer on their field recorded what they said, and it was written down.
 Sort what they said into items. Each item is one of:
 - {"kind": "work", "text": "..."}: something the farmer did or had done on this field (cut, sowed, mulched, watered, harvested, pulled, planted), with where and how if they said so.
 - {"kind": "seen", "text": "..."}: something the farmer saw, smelled or noticed.

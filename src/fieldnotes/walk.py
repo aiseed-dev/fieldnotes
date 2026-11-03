@@ -7,7 +7,10 @@ in words a model and a farmer both read ("NW corner", "middle", "S edge"):
 
 * relative to the farm parcel (筆ポリゴン, records/lookup/parcel_jp.json) that
   holds at least half of the day's photo points;
-* else relative to the walk's own extent;
+* else relative to the walk's own extent, and then each photo says whether it
+  lies in the parcel or how far outside it ("outside the parcel, 35 m S"), so
+  that a corner of the walk is never read as a corner of the field (Niihama,
+  2026-10-29: 2 of 24 photos in the parcel, Spark's "S edge" 30-40 m S of it);
 * without GPS, by walk order only ("photo 3 of 42").
 
 Each photo is labelled "3 of 42, 10:21, NW corner, facing W"; the reading and
@@ -104,15 +107,36 @@ def _bounds(points: list[tuple[float, float]]) -> Box:
     return min(xs), min(ys), max(xs), max(ys)
 
 
-def box(points: list[tuple[float, float]], records_root: Path) -> tuple[Box, str] | None:
-    """The frame the positions are given in, and what it is ("parcel" or "walk"):
-    the parcel holding at least half the points, else the points' own extent."""
+def frame(points: list[tuple[float, float]], records_root: Path) -> tuple[Box, str, list | None] | None:
+    """The frame the positions are given in, what it is ("parcel" or "walk": the parcel holding
+    at least half the points, else the points' own extent), and the parcel ring the photos are
+    measured against (the one holding most of them; None when the farm has no parcel)."""
     if not points:
         return None
     best = max(parcels(records_root), key=lambda r: sum(inside(x, y, r) for x, y in points), default=None)
     if best and 2 * sum(inside(x, y, best) for x, y in points) >= len(points):
-        return _bounds([(x, y) for x, y in best]), "parcel"
-    return _bounds(points), "walk"
+        return _bounds([(x, y) for x, y in best]), "parcel", best
+    return _bounds(points), "walk", best
+
+
+def outside(lon: float, lat: float, ring: list[list[float]]) -> tuple[int, str] | None:
+    """How far outside the parcel a point lies, in metres, and which way from it (the direction
+    from the nearest point of the parcel's edge); None when the point is inside."""
+    if inside(lon, lat, ring):
+        return None
+    m_lon = EARTH_M_PER_DEG * math.cos(math.radians(lat))
+    best = None
+    for (x1, y1), (x2, y2) in zip(ring, ring[1:] + ring[:1]):
+        ax, ay = (x1 - lon) * m_lon, (y1 - lat) * EARTH_M_PER_DEG  # the segment, in metres from the point
+        bx, by = (x2 - lon) * m_lon, (y2 - lat) * EARTH_M_PER_DEG
+        dx, dy = bx - ax, by - ay
+        t = 0.0 if dx == dy == 0 else max(0.0, min(1.0, -(ax * dx + ay * dy) / (dx * dx + dy * dy)))
+        nx, ny = ax + t * dx, ay + t * dy  # nearest point of the segment, relative to the photo
+        d = math.hypot(nx, ny)
+        if best is None or d < best[0]:
+            best = (d, nx, ny)
+    d, nx, ny = best
+    return max(1, round(d)), facing(math.degrees(math.atan2(-nx, -ny)))  # from the edge towards the photo
 
 
 def place(lon: float, lat: float, frame: Box) -> str:
@@ -136,14 +160,17 @@ def facing(deg: float | None) -> str | None:
 def labels(found: list[dict], records_root: Path) -> dict[str, str]:
     """File name -> "3 of 42, 10:21, NW corner, facing W", for the photos of one walk."""
     points = [(e["lon"], e["lat"]) for e in found if e.get("lat") is not None]
-    frame = box(points, records_root)
+    fr = frame(points, records_root)
     out = {}
     for i, e in enumerate(found, start=1):
         parts = [f"{i} of {len(found)}"]
         if e.get("time"):
             parts.append(e["time"][:5])
-        if frame and e.get("lat") is not None:
-            parts.append(place(e["lon"], e["lat"], frame[0]))
+        if fr and e.get("lat") is not None:
+            parts.append(place(e["lon"], e["lat"], fr[0]))
+            if fr[1] == "walk" and fr[2]:  # the walk's words, so say where the parcel is
+                off = outside(e["lon"], e["lat"], fr[2])
+                parts.append(f"outside the parcel, {off[0]} m {off[1]}" if off else "in the parcel")
         if (f := facing(e.get("facing"))):
             parts.append(f"facing {f}")
         out[e["file"]] = ", ".join(parts)
@@ -153,9 +180,17 @@ def labels(found: list[dict], records_root: Path) -> dict[str, str]:
 def frame_note(found: list[dict], records_root: Path) -> str:
     """One sentence for the prompt: what the positions are relative to."""
     points = [(e["lon"], e["lat"]) for e in found if e.get("lat") is not None]
-    frame = box(points, records_root)
-    if not frame:
+    f = frame(points, records_root)
+    if not f:
         return "The photos carry no location; they are numbered in the order the farmer walked."
-    what = "the farm parcel (筆ポリゴン) the photos lie in" if frame[1] == "parcel" else "the area the walk covered"
-    return (f"The photos are numbered in the order the farmer walked; {len(points)} of {len(found)} carry GPS, "
+    what = "the farm parcel (筆ポリゴン) the photos lie in" if f[1] == "parcel" else "the area the walk covered"
+    text = (f"The photos are numbered in the order the farmer walked; {len(points)} of {len(found)} carry GPS, "
             f"and their positions (NW corner, middle, S edge ...) are relative to {what}.")
+    if f[1] == "walk" and f[2]:
+        n_in = sum(inside(x, y, f[2]) for x, y in points)
+        text += (f" They are the walk's corners and edges, not the field's: only {n_in} of {len(points)} lie in "
+                 "the farm's parcel (筆ポリゴン), and every other photo says how far outside it was taken and "
+                 "which way. A zone seen only in photos outside the parcel is not on this field: write "
+                 "\"outside the parcel\" with the distance in its line (e.g. \"outside the parcel, 30-40 m S\") "
+                 "and never a corner or edge of the field.")
+    return text
