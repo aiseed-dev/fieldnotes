@@ -20,20 +20,19 @@ Growing is not enough on its own. The biggest problem is selling. Selling, too, 
 
 I photograph the same spots regularly with my phone and look at them together with the AI. The point is not a daily habit but to build up knowledge of *how to improve this field*: what I did (how I cut, what I sowed, when), how the weeds and crops changed, and whether it worked. During the hackathon I shoot daily to get enough data. Each observation:
 
-1. **Align** each photo to the earlier ones (`field-timelapse`, SIFT + RANSAC — built before the hackathon, see below).
-2. **Segment** crops, weeds, bare soil and animal tracks with **SAM 3.1** → cover % per concept per day.
-3. **Describe** today against the previous days with **Muse Spark 1.3** (or **Muse Glimmer** running locally): what changed in leaf colour, weed height, soil dryness, animal signs.
-4. **Verify**: I mark each AI observation right or wrong, by tapping or by voice. In the field I say what I did and saw; **Muse Voice Transcribe** writes it down in my language, and Muse Spark sorts it into work done, things seen, and verdicts on the AI's lines.
-5. **Record** everything as plain Markdown that any person or model can read later. Corrections feed back into the next day's prompt.
+1. **Segment** crops, weeds, bare soil and animal tracks with **SAM 3.1** → cover % per concept per day.
+2. **Describe** today against the previous days with **Muse Spark 1.3** (or **Muse Glimmer** running locally): what changed in leaf colour, weed height, soil dryness, animal signs.
+3. **Verify**: I mark each AI observation right or wrong, by tapping or by voice. In the field I say what I did and saw; **Muse Voice Transcribe** writes it down in my language, and Muse Spark sorts it into work done, things seen, and verdicts on the AI's lines.
+4. **Record** everything as plain Markdown that any person or model can read later. Corrections feed back into the next day's prompt. What every file and line in a farm folder means is written down in [docs/records.md](docs/records.md), so other programs and other AIs can read the folder.
 
 ## What was built during the hackathon
 
-Everything in this repository: `src/fieldnotes/` (segment, describe, verify, records, report), `scripts/`, `docs/`, and the sample farm's records under `sample/` (Japanese) and `sample-en/` (the same farm read in English).
+Everything in this repository: `src/fieldnotes/` (`segment.py`, `concepts.py`, `describe.py`, `walk.py`, `check.py`, `voice.py`, `records.py`, `pipeline.py`, `propose.py`, `timeline.py`, `site.py`, `lookup.py`, `lookup_jp.py`, `note.py`, `surroundings.py`, `around.py`, `plants.py`, `weather.py`, `mcp_server.py`, `app.py`, `cli.py`), `scripts/`, `docs/`, and the sample farm's records under `sample/` (Japanese) and `sample-en/` (the same farm read in English).
 
 ## What existed before the hackathon
 
-* `field-timelapse` — aligns hand-held photos to a reference frame (SIFT features, RANSAC homography). Used unchanged as step 1; vendored/linked separately so the boundary is visible in the history.
-* A JMA-based weather statistics site I run; this project only *reads* daily values from it.
+* `field-timelapse` — aligns hand-held photos to a reference frame (SIFT features, RANSAC homography). Not used by this repository: the reading works on the photos as they are, and no code from it is included here.
+* A JMA-based weather statistics site I run. Not used by this repository either: daily weather comes from the Open-Meteo archive (ERA5, CC BY 4.0; `src/fieldnotes/weather.py`).
 
 ## Meta models used
 
@@ -43,7 +42,6 @@ Everything in this repository: `src/fieldnotes/` (segment, describe, verify, rec
 | Describe | `muse-spark-1.3` | Meta Model API, several days' photos in one request, JSON out (`src/fieldnotes/describe.py`) |
 | Describe (local) | Muse Glimmer 30B | llama.cpp `llama-server` on a Ryzen AI Max+ 395 box in the house; same code, different `base_url`. Switch with `fieldnotes reader glimmer` or the app's 読む AI setting |
 | Verify | `muse-voice-transcribe-1.0` | the farmer's recordings, language-biased to the farmer's language, with the field's plant names as keywords (`src/fieldnotes/voice.py`); Muse Spark then sorts what was said |
-| Development | Muse Code | used for parts noted in commit messages |
 
 ## Running
 
@@ -65,7 +63,7 @@ mkdir ~/myfarm && cd ~/myfarm
 fieldnotes init --place "Nakuru, Kenya" --country KE --lat -0.30 --lon 36.07 --climate "highland, two rainy seasons"
 ```
 
-`fieldnotes lookup` then fetches public data for the spot into `records/lookup.md`, each line with its source: elevation, bedrock (Macrostrat; in Japan also the GSJ seamless geological map), soil (ISRIC SoilGrids), and history nearby (Wikipedia articles with coordinates, OpenStreetMap castles, archaeological sites and flood memorials). In Japan it also asks the national sources, which settle what the world maps only guess: the address (大字), the elevation from the 1 m laser DEM, the landform class (段丘, 扇状地, 氾濫平野 ...), the distance and direction to the nearest active fault line, and whether the field is inside a 土砂災害警戒区域 or 洪水浸水想定区域 and how far the nearest one is. It finds the 筆ポリゴン (農林水産省's farmland parcel) the field lies in, with its area, whether it was read as 田 or 畑, and the parcels around it, and links 全国農地ナビ. It names the 産総研 1:50,000 geological map sheet the field is on and links its report, whose text says what rock the deposits under the field are made of (or says that no map is published for that sheet yet). It reads the soil class at the point from the 農研機構 日本土壌インベントリー soil map: the map's colour there, looked up in the site's own legend, exact colours only. `fieldnotes search 城 --save` looks for any word near the farm. Then add what you know about the land to `records/site.md` (terrain, soil, history, what works there), each line marked `data`, `record` or `hypothesis`. Hypotheses are things to check, not premises. Maps: Japan gets the GSI aerial photos (now and the 1960s–70s) and landform maps; elsewhere the OpenStreetMap standard map.
+`fieldnotes lookup` then fetches public data for the spot into `records/lookup.md`, each line with its source: elevation, bedrock (Macrostrat; in Japan also the GSJ seamless geological map), soil (ISRIC SoilGrids), and history nearby (Wikipedia articles with coordinates, OpenStreetMap castles, archaeological sites and flood memorials). In Japan it also asks the national sources, which settle what the world maps only guess: the address (大字), the elevation from the 1 m laser DEM, the landform class (段丘, 扇状地, 氾濫平野 ...), the distance and direction to the nearest active fault line, and whether the field is inside a 土砂災害警戒区域 or 洪水浸水想定区域 and how far the nearest one is. It finds the 筆ポリゴン (農林水産省's farmland parcel) the field lies in, with its area, whether it was read as 田 or 畑, and the parcels around it, and links 全国農地ナビ. It names the 産総研 1:50,000 geological map sheet the field is on and links its report, whose text says what rock the deposits under the field are made of (or says that no map is published for that sheet yet). It reads the soil class at the point from the 農研機構 日本土壌インベントリー soil map: the map's colour there, looked up in the site's own legend, exact colours only. `fieldnotes search 城 --save` looks for any word near the farm. Then add what you know about the land to `records/site.md` (terrain, soil, history, what works there), each line marked `data`, `record` or `hypothesis`: `fieldnotes note "the pole goes in about 20 cm"` writes your own words as a `record` line, `--source "石井町史 (1991) p.833"` writes what a document says as a `data` line with its source, and `--page photo.jpg` has the reading model copy out of a photographed page what concerns the farm. Hypotheses are things to check, not premises. Maps: Japan gets the GSI aerial photos (now and the 1960s–70s) and landform maps; elsewhere the OpenStreetMap standard map.
 
 Data sources used by `lookup` (each line in `records/lookup.md` names its own):
 
@@ -78,7 +76,7 @@ Data sources used by `lookup` (each line in `records/lookup.md` names its own):
 
 ### The sample farm
 
-`sample/` is the first farm: a natural-farming field in Tokushima, Japan, just south of the Median Tectonic Line, with its site profile, photos and records (fields `row1`, `mix1`, `uncut`). Try the commands on it with `--root sample`, or read it as an example of what a farm folder becomes. Its readings are in Japanese, the farmer's language. `sample-en/` is the same farm, same photos, read again by Muse Spark with the language set to English (`fieldnotes language en`), not translated: try `fieldnotes --root sample-en app`.
+`sample/` is the first farm: a natural-farming field in Tokushima, Japan, just south of the Median Tectonic Line, with its site profile, photos and records (fields `row1`, `mix1`, `uncut`). Try the commands on it with `--root sample`, or read it as an example of what a farm folder becomes ([docs/records.md](docs/records.md) says what each file and line means). Its readings are in Japanese, the farmer's language. `sample-en/` is the same farm, same photos, read again by Muse Spark with the language set to English (`fieldnotes language en`), not translated: try `fieldnotes --root sample-en app`.
 
 ### The neighbourhood
 
@@ -110,6 +108,8 @@ fieldnotes propose uncut --cut           # where to cut first and how high → r
 fieldnotes mark uncut 2026-10-29 height wrong "too high: goldenrod seeds anyway" --proposal cut
 fieldnotes expect uncut                  # before any photo: what photos would show for each hypothesis in site.md
 fieldnotes mark uncut 2026-10-30 h3 wrong "photos cannot show this" --proposal expect
+fieldnotes note "cut last autumn; the ogi came back from the roots in a year"   # your words → site.md as a `record` line
+fieldnotes note --source "石井町史 (1991) p.833" --section history "..."         # what a document says → a `data` line with its source
 fieldnotes compare                       # rank fields by the newest record of each
 fieldnotes surroundings                  # read the maps around the farm once (--force to redo)
 fieldnotes reader glimmer --check        # read with Muse Glimmer at home instead of Muse Spark
@@ -145,7 +145,7 @@ Three views at the bottom: Send (photos and voice recordings into `photos/`), Re
 
 fieldnotes has no chat screen. You talk to the AI you already use (Claude, ChatGPT, Muse Code ...), and it calls fieldnotes over MCP; Meta's specialist models (SAM 3.1, Muse Spark or Glimmer, Muse Voice Transcribe) do the reading behind it. Photos and voice recordings still come in through the phone app.
 
-The tools: `fields`, `read`, `observe` (takes minutes), `say` (what you tell your AI about a field, kept word for word and sorted into work, seen and right/wrong), `mark` (only what you say), `propose` (`cut` or `cover_crop`), `timeline`, `site`. Lines marked `→ farmer: right/wrong` are yours; lines without a mark are only the AI's reading, and the server tells your AI to keep the two apart.
+The tools: `fields`, `read`, `observe` (takes minutes), `say` (what you tell your AI about a field, kept word for word and sorted into work, seen and right/wrong), `mark` (only what you say), `propose` (`cut` or `cover_crop`), `timeline`, `site`, `note` (your words, or a document's statement with its source, into `site.md`). Lines marked `→ farmer: right/wrong` are yours; lines without a mark are only the AI's reading, and the server tells your AI to keep the two apart.
 
 Claude Code:
 
