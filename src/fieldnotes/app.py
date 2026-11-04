@@ -313,57 +313,72 @@ def read_view(page: ft.Page, dialogs: Dialogs, w: Words, lang: str | None):
             show_lines()
         page.update()
 
+    count = {"text": ft.Text("")}  # the day's mark count, redrawn with the lines and after each mark
+
     def show_lines():
+        """The day's lines, each a row to mark; the count of marks at the top."""
         lines.controls.clear()
         field, day = chosen()
         path = Record.path_for(RECORDS, field, day)
         if not path.exists():
+            lines.controls.append(ft.Text(w("state.no_reading"), size=16, color=ft.Colors.ON_SURFACE_VARIANT))
             return
         try:
             rec = Record.load(RECORDS, field, day)
         except Exception as ex:
             lines.controls.append(ft.Text(w("read.bad_record", e=ex), color=ft.Colors.ERROR))
             return
-        lines.controls.append(ft.Text(w("read.question"), size=18, weight=ft.FontWeight.BOLD))
-        seen: dict[str, int] = {}
-        cards = []
-        for o in rec.observations:
-            seen[o.key] = seen.get(o.key, 0) + 1
-            # pipeline.mark finds a repeated key as key#n
-            cards.append(line_card(o, o.key if seen[o.key] == 1 else f"{o.key}#{seen[o.key]}"))
-        lines.controls += cards or [ft.Text(w("read.empty"))]
-        if rec.voice:
-            lines.controls.append(ft.Text(w("voice.heading"), size=18, weight=ft.FontWeight.BOLD))
-            said: dict[str, int] = {}
-            for o in rec.voice:
-                said[o.key] = said.get(o.key, 0) + 1
-                lines.controls.append(line_card(o, o.key if said[o.key] == 1 else f"{o.key}#{said[o.key]}"))
+        count["text"] = ft.Text(appdata.count_label(rec, w), size=18, weight=ft.FontWeight.BOLD)
+        lines.controls.append(count["text"])
+        heading = {"ai": w("read.question"), "voice": w("voice.heading"), "checks": w("read.checks")}
+        shown = None
+        refs = appdata.line_refs(rec)
+        for r in refs:
+            if r.group != shown:
+                shown = r.group
+                lines.controls.append(ft.Text(heading[r.group], size=18, weight=ft.FontWeight.BOLD))
+            lines.controls.append(line_row(r, field, day))
+        if not refs:
+            lines.controls.append(ft.Text(w("read.empty")))
         if rec.farmer_note:
             lines.controls.append(card(ft.Text(w("read.note"), size=13), ft.Text(rec.farmer_note, selectable=True)))
 
-    def line_card(o: Observation, ref: str) -> ft.Container:
-        field, day = chosen()
-        text, conf = appdata.split_conf(o.text)
-        head = appdata.key_label(o.key, w) + ("　" + w("read.confidence", c=conf) if conf else "")
-        body = [ft.Text(head, size=13, color=ft.Colors.ON_SURFACE_VARIANT), ft.Text(text, size=16, selectable=True)]
-        if o.verdict == "wrong" and o.reason:
-            body.append(ft.Text(w("read.reason", r=o.reason), size=14, color=BAD))
+    def line_row(r: appdata.LineRef, field: str, day: str) -> ft.Container:
+        """One line as one row: the text and its confidence, ✓ and ✗ a thumb apart, and
+        the reason box, which opens under ✗. Each mark is saved at once (pipeline.mark)
+        and the row and the day's count are redrawn from the file, not the rest of the list."""
+        text, conf = appdata.split_conf(r.line.text)
+        head = appdata.key_label(r.line.key, w) + ("　" + w("read.confidence", c=conf) if conf else "")
+        reason = ft.TextField(label=w("what_wrong"), value=r.line.reason or "", dense=True, multiline=True,
+                              min_lines=1, max_lines=4, visible=r.line.verdict == "wrong",
+                              text_size=15, animate_size=ft.Animation(200, ft.AnimationCurve.EASE_OUT))
+        buttons = ft.Row(spacing=24)
+        now = {"reason": r.line.reason or ""}
+        box = card(ft.Text(head, size=13, color=ft.Colors.ON_SURFACE_VARIANT), ft.Text(text, size=16, selectable=True),
+                   buttons, reason)
 
-        def save(verdict: str, reason: str | None = None):
+        def apply(line: Observation):
+            buttons.controls = verdict_row(w, line.verdict, lambda e: save("right"), lambda e: save("wrong")).controls
+            reason.visible = line.verdict == "wrong"
+            reason.value = now["reason"] = line.reason or ""
+
+        def save(verdict: str):
+            why = reason.value.strip() if verdict == "wrong" else None
             try:
-                pipeline.mark(field, date.fromisoformat(day), ref, verdict, reason or None, root=ROOT)
+                line = pipeline.mark(field, date.fromisoformat(day), r.ref, verdict, why or None, root=ROOT)
+                count["text"].value = appdata.count_label(Record.load(RECORDS, field, day), w)
             except Exception as ex:
                 dialogs.say(w("not_saved", e=ex), error=True)
                 return
-            show_lines()  # redraw from the file: what was saved is what is shown
+            apply(line)
+            if verdict == "wrong" and not why:
+                reason.focus()
             page.update()
 
-        def ask_reason(e):
-            reason = ft.TextField(label=w("what_wrong"), value=o.reason or "", multiline=True,
-                                  min_lines=2, max_lines=5, autofocus=True)
-            dialogs.form(w("wrong_title", what=appdata.key_label(o.key, w)), [reason], lambda: save("wrong", reason.value.strip()))
-
-        return card(*body, verdict_row(w, o.verdict, lambda e: save("right"), ask_reason))
+        reason.on_submit = reason.on_blur = lambda e: save("wrong") if reason.visible and (
+            reason.value.strip() != now["reason"]) else None
+        apply(r.line)
+        return box
 
     async def on_read(e):
         sel = chosen()

@@ -9,12 +9,14 @@ from __future__ import annotations
 
 import io
 import re
+from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 
 from PIL import Image, ImageOps
 
 from .inbox import AROUND, DATED, photo_place
+from .records import Observation, Record
 from .ui import Words
 
 PHOTO_SUFFIXES = {".jpg", ".jpeg"}
@@ -101,3 +103,38 @@ def shrunk_jpeg(path: Path, max_side: int) -> bytes:
     """The photo as JPEG bytes no longer than max_side, upright. A phone photo is
     several MB; the browser gets a thumbnail, and the big one only when asked."""
     return _shrunk(str(path), path.stat().st_mtime, max_side)
+
+
+# ---- marking (WP18 item 1) -------------------------------------------------
+# Every line a model wrote on a day is marked from one row; the references are
+# the ones pipeline.mark understands (key, key#2 ...; work/seen for the voice
+# lines, h3 for the checks).
+
+@dataclass
+class LineRef:
+    group: str  # "ai" | "voice" | "checks"
+    ref: str  # what pipeline.mark takes: "dominant", "zone#2", "work", "h3"
+    line: Observation
+
+
+def line_refs(rec: Record) -> list[LineRef]:
+    """The day's markable lines in file order, each with its mark reference."""
+    out = []
+    for group, pool in (("ai", rec.observations), ("voice", rec.voice), ("checks", rec.checks)):
+        seen: dict[str, int] = {}
+        for o in pool:
+            seen[o.key] = seen.get(o.key, 0) + 1
+            out.append(LineRef(group, o.key if seen[o.key] == 1 else f"{o.key}#{seen[o.key]}", o))
+    return out
+
+
+def mark_count(rec: Record) -> tuple[int, int, int]:
+    """(right, wrong, total) over every model line of the day: the AI's reading,
+    the voice lines it sorted and the checks."""
+    refs = line_refs(rec)
+    return (sum(r.line.verdict == "right" for r in refs), sum(r.line.verdict == "wrong" for r in refs), len(refs))
+
+
+def count_label(rec: Record, w: Words = Words("ja")) -> str:
+    right, wrong, total = mark_count(rec)
+    return w("read.count", right=right, wrong=wrong, total=total)

@@ -89,3 +89,28 @@ def test_shrunk_jpeg_cache_follows_file_changes(tmp_path):
     os.utime(p, (time.time() + 5, time.time() + 5))
     assert appdata.shrunk_jpeg(p, 50) != first
     assert Image.open(io.BytesIO(appdata.shrunk_jpeg(p, 50))).size == (50, 50)
+
+
+# ---- marking (WP18 item 1) -------------------------------------------------
+
+def _record():
+    from fieldnotes.records import Observation, Record
+    return Record(field="uncut", date="2026-11-02", ai_model="muse-spark-1.3", observations=[
+        Observation("overall", "Dense stand. [0.8]", "right"),
+        Observation("zone", "SE corner: cut strip [0.7]"),
+        Observation("zone", "N edge: ogi [0.6]", "wrong", "that is the neighbour's"),
+    ], voice=[Observation("work", "cut the path")], checks=[Observation("h3", "agrees: no mud [0.8]")])
+
+
+def test_line_refs_number_repeated_keys_the_way_mark_does():
+    refs = appdata.line_refs(_record())
+    assert [(r.group, r.ref) for r in refs] == [
+        ("ai", "overall"), ("ai", "zone"), ("ai", "zone#2"), ("voice", "work"), ("checks", "h3")]
+
+
+def test_mark_count_covers_every_model_line_of_the_day():
+    rec = _record()
+    assert appdata.mark_count(rec) == (1, 1, 5)
+    assert appdata.count_label(rec) == "今日の印: ✓ 1、✗ 1（AI の 5 行のうち）"
+    from fieldnotes.ui import Words
+    assert appdata.count_label(rec, Words("en")) == "Marked today: 1 ✓, 1 ✗ of 5 AI lines"
