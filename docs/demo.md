@@ -1,23 +1,33 @@
-# デモ動画（3 分）の台本と撮るもの
+# デモ動画（3 分半）の台本 — 2026-11-05 版、話す言葉も英語
 
-[design.md §6](design.md) の筋書きを、voice と刈り方の提案（WP8）と「自分の AI からつなぐ」（WP9a）、そして「畑を歩いて撮った多くの写真から判断する」（WP13、10/30 の方針）が入った形に更新したもの。畑の実験は多種の混植と混播。話すのは農家、日本語。英語の字幕は各段の *Caption* 行。撮影 11/3、提出 11/5 11:00 JST。
+2026-11-05 朝の差し替え（農家：「動画はすべて英語で作らないといけない」「台本の差し替えが必要」）。前の版（話すのは日本語、字幕は英語）はこの下に残さず、git の履歴にある。画面の文と数字は、11-05 の夜に一次資料で確かめた物と、`~/farm/video/fieldnotes-demo-provisional-2026-11-05.mp4` の各コマ（図 5 枚、Muse Spark の読み、英語の読み直しの記録）から取る。
 
-守ること（[story.md](story.md) の「注意」）: 「枯渇」と言わない（話の芯は偏在・輸出規制・輸入依存）。uncut は「放棄地と同じ姿になった区画」と正直に言う。9 日で「復活」とは言わない（見せるのは刈る前の読みと刈った後の数日）。大根・カイランは菌根菌と共生しないので、菌根の例にしない。販売は「次」と言うだけ（WP9b が入れば末尾に 15 秒）。
+守ること: 「枯渇 / depletion」と言わない（言うのは集中・依存・価格の跳ね）。uncut は「自分の畑を 1 年刈らずにおいて放棄地と同じ姿になった区画」と正直に言う。9 日で「復活」と言わない。できていない事はできていないと言う（音声の実録音はまだ、SAM の被覆はほぼ零、歩き撮りの行は未判定、歩いたのは 4 日）。AI は教える道具でなく、人と同じに間違う、と言う。数字は出所を名指しする。
 
 ## 台本
 
-| 時間 | 画面 | 話すこと | Caption |
+| 時間 | 画面 | 話すこと（英語） | 画面の文 |
 |---|---|---|---|
-| 0:00–0:25 | 徳島の畑を歩く。肥料袋と農協のチラシ（あれば）。uncut 区画: 頭上のオギとセイタカアワダチソウ | 肥料も、その使い方も、外から買っています。会社が情報システムを業者に預けてきたのと同じ形です。リン鉱石は 7 割がモロッコ、中国は輸出を絞っています。こちらは私の畑の一角。無肥料 4 年目、1 年刈らずにおいたら放棄地と同じ姿になりました。日本の耕作放棄地は約 42 万 ha、富山県ほどです | Fertiliser and the know-how both come from outside. This plot, left uncut for a year, now looks like abandoned farmland |
-| 0:25–0:40 | 図 1 枚: 電話の写真と声 → fieldnotes（SAM / Muse Spark または自宅の Glimmer / Muse Voice Transcribe）→ 手元のテキストの記録 ← 自分の AI（MCP） | fieldnotes は畑を読む裏方です。切り分けは SAM、読みは Muse Spark か自宅の Glimmer、聞き取りは Muse Voice Transcribe。記録は手元のテキスト。私はいつも使っている AI からつなぎます。チャットは作っていません | Specialist models do the work. You keep the AI you already use; the records stay at home as plain text |
-| 0:40–1:10 | 畑を歩いて電話で撮る（30 枚、数秒の早回し）→ 画面録画: 自分の AI で「uncut をきょう読んで」（MCP の `observe`、数分かかる）→ 返ってくる記録の行（`overall` / `dominant` / `acidity` / `fertility` / `dryness` / `zone` / `emerging`。`zone` と `emerging` の末尾の `(photos 30, 31)` がどの写真か）。SAM のオーバーレイはアプリの 読む 画面で（`records/<field>/<date>-overlay-<n>.jpg`） | 畑を歩いて撮るだけです。30 枚を一組として読みます。SAM が 1 枚ずつ草と裸地を切り分け、Spark が畑全体の様子と、どこがどうなっているかを場所ごとに書きます。土地の背景（段丘か氾濫平野か、土の種類、区画）は国の一次データから読みに入っています | Walk and shoot. Thirty photos read as one field: SAM segments each, Muse Spark says what is where, with the land's primary data behind it |
-| 1:10–1:40 | 画面録画: 「どこから刈る？」（MCP の `propose`、または `fieldnotes propose uncut --cut`）→ 刈り方の提案 `records/_proposals/uncut/<date>-cut.md`（行は `summary` / `basis` / `where` / `height` / `leave` / `method` / `watch` / `caution`、各行に [conf]）。切り替わって畑: 提案の場所を刈る。刈り敷き | 「どこから刈ればいい？」。最初に刈る場所と高さを一つ、理由つきで出します。根は抜かず、刈って敷く。提案に ✓ か ✗ を付けて、刈りました | "Where do I cut first?" One place, one height, the reason. Cut and lay, roots left. The farmer marks it right or wrong, then cuts |
-| 1:40–2:10 | 畑で電話の録音アプリに話す → アプリの 読む 画面: 文字起こし（記録の `## Farmer note (muse-voice-transcribe-1.0, ja)`）、`work` / `seen` の行（`## From the farmer's voice`）、AI の行に付いた `→ farmer: right/wrong (理由)` | 畑では話すだけです。「東側を刈って敷いた。ダイコンに本葉が出た。酸度の読みは違う、スギナが少ない」。文字になり、したこと・見たこと・AI への正誤に仕分けられて記録に入ります。訂正は次の読みに戻ります | In the field I only talk. It is written down and sorted into work done, things seen, and verdicts on the AI's lines. Corrections feed the next reading |
-| 2:10–2:40 | 画面録画: `fieldnotes timeline uncut`（日付ごとに `photos` / `weather` / `overall` / `zone` / `emerging` / `work` / `seen` / `farmer: n ✓, n ✗ of n AI lines` / `checks`、その日の `cut proposal: summary`、末尾に表「Coming up day by day」（出てきた種 × 日）と「Hypotheses day by day」（仮説 × 日））と `pip install fieldnotes-farm` から `fieldnotes init` までの一画面。刈った帯に混播した種が出てくる数日。新居浜の畑を `fieldnotes init` から同じ手順で読んだ画面を 5 秒 | 刈った帯にライムギとクリムソンクローバーを混播し、隣の区画は多種の混植。毎日歩いて撮ると、何をしたら、どこがどう変わったかが日付で並びます。復活はこれから何年もかかる話で、見せられるのはこの数日です。同じ道具で、別の土地（愛媛・新居浜）も `init` から読めます | The cut strip sown with a mix, the next plot mixed planting. Walk daily, and the timeline shows what was done and what changed where. Any farm starts from `fieldnotes init` |
-| 2:40–2:55 | （WP9b が入れば）買い手の AI が読み取り専用でつなぎ「肥料は本当に使っていない？」→ ✓ の行と出典。入らなければ: 記録ファイルを 1 つ見せる | （9b あり）買い手の AI がこの記録を読み、私が確かめた行だけを事実として受け取ります。（9b なし）売ることは次の課題です。この記録が、買い手に見せる根拠になります | The records become what a buyer's AI can check — the next step |
-| 2:55–3:00 | 畑の全景 | 農家一人一人が、業者や指導を通さずに、自分の畑を読めるように | Every farmer reads their own field, with the AI they already have |
+| 0:00–0:20 | 徳島の畑を歩く。uncut 区画: 頭上のオギとセイタカアワダチソウ | This is my field in Tokushima, Japan. No fertiliser for four years. I left this plot uncut for one year, and now it looks like abandoned farmland. Grass and goldenrod taller than me, with nothing brought in. | My field. No fertiliser for four years. Uncut for one year: it looks like abandoned land |
+| 0:20–0:55 | 図: 180 年の年表 → 世界の施肥 (FAOSTAT) → リン酸の輸出国・輸入国 → 埋蔵量 (USGS) → 価格 (世界銀行) | Fertiliser is the basis of industrial agriculture. For 180 years it has been bought from outside: guano, superphosphate, Haber-Bosch ammonia. Worldwide, fertiliser use per hectare rose nine-fold since 1961. Phosphate comes from a few countries: Morocco, Russia, China sell it; Brazil and India buy it. Sixty-eight percent of the reserves are in one country. Prices spiked in 2008 and 2022. This is not a Japanese problem. It is the baseline. | Fertiliser: the baseline of industrial agriculture, worldwide (FAOSTAT, USGS, World Bank) |
+| 0:55–1:10 | 図: 土壌炭素のコマ | Soil carbon tells the same story. Agriculture has lost about 133 billion tonnes of carbon from the top two metres of soil, over twelve thousand years. Whether my field is losing or gaining, only a record over years can say. | Soil carbon: 133 Pg C lost to agriculture (Sanderman et al. 2017); what my field does, the record will show |
+| 1:10–1:30 | 図: 仕組み（電話 → fieldnotes: SAM / Muse Spark / 記録 ← 自分の AI） | fieldnotes reads a field from the photos of a walk. SAM segments each photo. Muse Spark reads the walk as one field and writes plain-text lines. The records stay in my house. There is no chat of our own: I connect from the AI I already use, over MCP. Any farm, any country, any model that speaks the OpenAI format. | Specialist models do the work. The records stay at home. Your own AI reads them |
+| 1:30–1:55 | 畑を歩いて撮る早回し（32 枚）→ SAM の重ね絵 → 記録の行（英語の読み直し） | I walk the field and shoot. Thirty-two photos, filed by time and GPS. SAM takes leaves, bare soil, plumes. Spark writes what is where, with the photo numbers and a confidence. Here it found the strip I cut that afternoon. | Walk and shoot. 32 photos read as one field: zones, with photo numbers and confidence |
+| 1:55–2:20 | 記録の行に ✓ ✗ を付ける画面。「farmer: 0 ✓, 0 ✗ of 10 AI lines」。同じ写真の日本語と英語の読みが割れた行 | Every line waits for my mark: right or wrong, with a reason. An unmarked line is only the model's reading. AI must not become a tool that teaches you. AI makes mistakes, like people. Read the same photos twice and the model places the cut strip differently. That is why the farmer marks. | AI is not a teacher. It errs like a person. The farmer marks every line |
+| 2:20–2:45 | site.md の土地のデータ（筆・標高・地質・土壌、出所つき）→ 仮説と Checks → timeline の表 | The land's public data goes into the reading: the parcel, a one-metre elevation model, the geology, the soil map, each line with its source. Hypotheses about the land, written before any photo, are checked against each day's photos: agrees, disagrees, cannot tell. The real check is by growing. | Primary data with the source on every line. Hypotheses checked day by day; the real check is by growing |
+| 2:45–3:05 | 図: FAOSTAT の点線の所（2021 年の出所の変化） | Primary sources matter. But a primary source has its preconditions. This series drops twelve-fold in 2021. It is not a fall; the source changed. So primary sources must be cross-checked, and the chart says so. | A primary source has preconditions: cross-check it. FAOSTAT's 2021 break is a change of source, not a fall |
+| 3:05–3:25 | install の画面、新居浜の畑の一枚、PyPI の頁 | Any farm starts from one command. A friend's field in Ehime was read the same way. The package is on PyPI; the records format is written down so other programs and other AIs can read a farm folder. What is not done yet: voice has not been used on a real recording; the SAM cover numbers are not right on this field; my lines are still unmarked. It is all in the repository. | pip install fieldnotes-farm. What is not done is written down too |
+| 3:25–3:35 | 畑の全景 | Every farmer reads their own field, with the AI they already have — and marks what it got wrong. | Every farmer reads their own field, with the AI they already have, and marks what it got wrong |
 
-## 撮るもの（日付つき）
+数字の出所（話す物だけ）: 施肥の九倍 = FAOSTAT World N 8.6 → 71.3 kg/ha (1961 → 2024)、リン酸の輸出入 = FAOSTAT RFN 2022 国別、68 % = USGS MCS 2025（モロッコ・西サハラ 50 / 74 十億 t）、価格 = World Bank Pink Sheet、133 Pg C = Sanderman, Hengl & Fiske 2017 PNAS、FAOSTAT の断絶 = 同 CSV の flag（2020 年まで I/IFA、2021 年から A/日本の回答）。いずれも 2026-11-05 に自分で呼んで確かめた（implementation.md WP17）。
+
+## 撮るもの（11-05 朝）
+
+- 畑を歩く数秒と全景（英語の語りはこの上に）。
+- 画面の録画は要らない: 図・記録・仕組みのコマは `~/farm/video/fieldnotes-demo-provisional-2026-11-05.mp4` から切り出せる（Pillow で描いたコマ、PNG は同じフォルダー）。
+- 音声: 英語で話す。字幕は上の「画面の文」。
+
+### 前の版の撮るもの（11-03 まで、参考）
 
 | いつ | 何 |
 |---|---|
