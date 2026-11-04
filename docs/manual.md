@@ -31,7 +31,7 @@ python -m venv .venv && .venv/bin/pip install -e ".[all]"
 
 `[all]` adds the phone app (Flet) and the decoding of the phone's voice recordings (PyAV). If the `fieldnotes` command is not found, `.venv/bin/python -m fieldnotes ...` does the same.
 
-The package `fieldnotes-farm` is not on PyPI yet as of 2026-11-03; the README's `pip install fieldnotes-farm` works once it is uploaded.
+`pip install fieldnotes-farm` installs it from PyPI (since 2026-11-04); the extras are `[app,voice]`.
 
 ### 2.2 The Meta key
 

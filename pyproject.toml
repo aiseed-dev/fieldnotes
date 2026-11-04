@@ -1,9 +1,9 @@
 [project]
 # "fieldnotes" on PyPI is another project (a knowledge-graph tool); the import name stays fieldnotes
 name = "fieldnotes-farm"
-version = "0.1.0"
+version = "0.1.1"
 description = "Read a natural-farming field from photos with Meta's models (SAM 3.1, Muse Spark), keep it as plain-text records the farmer marks right or wrong, and serve them to the farmer's own AI over MCP."
-readme = {file = "README.md", content-type = "text/markdown"}
+readme = {file = "PYPI.md", content-type = "text/markdown"}  # the short page on PyPI; README.md is the repository's
 requires-python = ">=3.11"
 license = "AGPL-3.0-or-later"
 license-files = ["LICENSE"]

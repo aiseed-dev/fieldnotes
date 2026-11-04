@@ -33,7 +33,7 @@ python -m venv .venv && .venv/bin/pip install -e ".[all]"
 
 `[all]` にはスマホアプリ(Flet)と音声ファイルの変換(PyAV)が入る。`fieldnotes` コマンドが見つからないときは `.venv/bin/python -m fieldnotes ...` でも同じ。
 
-PyPI の `fieldnotes-farm` は 2026-11-03 時点でまだ公開されていない(README の `pip install fieldnotes-farm` は公開後に使える)。
+`pip install fieldnotes-farm` で PyPI から入る(2026-11-04 公開)。extra は `[app,voice]`。
 
 ### 2.2 Meta のキー
 
