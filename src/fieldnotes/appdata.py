@@ -570,3 +570,54 @@ def save_frame(png: bytes, folder: Path, view: str) -> Path:
         path = folder / f"{stem}-{n}.png"
     path.write_bytes(frame_png(png))
     return path
+
+
+# ---- the command line's work from the app (init, note, expect, propose, timeline) ---------------
+
+def init_site(records_root: Path, place: str, country: str, lat: str | float, lon: str | float,
+              climate: str = "", method: str = "") -> Path:
+    """`fieldnotes init` from the app: a new farm's site.md. Never over an existing one."""
+    from . import site
+    path = records_root / site.FILE
+    if path.exists():
+        raise FileExistsError(f"{path} is already there")
+    try:
+        lat, lon = float(lat), float(lon)
+    except (TypeError, ValueError):
+        raise ValueError("latitude and longitude are numbers (34.08, 134.44)") from None
+    country = (country or "").strip()
+    if not place.strip() or len(country) != 2 or not country.isalpha() or not -90 <= lat <= 90 or not -180 <= lon <= 180:
+        raise ValueError("a place, a two-letter country code and a latitude and longitude on the earth are needed")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    args = (place.strip(), country, lat, lon, climate.strip())
+    path.write_text(site.template(*args, method.strip()) if method.strip() else site.template(*args), encoding="utf-8")
+    return path
+
+
+def add_note(records_root: Path, text: str, section: str, day, source: str = "") -> tuple[Path, str]:
+    """`fieldnotes note` from the app: the farmer's words as a `record` line (or, with a source,
+    a document's statement as `data`) at the end of a section of site.md."""
+    from . import note
+    if not text.strip():
+        raise ValueError("nothing to note")
+    line = note.line(" ".join(text.split()), source.strip() or None, day)
+    return note.add(records_root, section, [line]), line
+
+
+def latest_record(root: Path, field: str) -> Record | None:
+    from . import pipeline
+    return pipeline.latest_record(field, root, None)
+
+
+def record_fields(root: Path) -> list[str]:
+    """The fields with photos or records, most recently used first (as Send lists them)."""
+    from .inbox import list_fields
+    return list_fields(root / "photos", root / "records")
+
+
+def file_front(path: Path) -> tuple[str, dict]:
+    """A Markdown file's text and its front matter (model, date ...), {} when it has none."""
+    text = path.read_text(encoding="utf-8")
+    m = FRONT.match(text)
+    front = yaml.safe_load(m[1]) if m else None
+    return text, front if isinstance(front, dict) else {}

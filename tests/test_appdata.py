@@ -376,3 +376,36 @@ def test_frames_are_1280x720_whatever_the_screen(tmp_path):
     a = appdata.save_frame(buf.getvalue(), tmp_path / "frames", "land")
     b = appdata.save_frame(buf.getvalue(), tmp_path / "frames", "land")
     assert a.name.startswith("land-") and a != b and Image.open(b).size == (1280, 720)
+
+
+def test_init_site_and_note_from_the_app(tmp_path):
+    import pytest
+    from datetime import date
+    rec = tmp_path / "records"
+    with pytest.raises(ValueError):
+        appdata.init_site(rec, "Ishii", "Japan", "34.08", "134.44")
+    with pytest.raises(ValueError):
+        appdata.init_site(rec, "Ishii", "JP", "north", "134.44")
+    path = appdata.init_site(rec, "Ishii, Tokushima", "jp", "34.08", "134.44", "", "no tillage")
+    text, front = appdata.file_front(path)
+    assert (front["country"], front["lat"], front["method"]) == ("JP", 34.08, "no tillage")
+    with pytest.raises(FileExistsError):
+        appdata.init_site(rec, "x", "JP", 0, 0)
+    _, line = appdata.add_note(rec, "the  N side is dry", "terrain", date(2026, 11, 5))
+    assert line.startswith("- `record` ") and "the farmer, 2026-11-05" in line
+    _, line = appdata.add_note(rec, "Paddy from 1960", "history", date(2026, 11, 5), source="village history p. 12")
+    assert line.startswith("- `data` ") and "village history p. 12" in line
+    page = appdata.land_page(rec, "site.md")
+    found = {s.heading: [x.status for x in s.lines if x.status] for s in page.sections}
+    assert "record" in found["Terrain and water"] and "data" in found["History of the land"]
+    with pytest.raises(ValueError):
+        appdata.add_note(rec, "  ", "works", date(2026, 11, 5))
+    (tmp_path / "x.md").write_text("no front")
+    assert appdata.file_front(tmp_path / "x.md") == ("no front", {})
+
+
+def test_latest_record_and_record_fields(tmp_path):
+    land_farm(tmp_path)
+    assert appdata.record_fields(tmp_path) == ["north"]
+    assert appdata.latest_record(tmp_path, "north").date == "2026-11-02"
+    assert appdata.latest_record(tmp_path, "south") is None

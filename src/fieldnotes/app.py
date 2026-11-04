@@ -680,7 +680,141 @@ def hypotheses_table(dialogs: Dialogs, w: Words, field: str) -> ft.Control:
                       ft.Row([table], scroll=ft.ScrollMode.AUTO)], spacing=4)
 
 
-def land_view(page: ft.Page, dialogs: Dialogs, w: Words):
+def land_tools(page: ft.Page, dialogs: Dialogs, w: Words, lang: str | None, after):
+    """What the command line does, from the Land view: start a farm (init) when there is no
+    site.md, add what the farmer knows (note), and per field the timeline as text, the
+    expectations (expect) and the proposals (propose). The model's work runs only on a
+    press, in a thread, and its result is shown headed by the model and the date.
+    `after` redraws the Land view once site.md changed. Returns (control, refresh)."""
+    from . import check, note, propose, site as site_mod, timeline
+    from .llm import Backend
+    box = ft.Column(spacing=10)
+    busy = ft.Row([ft.ProgressRing(width=24, height=24), ft.Text("", expand=True)], visible=False, spacing=12)
+    status = ft.Text("", selectable=True)
+    field_dd = ft.Dropdown(label=w("field"), expand=True)
+    seeds = ft.TextField(label=w("tools.seeds"))
+    running = {"on": False}
+
+    def say(text: str):
+        status.value = text
+        page.update()
+
+    async def run(what: str, fn, show):
+        """fn() in a thread with a seconds counter; show(result) after, or the error said."""
+        if running["on"]:
+            return
+        running["on"], busy.visible = True, True
+        t0 = time.monotonic()
+        llm.device_language.set(lang)
+        task = asyncio.create_task(asyncio.to_thread(fn))
+        while not task.done():
+            busy.controls[1].value = w("tools.running", what=what, s=int(time.monotonic() - t0))
+            page.update()
+            await asyncio.sleep(1)
+        running["on"], busy.visible = False, False
+        try:
+            show(task.result())
+        except Exception as ex:  # noqa: BLE001 - said on the screen, not raised
+            say(w("tools.failed", e=f"{type(ex).__name__}: {ex}"))
+
+    def init_form() -> ft.Control:
+        f = {k: ft.TextField(label=w("tools." + k)) for k in ("place", "country", "lat", "lon", "climate", "method")}
+        f["lat"].keyboard_type = f["lon"].keyboard_type = ft.KeyboardType.NUMBER
+
+        def create(e):
+            try:
+                path = appdata.init_site(RECORDS, *(f[k].value or "" for k in ("place", "country", "lat", "lon", "climate", "method")))
+            except Exception as ex:  # noqa: BLE001
+                say(w("tools.failed", e=ex))
+                return
+            say(w("tools.saved", path=path))
+            after()
+
+        return card(ft.Text(w("tools.init"), size=16, weight=ft.FontWeight.BOLD), *f.values(),
+                    ft.FilledButton(w("tools.create"), on_click=create, height=48))
+
+    def note_form() -> ft.Control:
+        text = ft.TextField(label=w("tools.note_text"), multiline=True, min_lines=2, max_lines=5)
+        source = ft.TextField(label=w("tools.note_source"))
+        section = ft.Dropdown(label=w("tools.section"), value="works", expand=True,
+                              options=[ft.DropdownOption(key=k, text=v) for k, v in note.SECTIONS.items()])
+
+        def save(e):
+            try:
+                path, line = appdata.add_note(RECORDS, text.value or "", section.value or "works", date.today(), source.value or "")
+            except Exception as ex:  # noqa: BLE001
+                say(w("tools.failed", e=ex))
+                return
+            text.value = source.value = ""
+            say(w("tools.saved", path=path) + "\n" + line)
+            after()
+
+        return ft.ExpansionTile(title=ft.Text(w("tools.note"), size=16, weight=ft.FontWeight.BOLD), expanded=False,
+                                tile_padding=0, controls=[ft.Column([text, source, ft.Row([section]),
+                                                                     ft.FilledButton(w("tools.save_note"), on_click=save, height=48)],
+                                                                    spacing=8)])
+
+    def show_file(path: Path):
+        """A file the model wrote, headed by its model and date (front matter `model`, `date`)."""
+        text, front = appdata.file_front(path)
+        say(w("tools.saved", path=path))
+        dialogs.text(w("tools.reading", model=front.get("model", "?"), date=front.get("date", "?")), text)
+
+    def on_timeline(e):
+        if field_dd.value:
+            dialogs.text(field_dd.value, timeline.timeline(field_dd.value, RECORDS))
+
+    def on_expect(e):
+        if field_dd.value:
+            fld = field_dd.value
+            page.run_task(run, w("tools.expect"), lambda: check.expect(fld, ROOT, Backend.default(), date.today().isoformat()), show_file)
+
+    def on_propose(cut: bool):
+        def go(e):
+            fld = field_dd.value
+            if not fld:
+                return
+            names = [x.strip() for x in (seeds.value or "").split(",") if x.strip()]
+
+            def work():
+                latest = appdata.latest_record(ROOT, fld)
+                if latest is None:
+                    raise FileNotFoundError(w("cli.no_record", field=fld) if w.has("cli.no_record") else f"no record of {fld} yet")
+                today = date.today().isoformat()
+                prop = (propose.propose_cut(latest, today, RECORDS, Backend.default()) if cut
+                        else propose.propose_cover_crop(latest, today, RECORDS, Backend.default(), names))
+                return prop.path_for(RECORDS, prop.field, prop.date, prop.kind)
+            page.run_task(run, w("tools.propose_cut" if cut else "tools.propose_cover"), work, show_file)
+        return go
+
+    def refresh():
+        box.controls.clear()
+        if not (RECORDS / site_mod.FILE).exists():
+            box.controls.append(init_form())
+        else:
+            box.controls.append(note_form())
+        fields = appdata.record_fields(ROOT)
+        field_dd.options = [ft.DropdownOption(key=f, text=f) for f in fields]
+        if field_dd.value not in fields:
+            field_dd.value = fields[0] if fields else None
+        if not fields:
+            box.controls.append(ft.Text(w("tools.no_fields"), size=16, color=ft.Colors.ON_SURFACE_VARIANT))
+            return
+        box.controls += [
+            ft.Text(w("tools.field_work"), size=16, weight=ft.FontWeight.BOLD), ft.Row([field_dd]),
+            ft.OutlinedButton(w("tools.timeline"), icon=ft.Icons.VIEW_TIMELINE, on_click=on_timeline, height=48),
+            ft.OutlinedButton(w("tools.expect"), icon=ft.Icons.RULE, on_click=on_expect, height=48),
+            ft.OutlinedButton(w("tools.propose_cut"), icon=ft.Icons.CONTENT_CUT, on_click=on_propose(True), height=48),
+            seeds,
+            ft.OutlinedButton(w("tools.propose_cover"), icon=ft.Icons.GRASS, on_click=on_propose(False), height=48),
+        ]
+
+    control = ft.Column([ft.Text(w("tools.title"), size=18, weight=ft.FontWeight.BOLD), box, busy, status],
+                        spacing=10, horizontal_alignment=ft.CrossAxisAlignment.STRETCH)
+    return control, refresh
+
+
+def land_view(page: ft.Page, dialogs: Dialogs, w: Words, lang: str | None = None):
     """土地: site.md and lookup.md line by line, the hypotheses day by day, and the place the
     fertiliser and soil-carbon baseline will take (WP17). Returns (view, refresh)."""
     filter_row = ft.Row(wrap=True, spacing=6, run_spacing=6)
@@ -736,7 +870,14 @@ def land_view(page: ft.Page, dialogs: Dialogs, w: Words):
         if e is not None:
             page.update()
 
+    def redraw():
+        refresh()
+        page.update()
+
+    tools, refresh_tools = land_tools(page, dialogs, w, lang, redraw)
+
     def refresh(e=None):
+        refresh_tools()
         state["site"], state["lookup"] = appdata.land_page(RECORDS, "site.md"), appdata.land_page(RECORDS, "lookup.md")
         state["found"] = appdata.hypothesis_checks(RECORDS)
         fields = appdata.check_fields(RECORDS)
@@ -757,6 +898,7 @@ def land_view(page: ft.Page, dialogs: Dialogs, w: Words):
         ft.Row([field_dd]), table,
         ft.Text(w("land.baseline"), size=18, weight=ft.FontWeight.BOLD),
         card(ft.Text(w("land.baseline_not_yet"), size=16)),
+        tools,
     ], spacing=12, horizontal_alignment=ft.CrossAxisAlignment.STRETCH)
     return view, refresh
 
@@ -863,7 +1005,7 @@ def build(page: ft.Page, here: str | None, rebuild) -> Dialogs:
     page.controls.clear()
     page.services[:] = [s for s in page.services if not isinstance(s, ft.FilePicker)]  # send_view and the voice buttons add their own
     read, refresh_read = read_view(page, dialogs, w, lang)
-    land, refresh_land = land_view(page, dialogs, w)
+    land, refresh_land = land_view(page, dialogs, w, lang)
     nouns, refresh_nouns = nouns_view(page, dialogs, w)
     views = [(send_view(page, dialogs, w, lang), None), (read, refresh_read), (land, refresh_land), (nouns, refresh_nouns)]
     holder = ft.Container()

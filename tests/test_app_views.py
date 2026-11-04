@@ -99,3 +99,20 @@ def test_hypotheses_table_and_read_state(app, tmp_path):
     refresh()
     texts = [getattr(c, "value", None) for c in read.controls[-2].controls]
     assert "No reading yet. Press Read and the AI reads the day." in texts
+
+
+def test_land_tools_offer_init_then_note_and_field_work(app, tmp_path):
+    """No site.md: the form to start the land; after it, the note form and the field buttons.
+    No button that calls a model is pressed here."""
+    from test_appdata import land_farm
+    from fieldnotes.ui import Words
+    page, w = StubPage(), Words("en")
+    tools, refresh = app.land_tools(page, app.Dialogs(page, w), w, "en", lambda: None)
+    refresh()
+    box = tools.controls[1]
+    assert len(box.controls) == 2  # the init form and "no field yet"
+    assert box.controls[1].value == "No field has photos or records yet"
+    land_farm(tmp_path)
+    refresh()
+    assert isinstance(box.controls[0], app.ft.ExpansionTile)
+    assert len(box.controls) == 8
