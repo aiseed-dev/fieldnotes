@@ -1,0 +1,100 @@
+# fieldnotes-farm to PyPI, the way officework goes out.
+#
+# PyPI Trusted Publisher (OIDC): no API token anywhere. Registered on PyPI as
+#   PyPI Project Name : fieldnotes-farm
+#   Owner             : aiseed-dev
+#   Repository name   : fieldnotes
+#   Workflow name     : publish-pypi.yml
+#   Environment name  : pypi
+#
+# Release: push a tag such as `v0.1.0` whose number equals `version` in
+# pyproject.toml. Run by hand from the Actions page only with a tag chosen
+# under "Use workflow from": from a branch the publish job is skipped and the
+# run shows green with nothing uploaded (officework, 2026-08-17), so `guard`
+# stops first and says why.
+name: publish-pypi
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Build and check only, do not upload"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  guard:
+    name: tag and version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: tag equals pyproject version
+        run: |
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            echo "dry_run: build and check only"
+            exit 0
+          fi
+          case "$GITHUB_REF" in
+            refs/tags/v*) ;;
+            *)
+              echo "::error::upload needs a tag; the ref is $GITHUB_REF. Choose a tag such as v0.1.0 under 'Use workflow from'"
+              exit 1
+              ;;
+          esac
+          TAG="${GITHUB_REF#refs/tags/v}"
+          VER=$(python3 -c 'import tomllib; print(tomllib.load(open("pyproject.toml","rb"))["project"]["version"])')
+          if [ "$TAG" != "$VER" ]; then
+            echo "::error::tag v$TAG and pyproject.toml version $VER differ. PyPI takes a file once, so this stops here"
+            exit 1
+          fi
+          echo "tag and version agree: $VER"
+
+  build:
+    needs: [guard]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: sdist and wheel
+        run: |
+          python -m pip install --quiet build twine
+          python -m build
+          python -m twine check dist/*
+      - name: install the wheel in a clean venv and run the command
+        run: |
+          python -m venv check-venv
+          check-venv/bin/pip install --quiet --find-links dist "fieldnotes-farm==$(python3 -c 'import tomllib; print(tomllib.load(open("pyproject.toml","rb"))["project"]["version"])')"
+          check-venv/bin/fieldnotes --help
+          check-venv/bin/python -c "import fieldnotes, fieldnotes.cli, fieldnotes.inbox, fieldnotes.note"
+      - name: tests
+        run: |
+          python -m pip install --quiet -e ".[dev]"
+          python -m pytest -q
+      - uses: actions/upload-artifact@v5
+        with:
+          name: dist
+          path: dist
+
+  publish:
+    needs: [build]
+    if: startsWith(github.ref, 'refs/tags/v') && !inputs.dry_run
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v5
+        with:
+          name: dist
+          path: dist
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist
+          skip-existing: true
