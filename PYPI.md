@@ -12,7 +12,7 @@ What does the work:
 ## Requirements
 
 - Python 3.11 or later
-- A Meta Model API key (dev.meta.ai → API keys) for SAM and the voice, in `MODEL_API_KEY` or in `~/.config/fieldnotes/model_api_key`
+- A Meta Model API key (dev.meta.ai → API keys) for SAM, the voice and, unless the reader is at home, Muse Spark; in `MODEL_API_KEY` or in `~/.config/fieldnotes/model_api_key`
 - Internet access for the models (unless the reader is at home), the weather and the land data; the records are written to a folder on your PC
 
 ## Install
@@ -25,15 +25,15 @@ pip install "fieldnotes-farm[app,voice]"     # plus the phone app (Flet) and m4a
 ## Use
 
 ```bash
-fieldnotes --root ~/farm/myfield init --place "Ishii, Tokushima, Japan" --country JP --lat 34.0801 --lon 134.4454
-fieldnotes --root ~/farm/myfield lookup                       # public land data → records/lookup.md
-fieldnotes --root ~/farm/myfield observe main 2026-11-02      # photos/main/2026-11-02/*.jpg → records/main/2026-11-02.md + overlays
-fieldnotes --root ~/farm/myfield show main                    # the latest record
-fieldnotes --root ~/farm/myfield mark main 2026-11-02 dominant wrong "ogi, not reed"
-fieldnotes --root ~/farm/myfield voice main memo.m4a 2026-11-02   # what you said in the field → work / seen / marks
-fieldnotes --root ~/farm/myfield propose main --cut           # where to cut first and how high → records/_proposals/
-fieldnotes --root ~/farm/myfield timeline main                # every day's lines in order
-fieldnotes --root ~/farm/myfield reader glimmer --url http://192.168.1.10:11434/v1 --model my-model --check
+fieldnotes --root ~/farm/myfield init --place "<town, region, country>" --country <ISO code> --lat <lat> --lon <lon>
+fieldnotes --root ~/farm/myfield lookup                       # public land data → records/lookup.md (Japan in detail, world maps elsewhere)
+fieldnotes --root ~/farm/myfield observe <field> <date>       # photos/<field>/<date>/*.jpg → records/<field>/<date>.md + overlays
+fieldnotes --root ~/farm/myfield show <field>                 # the latest record
+fieldnotes --root ~/farm/myfield mark <field> <date> dominant wrong "clover, not vetch"
+fieldnotes --root ~/farm/myfield voice <field> memo.m4a <date>    # what you said in the field → work / seen / marks
+fieldnotes --root ~/farm/myfield propose <field> --cut        # where to cut first and how high → records/_proposals/
+fieldnotes --root ~/farm/myfield timeline <field>             # every day's lines in order
+fieldnotes --root ~/farm/myfield reader glimmer --url http://<host>:<port>/v1 --model <name> --check   # read with a server at home
 fieldnotes --root ~/farm/myfield app                          # the phone app on the home network (port 8550)
 fieldnotes --root ~/farm/myfield mcp                          # stdio MCP server; --http for an AI on another machine
 ```
