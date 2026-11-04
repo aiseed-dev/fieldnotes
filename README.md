@@ -56,6 +56,16 @@ A user manual, from the commands as they are: [docs/manual.md](docs/manual.md) (
 
 The package is `fieldnotes-farm` on PyPI (the name `fieldnotes` there is another project); the command and the import are `fieldnotes`. Without an extra, `fieldnotes app` and voice recordings other than plain WAV say which extra to install. From a checkout: `python -m venv .venv && .venv/bin/pip install -e ".[all]"`.
 
+### What is on PyPI and what is on GitHub
+
+| Where | What | For whom |
+|---|---|---|
+| PyPI, `fieldnotes-farm` | the code that runs: `src/fieldnotes/` (the command, the phone app, the MCP server), its dependencies, the licence, and a short practical page ([PYPI.md](PYPI.md)); the source archive also carries `tests/` | anyone who wants to use it: `pip install fieldnotes-farm` |
+| GitHub, `aiseed-dev/fieldnotes` | everything: the code, this README (the why and the whole picture), `docs/` (the record format, the manuals, the design and implementation notes, the submission text), `sample/` and `sample-en/` (the author's farm as an example, 4.7 MB each), `scripts/` (the Glimmer server setup), `tests/`, the release workflow | anyone who wants to read how it works, check the records, change it, or report what breaks |
+| neither | the farmer's own farm folders (`~/farm/`), API keys, the videos | — |
+
+A PyPI version is a tag `vX.Y.Z` on GitHub; `main` moves between tags. The package reads nothing from the repository at run time, so the PyPI install is complete on its own; the sample farm and the docs are read on GitHub.
+
 ### Your own farm
 
 Each farm is a folder with `photos/` and `records/`. Start one with where it is; everything about the place (prompts, weather, maps) comes from the `records/site.md` this writes, never from the code, so a farm anywhere can be started. Today the national data below exist for Japan only and other countries get the world maps; the per-country sources for the US and Europe are listed in [docs/implementation.md](docs/implementation.md) (WP14) and not yet built:
