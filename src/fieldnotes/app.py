@@ -884,14 +884,32 @@ def build(page: ft.Page, here: str | None, rebuild) -> Dialogs:
         ft.IconButton(ft.Icons.TRANSLATE, tooltip=w("tip.language"),
                       on_click=lambda e: ask_language(page, dialogs, here, rebuild)),
         ft.IconButton(ft.Icons.MEMORY, tooltip=w("tip.reader"), on_click=lambda e: ask_reader(page, dialogs)),
-        ft.IconButton(ft.Icons.SETTINGS, tooltip=w("tip.consent"), on_click=lambda e: ask_consent(page, dialogs))])
+        ft.IconButton(ft.Icons.SETTINGS, tooltip=w("tip.consent"), on_click=lambda e: ask_consent(page, dialogs))]
+        + ([ft.IconButton(ft.Icons.CAMERA_ALT_OUTLINED, tooltip=w("tip.capture"), on_click=lambda e: page.run_task(capture, page, dialogs))]
+           if DEMO else []))
     page.add(holder)
     go()
     return dialogs
 
 
+DEMO = os.environ.get("FIELDNOTES_DEMO") == "1"  # a capture button for the video (WP18 item 9)
+
+
+async def capture(page: ft.Page, dialogs: Dialogs):
+    """The page as it is now, as a 1280x720 PNG for the video, under <root>/video/frames/."""
+    view = ["send", "read", "land", "nouns"][page.navigation_bar.selected_index]
+    try:
+        png = await page.take_screenshot()  # the device ratio: a ratio of 1 on a 2x screen draws a quarter of the page
+        path = appdata.save_frame(png, ROOT / "video" / "frames", view)
+    except Exception as ex:  # noqa: BLE001 - a failed capture is said, not raised
+        dialogs.say(dialogs.w("capture.failed", e=f"{type(ex).__name__}: {ex}"))
+        return
+    dialogs.say(dialogs.w("capture.saved", path=str(path)))
+
+
 async def main(page: ft.Page):
     page.title = "fieldnotes"
+    page.enable_screenshots = DEMO
     page.theme_mode = ft.ThemeMode.DARK  # outdoors in the sun, dark reads best and saves the battery (WP18 item 6)
     page.padding = 16
     page.scroll = ft.ScrollMode.AUTO

@@ -103,7 +103,7 @@ Start it on the PC and open it in the phone's browser (home network only; there 
 fieldnotes --root ~/farm/myfarm app --port 8550     # on the phone: http://<the PC's address>:8550
 ```
 
-On start the PC's terminal prints the address and its QR code: point the phone's camera at it. The screen is dark (easier to read outdoors).
+On start the PC's terminal prints the address and its QR code: point the phone's camera at it. The screen is dark (easier to read outdoors). For the video, start it with `FIELDNOTES_DEMO=1` in the environment: a camera button at the top right saves the screen as it is as a 1280×720 PNG under `<farm>/video/frames/` (open the app in a 1280×720 browser window for a full frame).
 
 Four views at the bottom:
 

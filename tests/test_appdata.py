@@ -364,3 +364,15 @@ def test_timeline_rows_for_the_screen(tmp_path):
     assert "| h1 Ground water" in "\n".join(timeline.checks_table(rec, "north", days))
     assert timeline.checks_rows(rec, "south", []) == ([], [])
     assert timeline.emerging_rows(rec, "north", days) == ([], {})
+
+
+def test_frames_are_1280x720_whatever_the_screen(tmp_path):
+    import io as _io
+    for size in ((375, 812), (1280, 720), (1920, 1080), (2000, 300)):
+        buf = _io.BytesIO()
+        Image.new("RGB", size, (200, 200, 200)).save(buf, "PNG")
+        im = Image.open(_io.BytesIO(appdata.frame_png(buf.getvalue())))
+        assert im.size == (1280, 720)
+    a = appdata.save_frame(buf.getvalue(), tmp_path / "frames", "land")
+    b = appdata.save_frame(buf.getvalue(), tmp_path / "frames", "land")
+    assert a.name.startswith("land-") and a != b and Image.open(b).size == (1280, 720)

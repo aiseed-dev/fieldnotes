@@ -529,3 +529,35 @@ def day_state(root: Path, field: str, day: str, rec: Record | None, w: Words = W
         if v.name not in note:
             out.append(w("state.voice_not_heard", name=v.name))
     return out
+
+
+# ---- the video from the app (WP18 item 9) ---------------------------------------
+
+FRAME = (1280, 720)
+FRAME_BG = (18, 20, 24)  # the dark screen's background, so a narrow page sits in it unnoticed
+
+
+def frame_png(png: bytes, size: tuple[int, int] = FRAME) -> bytes:
+    """A screenshot of any size as a frame of exactly `size`: scaled to fit, never cropped,
+    centred on the dark background."""
+    im = Image.open(io.BytesIO(png)).convert("RGB")
+    scale = min(size[0] / im.width, size[1] / im.height)
+    im = im.resize((max(1, round(im.width * scale)), max(1, round(im.height * scale))), Image.LANCZOS)
+    out = Image.new("RGB", size, FRAME_BG)
+    out.paste(im, ((size[0] - im.width) // 2, (size[1] - im.height) // 2))
+    buf = io.BytesIO()
+    out.save(buf, "PNG")
+    return buf.getvalue()
+
+
+def save_frame(png: bytes, folder: Path, view: str) -> Path:
+    """<folder>/<view>-<YYYYMMDD-HHMMSS>.png, 1280x720; a second capture in the same second gets -2."""
+    from datetime import datetime
+    folder.mkdir(parents=True, exist_ok=True)
+    stem = f"{view}-{datetime.now():%Y%m%d-%H%M%S}"
+    path, n = folder / f"{stem}.png", 1
+    while path.exists():
+        n += 1
+        path = folder / f"{stem}-{n}.png"
+    path.write_bytes(frame_png(png))
+    return path
