@@ -312,3 +312,11 @@ def test_reader_line_names_the_reader_without_a_key(tmp_path, monkeypatch):
     llm.set_reader("glimmer", "http://10.0.0.5:11434/v1", "muse-glimmer-30B")
     assert llm.reader_name() == llm.Backend.glimmer().name == "muse-glimmer-30B@10.0.0.5"
     assert "muse-glimmer-30B@10.0.0.5 (Muse Glimmer (a machine in the house))" in appdata.reader_line(w)
+
+
+def test_lan_urls_and_qr():
+    assert appdata.lan_urls(8550, ["192.168.1.20"]) == ["http://192.168.1.20:8550/"]
+    assert all(not a.startswith("127.") for a in appdata.lan_addresses())
+    qr = appdata.qr_text("http://192.168.1.20:8550/")
+    if qr is not None:  # qrcode comes with flet[all]
+        assert len(qr.splitlines()) > 10 and "█" in qr

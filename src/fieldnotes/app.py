@@ -56,7 +56,19 @@ def send_view(page: ft.Page, dialogs: "Dialogs", w: Words, lang: str | None = No
         expand=True,
     )
     new_field = ft.TextField(label=w("send.new_field_name"), visible=not fields)
-    day = ft.TextField(label=w("send.day"), value=date.today().isoformat())
+    day = ft.TextField(label=w("send.day"), value=date.today().isoformat(), read_only=True)  # no keyboard in the field: a calendar
+
+    def pick_day(e=None):
+        def picked(ev):
+            if ev.control.value:
+                day.value = ev.control.value.date().isoformat() if hasattr(ev.control.value, "date") else str(ev.control.value)[:10]
+                show_walk()
+                page.update()
+        page.show_dialog(ft.DatePicker(value=chosen_day() or date.today(), first_date=date(2000, 1, 1),
+                                       last_date=date(date.today().year + 1, 12, 31), on_change=picked))
+
+    day.on_click = pick_day
+    day.suffix = ft.IconButton(ft.Icons.CALENDAR_MONTH, on_click=pick_day, tooltip=w("send.day"))
     status = ft.Text("")
     progress = ft.ProgressBar(value=0, visible=False)
     sent = ft.Column(spacing=4)
@@ -877,7 +889,7 @@ def build(page: ft.Page, here: str | None, rebuild) -> Dialogs:
 
 async def main(page: ft.Page):
     page.title = "fieldnotes"
-    page.theme_mode = ft.ThemeMode.SYSTEM
+    page.theme_mode = ft.ThemeMode.DARK  # outdoors in the sun, dark reads best and saves the battery (WP18 item 6)
     page.padding = 16
     page.scroll = ft.ScrollMode.AUTO
 
@@ -897,6 +909,10 @@ async def main(page: ft.Page):
 def run(host: str = "0.0.0.0", port: int = 8550):
     os.environ.setdefault("FLET_SECRET_KEY", secrets.token_hex(16))  # signs upload URLs
     UPLOADS.mkdir(exist_ok=True)
+    for url in appdata.lan_urls(port):
+        print(f"fieldnotes app: open {url} on the phone (same Wi-Fi or Tailscale)", flush=True)
+        qr = appdata.qr_text(url)
+        print(qr if qr else "  (no QR code here: the qrcode package is not installed; type the address)", flush=True)
     ft.run(main, host=host, port=port, view=ft.AppView.WEB_BROWSER, upload_dir=str(UPLOADS))
 
 

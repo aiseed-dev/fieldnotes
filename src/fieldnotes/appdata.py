@@ -456,3 +456,42 @@ def reader_line(w: Words, device: str | None = None) -> str:
     code = llm.language(device)
     lang = llm.language_label(code) + ("" if llm.language_setting() != llm.AUTO else " " + w("reader.auto_lang"))
     return w("reader.next", name=llm.reader_name(), kind=w("reader." + llm.reader()), lang=lang)
+
+
+# ---- in the field (WP18 item 6) ---------------------------------------------
+
+def lan_addresses() -> list[str]:
+    """This PC's addresses a phone can reach: the one the default route leaves by (no packet is
+    sent), then any others of the host name; loopback is no use to a phone."""
+    import socket
+    found: list[str] = []
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            s.connect(("192.0.2.1", 9))  # TEST-NET-1: connect() on UDP only picks the route
+            found.append(s.getsockname()[0])
+    except OSError:
+        pass
+    try:
+        found += [a[4][0] for a in socket.getaddrinfo(socket.gethostname(), None, socket.AF_INET)]
+    except OSError:
+        pass
+    return [a for a in dict.fromkeys(found) if not a.startswith("127.")]
+
+
+def lan_urls(port: int, addresses: list[str] | None = None) -> list[str]:
+    return [f"http://{a}:{port}/" for a in (lan_addresses() if addresses is None else addresses)]
+
+
+def qr_text(url: str) -> str | None:
+    """The address as a QR code in text, for the PC's terminal; None when qrcode is not installed
+    (it comes with flet[all] through flet-cli, not as a dependency of its own)."""
+    try:
+        import qrcode
+    except ImportError:
+        return None
+    q = qrcode.QRCode(border=2)
+    q.add_data(url)
+    q.make(fit=True)
+    out = io.StringIO()
+    q.print_ascii(out=out, invert=True)
+    return out.getvalue()
