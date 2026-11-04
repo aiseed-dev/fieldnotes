@@ -421,12 +421,15 @@ def read_view(page: ft.Page, dialogs: Dialogs, w: Words, lang: str | None):
         lines.controls.clear()
         field, day = chosen()
         found = appdata.readings(ROOT, field, day)
+        state = [ft.Text(t, size=16, color=ft.Colors.ON_SURFACE_VARIANT, selectable=True)
+                 for t in appdata.day_state(ROOT, field, day, found[0].record if found else None, w)]
         if not found:
-            lines.controls.append(ft.Text(w("state.no_reading"), size=16, color=ft.Colors.ON_SURFACE_VARIANT))
+            lines.controls += state
             return
         rec = found[0].record
         count["text"] = ft.Text(appdata.count_label(rec, w), size=18, weight=ft.FontWeight.BOLD)
         lines.controls.append(count["text"])
+        lines.controls += state
         two = len(found) > 1
         if two:  # which reading is which, once at the top
             lines.controls.append(ft.Row([ft.Text(

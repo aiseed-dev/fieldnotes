@@ -495,3 +495,37 @@ def qr_text(url: str) -> str | None:
     out = io.StringIO()
     q.print_ascii(out=out, invert=True)
     return out.getvalue()
+
+
+# ---- honest state (WP18 item 7) ---------------------------------------------
+
+VOICE_FILE = re.compile(r"^\d{6}-voice(?:-\d+)?\.[a-z0-9]+$", re.I)
+
+
+def voice_files(photos_root: Path, field: str, day: str) -> list[Path]:
+    d = photos_root / field / day
+    return sorted(p for p in d.iterdir() if VOICE_FILE.match(p.name)) if d.is_dir() else []
+
+
+def day_state(root: Path, field: str, day: str, rec: Record | None, w: Words = Words("ja")) -> list[str]:
+    """What the day's screen cannot show, said plainly: no reading yet, SAM found nothing for
+    the prompts it was given, a recording that was never written down, a reading with no
+    lines, hypotheses not checked on this day though expect.md asks for it."""
+    from . import check
+    out: list[str] = []
+    if rec is None:
+        out.append(w("state.no_reading"))
+    else:
+        if rec.photos and not rec.observations:
+            out.append(w("state.no_lines"))
+        if rec.photos and not rec.coverage:
+            out.append(w("state.no_sam"))
+        elif rec.coverage and not any(v > 0 for v in rec.coverage.values()):
+            out.append(w("state.sam_nothing", prompts=", ".join(rec.coverage)))
+        if rec.photos and not rec.checks and check.path_for(root / "records", field).exists():
+            out.append(w("state.no_checks"))
+    note = rec.farmer_note if rec else ""
+    for v in voice_files(root / "photos", field, day):
+        if v.name not in note:
+            out.append(w("state.voice_not_heard", name=v.name))
+    return out

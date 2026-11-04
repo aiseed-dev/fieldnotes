@@ -320,3 +320,30 @@ def test_lan_urls_and_qr():
     qr = appdata.qr_text("http://192.168.1.20:8550/")
     if qr is not None:  # qrcode comes with flet[all]
         assert len(qr.splitlines()) > 10 and "█" in qr
+
+
+def test_day_state_says_what_cannot_be_shown(tmp_path):
+    from fieldnotes.records import Observation, Record
+    from fieldnotes.ui import Words
+    w = Words("en")
+    day = tmp_path / "photos" / "north" / "2026-11-03"
+    jpg(day / "173445-a.jpg")
+    (day / "174000-voice.m4a").write_bytes(b"x")
+    (day / "174500-voice-2.webm").write_bytes(b"x")
+    assert appdata.day_state(tmp_path, "north", "2026-11-03", None, w) == [
+        "No reading yet. Press Read and the AI reads the day.",
+        "Voice not transcribed: 174000-voice.m4a", "Voice not transcribed: 174500-voice-2.webm"]
+    rec = Record(field="north", date="2026-11-03", photos=["a"], ai_model="m",
+                 coverage={"leaf": 0.0, "bare soil": 0.0}, farmer_note="17:40 cut the strip (174000-voice.m4a)")
+    assert appdata.day_state(tmp_path, "north", "2026-11-03", rec, w) == [
+        "This reading has no lines: the AI wrote nothing",
+        "SAM found nothing for these prompts: leaf, bare soil",
+        "Voice not transcribed: 174500-voice-2.webm"]
+    rec.coverage, rec.observations = {}, [Observation("overall", "x")]
+    assert appdata.day_state(tmp_path, "north", "2026-11-03", rec, w) == [
+        "No SAM cover in this record", "Voice not transcribed: 174500-voice-2.webm"]
+    land_farm(tmp_path)  # expect.md for north: a day without checks says so
+    rec.coverage = {"leaf": 12.0}
+    assert appdata.day_state(tmp_path, "north", "2026-11-03", rec, w) == [
+        "The hypotheses were not checked on this day's photos", "Voice not transcribed: 174500-voice-2.webm"]
+    assert appdata.voice_files(tmp_path / "photos", "none", "2026-11-03") == []
