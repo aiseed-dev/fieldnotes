@@ -1,4 +1,4 @@
-# fieldnotes — observing a natural-farming field together with AI
+# fieldnotes — reading a farm field together with AI
 
 Built for the Meta Global AI Developer Hackathon (26 Oct – 4 Nov 2026), track *Indie Developer*, theme *Build for Your World*.
 
@@ -8,21 +8,21 @@ Farming today runs on things bought from outside: fertiliser from suppliers, and
 
 The way out is the same as in IT: buy less from outside and rebuild around the field's own strength — roots and mycorrhizal fungi cycling phosphorus. But every field has different soil and different weeds, so no single method can be handed down from above. Instead, AI reads each field — its terrain, geology, weeds and weather — and the farmer looks, works, and checks the AI against what actually happens.
 
-The same weakness leaves land behind: about 423,000 ha of Japanese farmland was abandoned as of the 2015 census, roughly the size of Toyama Prefecture. But the force that takes land back is the soil's own strength. My field lies just south of the Median Tectonic Line in Tokushima, in the same setting as Masanobu Fukuoka's farm in Iyo, Ehime, and I am testing his natural farming here. It has had no fertiliser for four years; one plot I left uncut for a single year is now goldenrod and Amur silver grass (ogi) taller than I am, grown with nothing brought in. The soil here is rich in minerals; what is missing is the way for plants to take them up themselves — roots and mycorrhizal fungi. So the tool goes one step further on such land: it reads it and proposes where and how to cut first to bring it back into crops.
+The same weakness leaves land behind: about 423,000 ha of Japanese farmland was abandoned as of the 2015 census, roughly the size of Toyama Prefecture. But the force that takes land back is the soil's own strength. My field lies just south of the Median Tectonic Line in Tokushima, in the same setting as Masanobu Fukuoka's farm in Iyo, Ehime. I farm it this way because I want to try Fukuoka's natural farming, and I want the records to show what it gains and what it loses; Kawaguchi's 自然農, or cutting the weeds and laying them, are choices beside it, and the tool takes no side. It has had no fertiliser for four years; one plot I left uncut for a single year is now goldenrod and Amur silver grass (ogi) taller than I am, grown with nothing brought in. The soil here is rich in minerals; what is missing is the way for plants to take them up themselves — roots and mycorrhizal fungi. So the tool goes one step further on such land: it reads it and proposes where and how to cut first to bring it back into crops.
 
 Neither the government nor the dealers teach how to cycle what is already in the soil through roots and fungi. It is like SaaS and open source: a SaaS vendor shows you how to use it, while with open source you have to learn on your own. Open source still works, because you can read the inside, what people learn is kept and shared as records, and now AI helps you read. A field can work the same way.
 
-This project is that tool, built on my own field in Tokushima, Shikoku (no tillage, no fertiliser, no pesticides). It lets one farmer read their own field without going through a dealer or an advisor: an AI-native IT department, for a field.
+This project is that tool, built on my own field in Tokushima, Shikoku: a former paddy, no fertiliser, no pesticide, with a plough pan at 20 cm that has to be broken — no tillage and cutting the weeds are not premises here, and the app has no method of its own. It is for any farmer, whatever way they farm, to read their own field without going through a dealer or an advisor, and to keep the record themselves, nothing hidden and every line with its source: an AI-native IT department, for a field.
 
 Growing is not enough on its own. The biggest problem is selling. Selling, too, has been handed to the co-op and the wholesale market. Today's distribution assumes uniform shape and steady volume, and it does not carry to the buyer how a field was grown. No one supports the selling of naturally farmed produce either. So natural farming has to build its own way to sell. The records this tool keeps — the field's soil and weeds, what was done, how the crops grew, and the farmer's own checks on every reading — are first the ground for growing, and the same records become the ground for a buyer's trust.
 
 ## What it does
 
-I photograph the same spots regularly with my phone and look at them together with the AI. The point is not a daily habit but to build up knowledge of *how to improve this field*: what I did (how I cut, what I sowed, when), how the weeds and crops changed, and whether it worked. During the hackathon I shoot daily to get enough data. Each observation:
+I walk the field with my phone and look at the photos together with the AI. The point is to build up knowledge of *how to improve this field*: what I did (how I cut, what I sowed, when), how the weeds and crops changed, and whether it worked. During the hackathon the field was walked on four days (2026-10-27, 11-01, 11-02, 11-03), not daily. Each observation:
 
-1. **Segment** crops, weeds, bare soil and animal tracks with **SAM 3.1** → cover % per concept per day.
+1. **Segment** leaves, flower clusters, bare soil and the field's own noun phrases with **SAM 3.1** → cover % per concept per day. On the first field the cover came out near zero with the prompts as they are (the evaluation in [docs/submission.md](docs/submission.md) says so); the overlays show what it took, and the numbers stay in the record as they are.
 2. **Describe** today against the previous days with **Muse Spark 1.3** (or **Muse Glimmer** running locally): what changed in leaf colour, weed height, soil dryness, animal signs.
-3. **Verify**: I mark each AI observation right or wrong, by tapping or by voice. In the field I say what I did and saw; **Muse Voice Transcribe** writes it down in my language, and Muse Spark sorts it into work done, things seen, and verdicts on the AI's lines.
+3. **Verify**: I mark each AI observation right or wrong, by tapping, on the command line or from my own AI. The voice path — I say in the field what I did and saw, **Muse Voice Transcribe** writes it down in my language, Muse Spark sorts it into work done, things seen and verdicts — is built and tested with mocked answers; as of 2026-11-05 no real recording has been through it, and the AI lines of the walks are still unmarked (0 of 10 on 11-02).
 4. **Record** everything as plain Markdown that any person or model can read later. Corrections feed back into the next day's prompt. What every file and line in a farm folder means is written down in [docs/records.md](docs/records.md), so other programs and other AIs can read the folder.
 
 ## What was built during the hackathon
@@ -40,8 +40,8 @@ Everything in this repository: `src/fieldnotes/` (`segment.py`, `concepts.py`, `
 |---|---|---|
 | Segment | `sam-3.1` | Meta Model API, one concept per request, masks → cover % (`src/fieldnotes/segment.py`) |
 | Describe | `muse-spark-1.3` | Meta Model API, several days' photos in one request, JSON out (`src/fieldnotes/describe.py`) |
-| Describe (local) | Muse Glimmer 30B | llama.cpp `llama-server` on a Ryzen AI Max+ 395 box in the house; same code, different `base_url`. Switch with `fieldnotes reader glimmer` or the app's 読む AI setting |
-| Verify | `muse-voice-transcribe-1.0` | the farmer's recordings, language-biased to the farmer's language, with the field's plant names as keywords (`src/fieldnotes/voice.py`); Muse Spark then sorts what was said |
+| Describe (local) | Muse Glimmer 30B | llama.cpp `llama-server` on a Ryzen AI Max+ 395 box in the house; same code, different `base_url`. Switch with `fieldnotes reader glimmer` or the app's 読む AI setting. So far it answers in English and takes about 212 s a photo on that box |
+| Verify | `muse-voice-transcribe-1.0` | the farmer's recordings, language-biased to the farmer's language, with the field's plant names as keywords (`src/fieldnotes/voice.py`); Muse Spark then sorts what was said. Not yet used on a real recording (2026-11-05) |
 
 ## Running
 
@@ -58,11 +58,11 @@ The package is `fieldnotes-farm` on PyPI (the name `fieldnotes` there is another
 
 ### Your own farm
 
-Each farm is a folder with `photos/` and `records/`. Start one with where it is; everything about the place (prompts, weather, maps) comes from the `records/site.md` this writes, never from the code, so it works for any farm in any country:
+Each farm is a folder with `photos/` and `records/`. Start one with where it is; everything about the place (prompts, weather, maps) comes from the `records/site.md` this writes, never from the code, so a farm anywhere can be started. Today the national data below exist for Japan only and other countries get the world maps; the per-country sources for the US and Europe are listed in [docs/implementation.md](docs/implementation.md) (WP14) and not yet built:
 
 ```bash
 mkdir ~/myfarm && cd ~/myfarm
-fieldnotes init --place "Nakuru, Kenya" --country KE --lat -0.30 --lon 36.07 --climate "highland, two rainy seasons" --method "no tillage; weeds are cut and laid as mulch"
+fieldnotes init --place "Nakuru, Kenya" --country KE --lat -0.30 --lon 36.07 --climate "highland, two rainy seasons" --method "ploughed once a year; no herbicide; maize and beans in rotation"
 ```
 
 `--method` is how the farm is worked, in your own words; it goes into every prompt. The app has no method of its own: leave it out and `site.md` says `not recorded yet`, and so do the prompts, until you write the line.
@@ -80,7 +80,7 @@ Data sources used by `lookup` (each line in `records/lookup.md` names its own):
 
 ### The sample farm
 
-`sample/` is the first farm: a natural-farming field in Tokushima, Japan, just south of the Median Tectonic Line, with its site profile, photos and records (fields `row1`, `mix1`, `uncut`). Try the commands on it with `--root sample`, or read it as an example of what a farm folder becomes ([docs/records.md](docs/records.md) says what each file and line means). Its readings are in Japanese, the farmer's language. `sample-en/` is the same farm, same photos, read again by Muse Spark with the language set to English (`fieldnotes language en`), not translated: try `fieldnotes --root sample-en app`.
+`sample/` is the first farm: the author's field in Tokushima, Japan, just south of the Median Tectonic Line (how it is worked is in its `site.md`), with its site profile, photos and records (fields `row1`, `mix1`, `uncut`). It holds single-photo days only (10-27, 10-28), the 10-29 cut proposal and the 10-30 expectations, none of them marked yet; the walk readings (`zone`, `emerging`, `Checks`) exist only in the author's private folders as of 2026-11-05. Try the commands on it with `--root sample`, or read it as an example of what a farm folder becomes ([docs/records.md](docs/records.md) says what each file and line means). Its readings are in Japanese, the farmer's language. `sample-en/` is the same farm, same photos, read again by Muse Spark with the language set to English (`fieldnotes language en`), not translated: try `fieldnotes --root sample-en app`.
 
 ### The neighbourhood
 
@@ -88,7 +88,7 @@ Now and then, photograph around the fields too: the neighbours' fields and verge
 
 ### Photos and voice, no typing
 
-The farmer only takes photos and talks. Record with the phone's own voice recorder and send the file from the app (「声を送る」 on Send, 「声で答える」 on Read), or `fieldnotes voice uncut memo.m4a`. The recording is kept next to the day's photos, written down by Muse Voice Transcribe, and sorted by Muse Spark into:
+The farmer is meant to take photos and talk, nothing else. The voice path below is built and tested with mocked answers; no real recording has been through it yet (2026-11-05). Record with the phone's own voice recorder and send the file from the app (「声を送る」 on Send, 「声で答える」 on Read), or `fieldnotes voice uncut memo.m4a`. The recording is kept next to the day's photos, written down by Muse Voice Transcribe, and sorted by Muse Spark into:
 
 * `work`: what the farmer did (cut, sowed, mulched, harvested);
 * `seen`: what the farmer saw;

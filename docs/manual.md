@@ -4,11 +4,11 @@ Written from the code as of 2026-11-03 (`fieldnotes --help` and every subcommand
 
 ## 1. What it is
 
-fieldnotes reads a farmer's field together with AI and keeps the reading as plain-text records at home. The farmer only takes photos and talks.
+fieldnotes reads a farmer's field together with AI and keeps the reading as plain-text records at home. The farmer takes photos, marks lines, and can talk instead of typing. It is for any farm, whatever way it is worked; the app has no method of its own.
 
 - **SAM 3.1** segments crops, weeds and bare soil in each photo and gives their cover (%).
 - **Muse Spark** reads the photos against the previous days and the public data about the land, and writes lines.
-- **Muse Voice Transcribe** writes down what the farmer said in the field; Spark sorts it into what was done, what was seen, and ✓ / ✗ on the AI's lines.
+- **Muse Voice Transcribe** writes down what the farmer said in the field; Spark sorts it into what was done, what was seen, and ✓ / ✗ on the AI's lines. (Built; not yet used on a real recording as of 2026-11-05.)
 
 Every line the AI writes can be marked `right` (✓) or `wrong` (✗) with a reason, and the corrections feed the next reading. There is no chat screen: connect from the AI you already use (Claude, ChatGPT, Muse Code ...) over MCP, or use the command line or the phone app. The records are Markdown that any person or model can read.
 
