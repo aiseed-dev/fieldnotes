@@ -12,6 +12,23 @@
         "8550"
       ],
       "port": 8550
+    },
+    {
+      "name": "app",
+      "runtimeExecutable": "env",
+      "runtimeArgs": [
+        "PYTHONPATH=src",
+        "XDG_CONFIG_HOME=/tmp/claude-1001/-home-dev-dev-fieldnotes--claude-worktrees-muse-app-57226f/a3e25311-73b4-4452-8375-7f39ba2650c7/scratchpad/config",
+        ".venv/bin/python",
+        "-m",
+        "fieldnotes",
+        "--root",
+        "/tmp/claude-1001/-home-dev-dev-fieldnotes--claude-worktrees-muse-app-57226f/a3e25311-73b4-4452-8375-7f39ba2650c7/scratchpad/farm",
+        "app",
+        "--port",
+        "8550"
+      ],
+      "port": 8550
     }
   ]
 }

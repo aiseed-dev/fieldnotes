@@ -103,15 +103,18 @@ Start it on the PC and open it in the phone's browser (home network only; there 
 fieldnotes --root ~/farm/myfarm app --port 8550     # on the phone: http://<the PC's address>:8550
 ```
 
-Three views at the bottom:
+On start the PC's terminal prints the address and its QR code: point the phone's camera at it. The screen is dark (easier to read outdoors). For the video, start it with `FIELDNOTES_DEMO=1` in the environment: a camera button at the top right saves the screen as it is as a 1280×720 PNG under `<farm>/video/frames/` (open the app in a 1280×720 browser window for a full frame).
+
+Four views at the bottom:
 
 | View | What it does |
 |---|---|
-| **Send** | pick the field and the day, "Take or choose, and send" for photos (a new field name can be made here). "Send your voice (what you did and saw)" sends a file from the phone's recorder |
-| **Read** | pick the field and the day, "Read" runs the observation (minutes). Look at the photos and the SAM overlays, mark each AI line ✓ or ✗ (with a reason). "Answer by voice (✓ ✗ and why)" does the marking by voice |
+| **Send** | pick the field and the day (from a calendar), "Take or choose, and send" for photos (a new field name can be made here). "Send your voice (what you did and saw)" sends a file from the phone's recorder |
+| **Read** | pick the field and the day, "Read" runs the observation (minutes). Look at the photos and the SAM overlays, mark each AI line ✓ or ✗ (with a reason). "Answer by voice (✓ ✗ and why)" does the marking by voice. Under the title: which model will read next and in which language. Every reading is headed by its model and date; what the screen cannot show is said ("No reading yet", "SAM found nothing for these prompts", "Voice not transcribed") |
+| **Land** | `site.md` and `lookup.md` line by line: `data` with its source (addresses open), `record` in the farmer's words, `hypothesis` with how to check it and what each day's photos said; the hypotheses-by-day table; the fertiliser and soil-carbon baseline is marked "not yet". At the bottom, the command line's work: start the land (`init`) when there is no `site.md`, add what you know (`note`), and per field the timeline as text, the expectations (`expect`) and the proposals (`propose`, a cut or cover crops); the AI's results open headed by the model and the date |
 | **Nouns** | the noun phrases SAM is asked to find ("yellow flower clusters" ...) and what each found last time; ✓ / ✗ and a replacement noun |
 
-Top right: the 文A button sets the screen's and the AI's language, the gear changes the training consent. Browsers allow the microphone only on HTTPS or localhost, so record with the phone's own recorder and send the file (m4a, 3gp, ogg, webm or WAV).
+Top right: the 文A button sets the screen's and the AI's language, the chip button picks the reading AI, the gear changes the training consent. Browsers allow the microphone only on HTTPS or localhost, so record with the phone's own recorder and send the file (m4a, 3gp, ogg, webm or WAV).
 
 In a desktop browser pane the Japanese text may show as boxes; that is the renderer's font, not the app. The phone shows it properly.
 
