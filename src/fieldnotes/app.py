@@ -8,10 +8,12 @@ and open it on the phone (at home over Wi-Fi, in the field through
 Tailscale). Pick the field, take or choose photos, send. Each photo lands in
 photos/<field>/<date>/ (see inbox.py); no folder work by hand.
 
-Three views, switched from the bar at the bottom (docs/design.md §1.13):
+The views, switched from the bar at the bottom (docs/design.md §1.13):
 送る / Send (this file's send_view), 読む / Read (run the pipeline, see the SAM
-overlays and the AI's lines, mark each right or wrong) and 名詞 / Nouns (the
-SAM noun phrases of a field, marked right or wrong with a replacement).
+overlays and the AI's lines, mark each right or wrong), 土地 / Land (site.md
+and lookup.md line by line with their sources, the hypotheses checked day by
+day) and 名詞 / Nouns (the SAM noun phrases of a field, marked right or wrong
+with a replacement).
 Send and Read also take a voice recording (voice_button, voice.py): what the
 farmer did and saw, or which lines are right or wrong and why.
 
@@ -258,6 +260,17 @@ class Dialogs:
             actions=[ft.TextButton(self.w("cancel"), on_click=lambda e: self.page.pop_dialog(), height=48),
                      ft.FilledButton(self.w("save"), on_click=save, height=48)],
             inset_padding=16,
+        ))
+
+    def text(self, title: str, body: str):
+        """A long text to read and select, whole."""
+        w = min(self.page.width or 360, 900) - 32
+        h = (self.page.height or 640) - 200
+        self.page.show_dialog(ft.AlertDialog(
+            title=ft.Text(title, size=16),
+            content=ft.Container(ft.Column([ft.Text(body, size=15, selectable=True)], scroll=ft.ScrollMode.AUTO), width=w, height=h),
+            actions=[ft.TextButton(self.w("close"), on_click=lambda e: self.page.pop_dialog(), height=48)],
+            content_padding=12, inset_padding=8,
         ))
 
     def photo(self, path: Path, title: str):
@@ -580,6 +593,156 @@ def nouns_view(page: ft.Page, dialogs: Dialogs, w: Words):
     return view, refresh
 
 
+STATUS_COLOR = {"data": ft.Colors.LIGHT_BLUE_400, "record": ft.Colors.LIGHT_GREEN_400, "hypothesis": ft.Colors.AMBER_400,
+                "supported": ft.Colors.TEAL_300, "refuted": ft.Colors.RED_300, "reference": ft.Colors.BLUE_GREY_300}
+
+
+def source_text(text: str, size: int) -> ft.Text:
+    """A source line, its addresses as links."""
+    return ft.Text(spans=[ft.TextSpan(t, url=u, style=ft.TextStyle(color=ft.Colors.PRIMARY, decoration=ft.TextDecoration.UNDERLINE) if u else None)
+                          for t, u in appdata.link_parts(text)],
+                   size=size, color=ft.Colors.ON_SURFACE_VARIANT, selectable=True)
+
+
+def land_row(line: appdata.LandLine, found: dict, w: Words) -> ft.Control:
+    """One line of site.md or lookup.md: its status, the claim, who says so, and for a
+    hypothesis how it is checked and what the days' photos said. A line with no status
+    ("not reached on ...") stands as the file words it."""
+    if not line.status:
+        return ft.Text(line.text, size=14, color=ft.Colors.ON_SURFACE_VARIANT, selectable=True)
+    color = STATUS_COLOR.get(line.status, ft.Colors.OUTLINE)
+    label = "land.status." + line.status
+    body: list[ft.Control] = [
+        ft.Text(w(label) if w.has(label) else line.status, size=13, weight=ft.FontWeight.BOLD, color=color),
+        ft.Text(line.text, size=16, selectable=True),
+    ]
+    body.append(source_text(line.source, 13) if line.source
+                else ft.Text(w("land.no_source"), size=13, italic=True, color=ft.Colors.ON_SURFACE_VARIANT))
+    if line.check:
+        body.append(ft.Text(w("land.check", check=line.check), size=14, selectable=True))
+    if line.status == "hypothesis":
+        checks = appdata.checks_of(found, line)
+        if not checks:
+            body.append(ft.Text(w("land.no_check"), size=14, color=ft.Colors.ON_SURFACE_VARIANT))
+        for c in checks:
+            if c.by_day:
+                days = ", ".join(f"{appdata.short_day(d)} {appdata.answer_label(o, w)}" for d, o in c.by_day)
+                text = w("land.by_day", field=c.field, id=c.id, days=days)
+            else:
+                text = w("land.not_checked_yet" if c.visible else "land.not_in_photos", field=c.field, id=c.id)
+            body.append(ft.Text(text, size=14, color=ft.Colors.ON_SURFACE_VARIANT))
+    return ft.Container(ft.Column(body, spacing=4), padding=ft.Padding.only(left=10, top=4, bottom=4),
+                        border=ft.Border.only(left=ft.BorderSide(3, color)))
+
+
+def hypotheses_table(dialogs: Dialogs, w: Words, field: str) -> ft.Control:
+    """timeline's hypotheses table on the screen: one row per hypothesis, one column per day;
+    a tap on a row or a cell shows the whole line."""
+    from . import timeline
+    days, rows = timeline.checks_rows(RECORDS, field, timeline.days_of(RECORDS, field))
+    if not days:
+        return ft.Text(w("land.table_none", field=field), size=16, color=ft.Colors.ON_SURFACE_VARIANT)
+
+    def cell(h: str, words: str, o) -> ft.DataCell:
+        if o is None:
+            return ft.DataCell(ft.Text("—", size=14, color=ft.Colors.ON_SURFACE_VARIANT))
+        color = {"right": GOOD, "wrong": BAD}.get(o.verdict)
+        return ft.DataCell(ft.Text(appdata.answer_label(o, w), size=14, color=color),
+                           on_tap=lambda e: dialogs.text(h, (words + "\n\n" if words else "") + o.to_line()[2:]))
+
+    def name(h: str, words: str) -> ft.DataCell:
+        short = words if len(words) <= 40 else words[:39] + "…"
+        return ft.DataCell(ft.Text(f"{h} {short}", size=14, width=300, no_wrap=False, max_lines=2),
+                           on_tap=lambda e: dialogs.text(h, words or h))
+
+    table = ft.DataTable(
+        columns=[ft.DataColumn(ft.Text(w("land.table_head"), size=14))] + [ft.DataColumn(ft.Text(appdata.short_day(d), size=14)) for d in days],
+        rows=[ft.DataRow([name(h, words)] + [cell(h, words, cells.get(d)) for d in days]) for h, words, cells in rows],
+        column_spacing=16, horizontal_margin=4, data_row_min_height=44, data_row_max_height=60, heading_row_height=36)
+    return ft.Row([table], scroll=ft.ScrollMode.AUTO)
+
+
+def land_view(page: ft.Page, dialogs: Dialogs, w: Words):
+    """土地: site.md and lookup.md line by line, the hypotheses day by day, and the place the
+    fertiliser and soil-carbon baseline will take (WP17). Returns (view, refresh)."""
+    filter_row = ft.Row(wrap=True, spacing=6, run_spacing=6)
+    body = ft.Column(spacing=12)
+    field_dd = ft.Dropdown(label=w("field"), expand=True)
+    table = ft.Column(spacing=8)
+    state: dict = {"status": None, "site": None, "lookup": None, "found": {}}
+
+    def show_lines():
+        site, lookup = state["site"], state["lookup"]
+        pages = [p for p in (site, lookup) if p]
+        counts = appdata.status_counts(pages)
+
+        def chip(key: str | None, label: str) -> ft.Chip:
+            def pick(e):
+                state["status"] = None if state["status"] == key else key
+                show_lines()
+                page.update()
+            return ft.Chip(ft.Text(label, size=14), selected=state["status"] == key, on_select=pick, show_checkmark=False)
+
+        filter_row.controls = [chip(None, w("land.all", n=sum(counts.values())))] + [
+            chip(k, f"{w('land.status.' + k).split(' ')[0]} {n}") for k, n in counts.items()]
+        body.controls.clear()
+        for head, p, empty in ((w("land.site"), site, "land.no_site"),
+                               (w("land.lookup", fetched=(lookup.front.get("fetched", "—") if lookup else "—")), lookup, "land.no_lookup")):
+            body.controls.append(ft.Text(head, size=18, weight=ft.FontWeight.BOLD))
+            if not p:
+                body.controls.append(ft.Text(w(empty), size=16, color=ft.Colors.ON_SURFACE_VARIANT))
+                continue
+            if p is site and p.front:
+                body.controls.append(card(*[ft.Text(f"{w('land.front.' + k) if w.has('land.front.' + k) else k}: {v}", size=14, selectable=True)
+                                            for k, v in p.front.items()]))
+            for s in p.sections:
+                lines = [x for x in s.lines if state["status"] in (None, x.status)]
+                if state["status"] and not lines:
+                    continue
+                rows = [land_row(x, state["found"], w) for x in lines] or [
+                    ft.Text(w("land.section_empty"), size=14, color=ft.Colors.ON_SURFACE_VARIANT)]
+                body.controls.append(ft.ExpansionTile(
+                    title=ft.Text(f"{s.heading} ({len(s.lines)})", size=16, weight=ft.FontWeight.BOLD),
+                    controls=[ft.Column(rows, spacing=10, horizontal_alignment=ft.CrossAxisAlignment.STRETCH)],
+                    expanded=len(s.lines) <= 12, tile_padding=0, controls_padding=ft.Padding.only(bottom=8),
+                    expanded_cross_axis_alignment=ft.CrossAxisAlignment.STRETCH))
+            body.controls.append(ft.TextButton(w("land.whole_file", name=p.name), height=48,
+                                               on_click=lambda e, p=p: dialogs.text(p.name, p.text)))
+
+    def show_table(e=None):
+        table.controls.clear()
+        if field_dd.value:
+            table.controls.append(hypotheses_table(dialogs, w, field_dd.value))
+        else:
+            table.controls.append(ft.Text(w("land.table_no_field"), size=16, color=ft.Colors.ON_SURFACE_VARIANT))
+        if e is not None:
+            page.update()
+
+    def refresh(e=None):
+        state["site"], state["lookup"] = appdata.land_page(RECORDS, "site.md"), appdata.land_page(RECORDS, "lookup.md")
+        state["found"] = appdata.hypothesis_checks(RECORDS)
+        fields = appdata.check_fields(RECORDS)
+        field_dd.options = [ft.DropdownOption(key=f, text=f) for f in fields]
+        if field_dd.value not in fields:
+            field_dd.value = fields[0] if fields else None
+        field_dd.visible = len(fields) > 1
+        show_lines()
+        show_table()
+
+    field_dd.on_select = show_table
+    view = ft.Column([
+        ft.Text(w("land.title"), size=22, weight=ft.FontWeight.BOLD),
+        ft.Text(w("land.help"), size=14),
+        filter_row, body,
+        ft.Text(w("land.table"), size=18, weight=ft.FontWeight.BOLD),
+        ft.Text(w("land.table_help"), size=14),
+        ft.Row([field_dd]), table,
+        ft.Text(w("land.baseline"), size=18, weight=ft.FontWeight.BOLD),
+        card(ft.Text(w("land.baseline_not_yet"), size=16)),
+    ], spacing=12, horizontal_alignment=ft.CrossAxisAlignment.STRETCH)
+    return view, refresh
+
+
 def ask_consent(page: ft.Page, dialogs: Dialogs, first: bool = False):
     """The farmer decides, before anything is sent, whether Meta may train on it."""
     w = dialogs.w
@@ -682,8 +845,9 @@ def build(page: ft.Page, here: str | None, rebuild) -> Dialogs:
     page.controls.clear()
     page.services[:] = [s for s in page.services if not isinstance(s, ft.FilePicker)]  # send_view and the voice buttons add their own
     read, refresh_read = read_view(page, dialogs, w, lang)
+    land, refresh_land = land_view(page, dialogs, w)
     nouns, refresh_nouns = nouns_view(page, dialogs, w)
-    views = [(send_view(page, dialogs, w, lang), None), (read, refresh_read), (nouns, refresh_nouns)]
+    views = [(send_view(page, dialogs, w, lang), None), (read, refresh_read), (land, refresh_land), (nouns, refresh_nouns)]
     holder = ft.Container()
 
     def go(e=None):
@@ -696,6 +860,7 @@ def build(page: ft.Page, here: str | None, rebuild) -> Dialogs:
     page.navigation_bar = ft.NavigationBar(
         destinations=[ft.NavigationBarDestination(icon=ft.Icons.PHOTO_CAMERA, label=w("nav.send")),
                       ft.NavigationBarDestination(icon=ft.Icons.VISIBILITY, label=w("nav.read")),
+                      ft.NavigationBarDestination(icon=ft.Icons.TERRAIN, label=w("nav.land")),
                       ft.NavigationBarDestination(icon=ft.Icons.LABEL, label=w("nav.nouns"))],
         selected_index=0, on_change=go)
     page.appbar = ft.AppBar(title=ft.Text("fieldnotes"), actions=[

@@ -208,3 +208,91 @@ def test_strip_pairs_photos_with_overlays_and_labels(tmp_path):
     assert items[0].overlay.name == "2026-10-28-overlay-1.jpg" and items[1].overlay is None
     assert items[0].label.startswith("1 of 3, 10:00, NW corner")
     assert appdata.strip(root, "uncut", "2026-10-29") == []
+
+
+# ---- the land and the baseline (WP18 item 4) ------------------------------
+
+SITE = """---
+place: Ishii, Tokushima, Japan
+country: JP
+---
+# The land
+
+- `data` — public data with its source.
+- `hypothesis` — a reading, not yet checked.
+
+## Terrain and water
+
+- `data` 4 m above the channel to the N. — GSI DEM 1 m, https://maps.gsi.go.jp/xyz/dem/{z}/{x}/{y}.txt and https://example.org/dem.
+- `record` The N side is dry (farmer, 2026-11-01).
+- `hypothesis` Ground water is not near the surface here [0.6]. — Opus (Claude), 2026-11-01. Check (by growing): see below.
+- `hypothesis` A plough pan at 15–20 cm [0.7]. — Opus (Claude), 2026-11-01. Check: daikon roots that fork.
+- not reached on 2026-11-02
+
+## What the farmer knows works here
+
+"""
+
+
+def land_farm(root: Path) -> Path:
+    from fieldnotes.records import Observation, Record, notes_to_markdown
+    rec = root / "records"
+    rec.mkdir(parents=True, exist_ok=True)
+    (rec / "site.md").write_text(SITE, encoding="utf-8")
+    hyps = {"h1": "Ground water is not near the surface here [0.6]. — Opus (Claude), 2026-11-01. Check (by growing): see below.",
+            "h2": "A plough pan at 15–20 cm [0.7]. — Opus (Claude), 2026-11-01. Check: daikon roots that fork."}
+    p = rec / "_checks" / "north" / "expect.md"
+    p.parent.mkdir(parents=True)
+    p.write_text(notes_to_markdown({"field": "north", "kind": "expect", "model": "m", "hypotheses": hyps}, "Expectations (m)",
+                                   [Observation("h1", "holds: dry soil; fails: wet soil; visible: yes"),
+                                    Observation("h2", "holds: forked roots; fails: straight; visible: no")]), encoding="utf-8")
+    for day, verdict in (("2026-11-01", "right"), ("2026-11-02", None)):
+        Record(field="north", date=day, photos=["a"], ai_model="m", observations=[Observation("overall", "x")],
+               checks=[Observation("h1", "agrees: the soil looks dry [0.6]", verdict)], checks_model="m").save(rec)
+    return rec
+
+
+def test_land_page_keeps_status_text_source_and_check(tmp_path):
+    rec = land_farm(tmp_path)
+    page = appdata.land_page(rec, "site.md")
+    assert page.front["country"] == "JP"
+    assert [s.heading for s in page.sections] == ["Terrain and water", "What the farmer knows works here"]
+    data, record, h1, h2, bare = page.sections[0].lines
+    assert (data.status, data.text) == ("data", "4 m above the channel to the N.")
+    assert data.source.startswith("GSI DEM 1 m")
+    assert (record.status, record.source) == ("record", "")  # the farmer's words stand as written
+    assert (h1.status, h1.source, h1.check) == ("hypothesis", "Opus (Claude), 2026-11-01.", "see below.")
+    assert h2.check == "daikon roots that fork."
+    assert (bare.status, bare.text) == ("", "not reached on 2026-11-02")
+    assert page.sections[1].lines == []  # an empty section is kept, so the screen can say so
+    assert appdata.land_page(rec, "lookup.md") is None
+    assert appdata.status_counts([page]) == {"data": 1, "record": 1, "hypothesis": 2}
+
+
+def test_link_parts_skip_tile_templates():
+    parts = appdata.link_parts("DEM, https://x/{z}/{x}/{y}.txt and https://example.org/dem.")
+    assert ("https://example.org/dem.", "https://example.org/dem.") not in parts
+    assert [u for _, u in parts if u] == ["https://example.org/dem"]
+    assert "".join(t for t, _ in parts) == "DEM, https://x/{z}/{x}/{y}.txt and https://example.org/dem."
+
+
+def test_hypothesis_checks_by_day_joined_by_words(tmp_path):
+    rec = land_farm(tmp_path)
+    found = appdata.hypothesis_checks(rec)
+    lines = appdata.land_page(rec, "site.md").sections[0].lines
+    (c1,), (c2,) = appdata.checks_of(found, lines[2]), appdata.checks_of(found, lines[3])
+    assert (c1.field, c1.id, c1.visible) == ("north", "h1", True)
+    assert [d for d, _ in c1.by_day] == ["2026-11-01", "2026-11-02"]
+    assert (c2.id, c2.visible, c2.by_day) == ("h2", False, [])  # no photo can show a plough pan
+    assert appdata.checks_of(found, lines[0]) == []  # a data line has no checks
+    from fieldnotes.ui import Words
+    assert [appdata.answer_label(o, Words("en")) for _, o in c1.by_day] == ["agrees ✓", "agrees"]
+    assert appdata.answer_label(c1.by_day[0][1], Words("ja")) == "合う ✓"
+    assert appdata.check_fields(rec) == ["north"]
+    assert appdata.check_fields(tmp_path / "none") == []
+    assert appdata.short_day("2026-11-02") == "11-02"
+
+
+def test_hypothesis_checks_without_expectations(tmp_path):
+    (tmp_path / "records").mkdir()
+    assert appdata.hypothesis_checks(tmp_path / "records") == {}

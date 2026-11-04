@@ -64,3 +64,18 @@ def test_every_view_builds(app, tmp_path):
     refresh_read()
     refresh_nouns()
     assert send.controls and read.controls and nouns.controls
+
+
+def test_land_view_builds_on_an_empty_farm_and_a_farm_with_checks(app, tmp_path):
+    """土地: no site.md says so; with site.md and checks the lines and the table are drawn."""
+    from test_appdata import land_farm
+    from fieldnotes.ui import Words
+    page, w = StubPage(), Words("en")
+    dialogs = app.Dialogs(page, w)
+    view, refresh = app.land_view(page, dialogs, w)
+    refresh()
+    texts = [getattr(c, "value", None) for c in view.controls[3].controls]
+    assert "No site.md: nothing is written about this land yet." in texts
+    land_farm(tmp_path)
+    refresh()
+    assert any(getattr(c, "value", "") == "About this land (site.md)" for c in view.controls[3].controls)

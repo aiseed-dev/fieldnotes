@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 
+import yaml
 from PIL import Image, ImageOps
 
 from .inbox import AROUND, DATED, photo_place
@@ -296,3 +297,151 @@ def strip(root: Path, field: str, day: str) -> list[StripItem]:
     d = root / "photos" / field / day
     return [StripItem(i + 1, d / e["file"], overlays[i] if i < len(overlays) else None, names.get(e["file"], ""), e)
             for i, e in enumerate(found)]
+
+
+# ---- the land and the baseline (WP18 item 4) ------------------------------
+# records/site.md and records/lookup.md line by line (docs/records.md §4, §5): each
+# line keeps its status and the source after its em dash, so data, the farmer's
+# words and readings never look alike on the screen.
+
+STATUS = ("data", "record", "hypothesis", "supported", "refuted", "reference")
+LAND_LINE = re.compile(r"^- `(?P<status>[a-z]+)` (?P<rest>.+)$")
+CHECK_TAIL = re.compile(r"\bCheck(?: \([^)]*\))?:\s*")
+LINK = re.compile(r"https?://[^\s,;）)]+")
+FRONT = re.compile(r"\A---\n(.*?)\n---\n?", re.S)
+
+
+@dataclass
+class LandLine:
+    status: str  # one of STATUS, or "" for the file's own words that are no claim ("not reached on ...")
+    text: str  # what is claimed
+    source: str  # who or what says so: everything after the first em dash but the check
+    check: str  # a hypothesis's "Check: ...", as the file words it
+    raw: str  # the line without its marker, as expect.md copies it
+
+
+@dataclass
+class LandSection:
+    heading: str
+    lines: list[LandLine]
+
+
+@dataclass
+class LandPage:
+    name: str  # "site.md"
+    front: dict
+    sections: list[LandSection]
+    text: str  # the whole file, for anyone who wants to see it as it is
+
+
+def land_line(line: str) -> LandLine:
+    """One line of site.md or lookup.md. A line that has no status is kept as it stands."""
+    m = LAND_LINE.match(line)
+    if not m:
+        return LandLine("", line.removeprefix("- ").strip(), "", "", "")
+    text, _, tail = m["rest"].partition(" — ")
+    c = CHECK_TAIL.search(tail)
+    return LandLine(m["status"], text.strip(), (tail[: c.start()] if c else tail).strip(),
+                    tail[c.end():].strip() if c else "", m["rest"].strip())
+
+
+def land_page(records_root: Path, name: str) -> LandPage | None:
+    """A page of the land by section; None when the file is not there. What stands before the
+    first section (the legend of the statuses) is the format's, not the farm's."""
+    p = records_root / name
+    if not p.exists():
+        return None
+    text = p.read_text(encoding="utf-8")
+    m = FRONT.match(text)
+    sections: list[LandSection] = []
+    for line in (text[m.end():] if m else text).splitlines():
+        if line.startswith("## "):
+            sections.append(LandSection(line[3:].strip(), []))
+        elif sections and line.strip():
+            sections[-1].lines.append(land_line(line))
+    return LandPage(name, (yaml.safe_load(m[1]) or {}) if m else {}, sections, text)
+
+
+def status_counts(pages: list[LandPage]) -> dict[str, int]:
+    """How many lines of each status the pages hold, in the order of STATUS."""
+    found = [line.status for p in pages for s in p.sections for line in s.lines]
+    return {k: found.count(k) for k in STATUS if k in found}
+
+
+def link_parts(text: str) -> list[tuple[str, str | None]]:
+    """A source split into plain text and links; a tile template ({z}/{x}/{y}) is no address to open."""
+    out, at = [], 0
+    for m in LINK.finditer(text):
+        url = m[0].rstrip(".:")  # the sentence's full stop is not part of the address
+        if "{" in url:
+            continue
+        if m.start() > at:
+            out.append((text[at:m.start()], None))
+        out.append((url, url))
+        at = m.start() + len(url)
+    if at < len(text):
+        out.append((text[at:], None))
+    return out
+
+
+def _flat(text: str) -> str:
+    return " ".join(str(text).split())
+
+
+@dataclass
+class HypothesisCheck:
+    field: str
+    id: str  # "h3" in that field's expect.md
+    visible: bool  # False: expect.md says no photo can show it
+    by_day: list[tuple[str, Observation]]  # the day's check line, oldest first
+
+
+def hypothesis_checks(records_root: Path) -> dict[str, list[HypothesisCheck]]:
+    """A hypothesis line's words -> what each field's photos said of it day by day. The numbers
+    h1, h2 ... are those of the field's expect.md, joined by the words of the line, so a line
+    written after expect.md has no entry rather than another hypothesis's answers."""
+    from . import check, timeline
+    out: dict[str, list[HypothesisCheck]] = {}
+    d = records_root / check.CHECKS
+    for field in sorted(p.name for p in d.iterdir() if p.is_dir()) if d.is_dir() else []:
+        got = check.load(records_root, field)
+        if not got:
+            continue
+        lines = {o.key: o for o in got[1]}
+        _, rows = timeline.checks_rows(records_root, field, timeline.days_of(records_root, field))
+        cells = {h: c for h, _, c in rows}
+        for h, words in (got[0].get("hypotheses") or {}).items():
+            m = check.EXPECT_LINE.match(lines[h].text) if h in lines else None
+            out.setdefault(_flat(words), []).append(HypothesisCheck(
+                field, h, bool(m and m["visible"] == "yes"), sorted(cells.get(h, {}).items())))
+    return out
+
+
+def checks_of(found: dict[str, list[HypothesisCheck]], line: LandLine) -> list[HypothesisCheck]:
+    return found.get(_flat(line.raw), [])
+
+
+def answer_label(o: Observation, w: Words = Words("ja")) -> str:
+    """A check line's answer on screen with the farmer's mark: 'agrees: ...' -> '合う ✓'."""
+    answer = o.text.split(":", 1)[0].strip()
+    key = "check." + answer.replace(" ", "_")
+    return (w(key) if w.has(key) else answer) + {"right": " ✓", "wrong": " ✗"}.get(o.verdict, "")
+
+
+def check_fields(records_root: Path) -> list[str]:
+    """The fields that have expectations or a day's checks: the ones a hypotheses table can be drawn for."""
+    from . import check, timeline
+    found = set()
+    d = records_root / check.CHECKS
+    if d.is_dir():
+        found |= {p.name for p in d.iterdir() if p.is_dir()}
+    if records_root.is_dir():
+        for p in records_root.iterdir():
+            if p.is_dir() and not p.name.startswith("_") and timeline.checks_rows(records_root, p.name, timeline.days_of(records_root, p.name))[0]:
+                found.add(p.name)
+    return sorted(found)
+
+
+def short_day(day: str) -> str:
+    """'2026-11-02' -> '11-02', for a column head."""
+    return day[5:] if DATED.match(day) else day

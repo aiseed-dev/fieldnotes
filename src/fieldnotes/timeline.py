@@ -40,7 +40,7 @@ def _proposals(records_root: Path, field: str, day: str) -> list[Proposal]:
     return [Proposal.from_markdown(p.read_text(encoding="utf-8")) for p in sorted(d.glob(f"{day}-*.md"))] if d.exists() else []
 
 
-def _days(records_root: Path, field: str) -> list[str]:
+def days_of(records_root: Path, field: str) -> list[str]:
     days = {p.stem for p in (records_root / field).glob("*.md")}
     d = records_root / PROPOSALS / field
     if d.exists():
@@ -56,8 +56,8 @@ def _records(records_root: Path, field: str, days: list[str]) -> dict[str, Recor
     return {d: Record.load(records_root, field, d) for d in days if Record.path_for(records_root, field, d).exists()}
 
 
-def emerging_table(records_root: Path, field: str, days: list[str]) -> list[str]:
-    """One row per species seen coming up, one column per day it was read."""
+def emerging_rows(records_root: Path, field: str, days: list[str]) -> tuple[list[str], dict[str, dict[str, str]]]:
+    """(the days with such lines, species -> day -> where and the farmer's mark): what was sown or planted coming up."""
     cols = {}
     for day, rec in _records(records_root, field, days).items():
         lines = [o for o in rec.observations if o.key == "emerging"]
@@ -67,38 +67,50 @@ def emerging_table(records_root: Path, field: str, days: list[str]) -> list[str]
                 name, _, where = o.text.partition(" at ")
                 where = CONF.sub("", where)
                 cols[day][name] = (cols[day][name] + "; " if name in cols[day] else "") + where + MARKS.get(o.verdict, "")
+    names = list(dict.fromkeys(n for c in cols.values() for n in c))
+    return list(cols), {n: {d: c[n] for d, c in cols.items() if n in c} for n in names}
+
+
+def emerging_table(records_root: Path, field: str, days: list[str]) -> list[str]:
+    """One row per species seen coming up, one column per day it was read."""
+    cols, rows = emerging_rows(records_root, field, days)
     if not cols:
         return []
-    names = list(dict.fromkeys(n for c in cols.values() for n in c))
     out = ["## Coming up day by day", "", "| species | " + " | ".join(cols) + " |", "|---|" + "---|" * len(cols)]
-    out += [f"| {n} | " + " | ".join(c.get(n, "") for c in cols.values()) + " |" for n in names]
+    out += [f"| {n} | " + " | ".join(r.get(d, "") for d in cols) + " |" for n, r in rows.items()]
     return out + [""]
 
 
-def checks_table(records_root: Path, field: str, days: list[str]) -> list[str]:
-    """One row per hypothesis checked on this field's photos, one column per day."""
+def checks_rows(records_root: Path, field: str, days: list[str]) -> tuple[list[str], list[tuple[str, str, dict]]]:
+    """(the days with checks, one row per hypothesis: its id, its words as expect.md keeps them, day -> line)."""
     cols = {}
     for day in days:
         if Record.path_for(records_root, field, day).exists():
             rec = Record.load(records_root, field, day)
             if rec.checks:
                 cols[day] = {o.key: o for o in rec.checks}
-    if not cols:
-        return []
     hs = sorted({h for c in cols.values() for h in c}, key=lambda h: int(h[1:]))
     got = check.load(records_root, field)
     names = (got[0].get("hypotheses") or {}) if got else {}
-    short = lambda h: (lambda s: s if len(s) <= 48 else s[:47] + "…")(names.get(h, ""))  # noqa: E731
+    return list(cols), [(h, names.get(h, ""), {d: c[h] for d, c in cols.items() if h in c}) for h in hs]
+
+
+def checks_table(records_root: Path, field: str, days: list[str]) -> list[str]:
+    """One row per hypothesis checked on this field's photos, one column per day."""
+    cols, rows = checks_rows(records_root, field, days)
+    if not cols:
+        return []
+    short = lambda s: s if len(s) <= 48 else s[:47] + "…"  # noqa: E731
     out = ["## Hypotheses day by day", "", "| hypothesis | " + " | ".join(cols) + " |",
            "|---|" + "---|" * len(cols)]
-    for h in hs:
-        out.append(f"| {h} {short(h)} | " + " | ".join(_answer(c[h]) if h in c else "" for c in cols.values()) + " |")
+    for h, name, cells in rows:
+        out.append(f"| {h} {short(name)} | " + " | ".join(_answer(cells[d]) if d in cells else "" for d in cols) + " |")
     return out + [""]
 
 
 def timeline(field: str, records_root: Path, since: str | None = None) -> str:
     out = [f"# {field}: timeline", ""]
-    days = [d for d in _days(records_root, field) if not since or d >= since]
+    days = [d for d in days_of(records_root, field) if not since or d >= since]
     for day in days:
         out.append(f"## {day}")
         if Record.path_for(records_root, field, day).exists():
