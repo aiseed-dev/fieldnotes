@@ -18,7 +18,7 @@ Growing is not enough on its own. The biggest problem is selling. Selling, too, 
 
 ## What it does
 
-I walk the field with my phone and look at the photos together with the AI. The point is to build up knowledge of *how to improve this field*: what I did (how I cut, what I sowed, when), how the weeds and crops changed, and whether it worked. During the hackathon the field was walked on four days (2026-10-27, 11-01, 11-02, 11-03), not daily. Each observation:
+I walk the field with my phone and look at the photos together with the AI, in the phone app (Flet; the command line and the MCP server are the same functions). The point is to build up knowledge of *how to improve this field*: what I did (how I cut, what I sowed, when), how the weeds and crops changed, and whether it worked. During the hackathon the field was walked on four days (2026-10-27, 11-01, 11-02, 11-03), not daily. Each observation:
 
 1. **Segment** leaves, flower clusters, bare soil and the field's own noun phrases with **SAM 3.1** → cover % per concept per day. On the first field the cover came out near zero with the default prompts (leaf, flower cluster, bare soil); the same day read with scene-level nouns (`vegetation`, `grass`, `dry grass`, `cut grass`) gives 87 % vegetation, 62 % grass, 14 % dry grass over the 32 photos (2026-11-05, on a copy of the folder) — the prompts were the problem, not the model. The farmer changes them with `fieldnotes concept … wrong --replace …`; the overlays show what SAM took, and the numbers stay in the record as they are.
 2. **Describe** today against the previous days with **Muse Spark 1.3** (or **Muse Glimmer** running locally): what changed in leaf colour, weed height, soil dryness, animal signs.
@@ -149,13 +149,20 @@ Tests run offline: `.venv/bin/pip install -e ".[dev]" && .venv/bin/pytest`. A re
 
 ### Phone app — the main way to use fieldnotes
 
-The phone app is the main way fieldnotes is used (the farmer's decision, 2026-11-05); the command line below and the MCP server are the same functions as other entrances, for scripts and for your own AI. What the app lacks of the command line today is listed in docs/implementation.md (WP18) and is being built.
+The phone app is the main way fieldnotes is used (the farmer's decision, 2026-11-05); the command line below and the MCP server are the same functions as other entrances, for scripts and for your own AI. Since 2026-11-05 the app does what the command line does, from starting a farm folder to the timeline, without a keyboard beyond a reason box. It is a Flet app (Python, one code for phone and desktop), in the open: [docs/manual.md §4.2](docs/manual.md) is its manual.
 
 ```bash
 fieldnotes --root ~/myfarm app           # http://<this machine>:8550, open it on the phone
 ```
 
-Three views at the bottom: Send (photos and voice recordings into `photos/`), Read (run the observation for a field and day, look at the SAM overlays, mark each AI line ✓ or ✗ with a reason, by tap or by voice) and Nouns (the SAM noun phrases of a field, ✓ or ✗ with a replacement). The screen and the CLI are in English, or in Japanese when the language is Japanese; the language is each phone's or PC's own unless set with the 文A button or `fieldnotes language`. Everything it shows or saves is a plain-text record under `FIELDNOTES_ROOT` (default: the current directory).
+On start the PC prints the address and its QR code; the screen is dark for outdoors. Four views at the bottom:
+
+- **Send**: the field and the day (a calendar), photos from the phone's camera or gallery into `photos/`, a voice recording from the phone's recorder; the day's photos as a strip in walk order under the GPS points drawn on the parcel outline.
+- **Read**: run the observation for a field and day; the photos and the SAM overlays; every AI line one row headed by its model and date, ✓ and ✗ a thumb apart with a reason box (typed, or by voice); the day's mark count at the top ("0 ✓, 0 ✗ of 29 AI lines"); two readings of the same day (Japanese and English, Spark and a home model) side by side for the same key; under the title, which model reads next and in which language. What it cannot show, it says: "No reading yet", "SAM found nothing for these prompts", "Voice not transcribed".
+- **Land**: `site.md` and `lookup.md` line by line — `data` with its source (addresses open), `record` in the farmer's words, `hypothesis` with how to check it and what each day's photos said — and the hypotheses-by-day table; the fertiliser and soil-carbon baseline is marked "not yet". At the bottom, the command line's work from the phone: `init` on an empty folder, `note`, the timeline, `expect`, `propose` (a cut, or cover crops), each result headed by its model and date.
+- **Nouns**: the noun phrases SAM is asked to find and what each found last time; ✓ or ✗ with a replacement.
+
+The screen is in English, or in Japanese when the language is Japanese; the language is each phone's or PC's own unless set with the 文A button or `fieldnotes language`. Everything it shows or saves is a plain-text record under `FIELDNOTES_ROOT` (default: the current directory). `FIELDNOTES_DEMO=1` adds a camera button that saves the screen as a 1280×720 PNG under `<farm>/video/frames/`, so the demo video is cut from the app's real screens.
 
 ### From your own AI
 
