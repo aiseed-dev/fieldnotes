@@ -541,3 +541,5 @@ The phone app (`fieldnotes app`, Flet, three views: Send, Read, Nouns) is where 
 8. **Tested.** The app's data layer is covered (tests/test_appdata.py, test_ui.py); the new views get the same.
 
 Principles behind every item (the farmer, 11-05): hide nothing; the model is not a teacher and errs like a person; primary sources with their preconditions, cross-checked; the world first, Japan as one case.
+
+(The farmer, 09:55: 「fletアプリの宣伝になります」 — a good fieldnotes app is also a showcase for Flet apps, the farmer's own line of work: `~/dev/flet-tools`, `~/dev/weather` (AIseed Weather, Flet), officework's viewer, `packages/flet-gpufield`. So WP18 is built with Flet as it is, in the open, reusing those packages where they fit, and the README's app section may say so once it is done.)
