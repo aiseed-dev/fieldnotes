@@ -95,7 +95,7 @@ fieldnotes note --page page.jpg                                                 
 - In the reading each photo is called "3 of 42, 10:21, NW corner, facing W". The position words (NW corner, middle, S edge ...) are relative to the **farmland parcel** (筆ポリゴン) when it holds at least half of the photo points. Otherwise the frame is the area the walk covered, and each photo also says `in the parcel` or `outside the parcel, 35 m S` (distance and direction from the parcel's nearest edge). In that case "S edge" is the south end of the walk, not of the field, and the model is told to write "outside the parcel" with the distance into any zone seen only in such photos.
 - Now and then photograph around the fields too (the neighbours' fields, verges, the river bank, abandoned land). In the app choose "Neighbourhood (around the fields)"; on the command line the field is named `_around`, and `fieldnotes observe _around` reads it (no SAM). Land, not houses or people.
 
-### 4.2 The phone app
+### 4.2 The phone app (the main way to use fieldnotes)
 
 Start it on the PC and open it in the phone's browser (home network only; there is no sign-in).
 

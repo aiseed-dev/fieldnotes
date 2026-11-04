@@ -1,6 +1,6 @@
 # fieldnotes-farm
 
-Command line, records and MCP server for reading a farm field from the photos of a walk with AI. The command and the import are `fieldnotes`.
+A phone app, a command line, records and an MCP server for reading a farm field from the photos of a walk with AI. The app is the main way to use it; the command and the import are `fieldnotes`.
 
 What does the work:
 

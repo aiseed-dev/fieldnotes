@@ -147,7 +147,9 @@ You mark both like any other line. `fieldnotes timeline <field>` lists them day 
 
 Tests run offline: `.venv/bin/pip install -e ".[dev]" && .venv/bin/pytest`. A release goes to PyPI from GitHub Actions (`.github/workflows/publish-pypi.yml`, a Trusted Publisher, no token): push a tag `vX.Y.Z` equal to `version` in pyproject.toml.
 
-### Phone app
+### Phone app — the main way to use fieldnotes
+
+The phone app is the main way fieldnotes is used (the farmer's decision, 2026-11-05); the command line below and the MCP server are the same functions as other entrances, for scripts and for your own AI. What the app lacks of the command line today is listed in docs/implementation.md (WP18) and is being built.
 
 ```bash
 fieldnotes --root ~/myfarm app           # http://<this machine>:8550, open it on the phone

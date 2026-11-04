@@ -18,6 +18,7 @@ fieldnotes reads a farmer's field together with AI and keeps the reading as plai
 - **Where to cut first.** For a plot left uncut for a year that now looks like abandoned farmland, `fieldnotes propose --cut` gives one place and one height to cut first, with the reason and what the next days' photos should show. One proposal was written (2026-10-29); it is not yet marked.
 - **Photos and voice.** The phone's own recorder; Muse Voice Transcribe writes it down in the farmer's language; Muse Spark sorts it into what was done, what was seen, and verdicts on the AI's lines. Built and tested with mocked answers; no real recording has been through it as of 2026-11-05.
 - **From your own AI.** `fieldnotes mcp` serves the tools (`fields`, `read`, `observe`, `say`, `mark`, `propose`, `timeline`, `site`, `note`) to Claude Code, Claude Desktop, Muse Code or any MCP client; `--http` for an AI on another machine in the house.
+- **The phone app is the main entrance** (Flet; Send, Read, Nouns today; the whole command line is being brought into it, WP18). The command line and the MCP server are the same functions for scripts and for your own AI.
 - **Records.** Plain Markdown with YAML front matter; what every file and line means is written in `docs/records.md`, so other programs and other AIs can read a farm folder. A phone app (Flet) sends photos and voice in and shows the SAM overlays and the lines to mark. `pip install fieldnotes-farm`.
 
 ## Meta models and products used
