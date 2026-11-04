@@ -347,3 +347,20 @@ def test_day_state_says_what_cannot_be_shown(tmp_path):
     assert appdata.day_state(tmp_path, "north", "2026-11-03", rec, w) == [
         "The hypotheses were not checked on this day's photos", "Voice not transcribed: 174500-voice-2.webm"]
     assert appdata.voice_files(tmp_path / "photos", "none", "2026-11-03") == []
+
+
+def test_timeline_rows_for_the_screen(tmp_path):
+    """timeline.checks_rows: the days with checks and, per hypothesis, its words and day -> line;
+    the Markdown table is drawn from the same rows."""
+    from fieldnotes import timeline
+    rec = land_farm(tmp_path)
+    days = timeline.days_of(rec, "north")
+    assert days == ["2026-11-01", "2026-11-02"]
+    cols, rows = timeline.checks_rows(rec, "north", days)
+    assert cols == days
+    ((h, words, cells),) = rows
+    assert h == "h1" and words.startswith("Ground water")
+    assert [cells[d].verdict for d in cols] == ["right", None]
+    assert "| h1 Ground water" in "\n".join(timeline.checks_table(rec, "north", days))
+    assert timeline.checks_rows(rec, "south", []) == ([], [])
+    assert timeline.emerging_rows(rec, "north", days) == ([], {})

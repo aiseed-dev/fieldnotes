@@ -79,3 +79,21 @@ def test_land_view_builds_on_an_empty_farm_and_a_farm_with_checks(app, tmp_path)
     land_farm(tmp_path)
     refresh()
     assert any(getattr(c, "value", "") == "About this land (site.md)" for c in view.controls[3].controls)
+
+
+def test_hypotheses_table_and_read_state(app, tmp_path):
+    """The Land view's table has a row per hypothesis and a column per day; Read on a day with
+    no reading says so."""
+    from test_appdata import jpg, land_farm
+    from fieldnotes.ui import Words
+    land_farm(tmp_path)
+    page, w = StubPage(), Words("en")
+    dialogs = app.Dialogs(page, w)
+    table = app.hypotheses_table(dialogs, w, "north").controls[0]
+    assert len(table.rows) == 1 and len(table.columns) == 3
+    assert app.hypotheses_table(dialogs, w, "south").value == "south: no day has checked a hypothesis yet"
+    jpg(tmp_path / "photos" / "north" / "2026-11-04" / "100000-a.jpg")
+    read, refresh = app.read_view(page, dialogs, w, "en")
+    refresh()
+    texts = [getattr(c, "value", None) for c in read.controls[-2].controls]
+    assert "No reading yet. Press Read and the AI reads the day." in texts
