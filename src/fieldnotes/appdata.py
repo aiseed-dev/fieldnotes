@@ -442,6 +442,15 @@ def check_fields(records_root: Path) -> list[str]:
     return sorted(found)
 
 
+def checks_by(records_root: Path, field: str, days: list[str], w: Words = Words("ja")) -> str:
+    """Who checked each day's photos, for the head of the hypotheses table: the cells are readings."""
+    by = []
+    for d in days:
+        p = Record.path_for(records_root, field, d)
+        by.append(f"{short_day(d)} {Record.load(records_root, field, d).checks_model or 'none'}" if p.exists() else short_day(d))
+    return w("land.table_by", list=", ".join(by))
+
+
 def short_day(day: str) -> str:
     """'2026-11-02' -> '11-02', for a column head."""
     return day[5:] if DATED.match(day) else day

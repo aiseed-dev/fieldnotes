@@ -676,7 +676,8 @@ def hypotheses_table(dialogs: Dialogs, w: Words, field: str) -> ft.Control:
         columns=[ft.DataColumn(ft.Text(w("land.table_head"), size=14))] + [ft.DataColumn(ft.Text(appdata.short_day(d), size=14)) for d in days],
         rows=[ft.DataRow([name(h, words)] + [cell(h, words, cells.get(d)) for d in days]) for h, words, cells in rows],
         column_spacing=16, horizontal_margin=4, data_row_min_height=44, data_row_max_height=60, heading_row_height=36)
-    return ft.Row([table], scroll=ft.ScrollMode.AUTO)
+    return ft.Column([ft.Text(appdata.checks_by(RECORDS, field, days, w), size=13, color=ft.Colors.ON_SURFACE_VARIANT),
+                      ft.Row([table], scroll=ft.ScrollMode.AUTO)], spacing=4)
 
 
 def land_view(page: ft.Page, dialogs: Dialogs, w: Words):

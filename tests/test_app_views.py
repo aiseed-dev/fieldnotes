@@ -89,7 +89,9 @@ def test_hypotheses_table_and_read_state(app, tmp_path):
     land_farm(tmp_path)
     page, w = StubPage(), Words("en")
     dialogs = app.Dialogs(page, w)
-    table = app.hypotheses_table(dialogs, w, "north").controls[0]
+    head, row = app.hypotheses_table(dialogs, w, "north").controls
+    assert head.value == "Read by: 11-01 m, 11-02 m"
+    table = row.controls[0]
     assert len(table.rows) == 1 and len(table.columns) == 3
     assert app.hypotheses_table(dialogs, w, "south").value == "south: no day has checked a hypothesis yet"
     jpg(tmp_path / "photos" / "north" / "2026-11-04" / "100000-a.jpg")

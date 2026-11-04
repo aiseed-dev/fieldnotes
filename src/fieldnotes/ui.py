@@ -148,6 +148,7 @@ TEXTS: dict[str, tuple[str, str]] = {
                         "Which way the photos pointed for each expectation (a model's reading), with the farmer's mark. Tap for the whole line."),
     "land.table_none": ("{field}: 仮説を確かめた日はまだありません", "{field}: no day has checked a hypothesis yet"),
     "land.table_no_field": ("仮説の期待（expect.md）を書いた畑はまだありません", "No field has expectations (expect.md) yet"),
+    "land.table_by": ("読んだモデル: {list}", "Read by: {list}"),
     "land.table_head": ("仮説", "Hypothesis"),
     "land.whole_file": ("{name} をそのまま見る", "{name} as it is"),
     "land.baseline": ("肥料と土壌炭素の基準線", "Fertiliser and soil carbon: the baseline"),
