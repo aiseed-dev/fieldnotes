@@ -157,6 +157,19 @@ def set_reader(name: str, url: str | None = None, model: str | None = None) -> N
     update_settings(**values)
 
 
+def _glimmer_name(url: str, model: str) -> str:
+    host = url.split("//", 1)[-1].split("/", 1)[0].split(":", 1)[0]
+    return f"{model}@{host}"
+
+
+def reader_name() -> str:
+    """The name that will head the next reading (as Backend.default().name), read from the
+    settings alone: no key is needed to say who reads."""
+    if reader() == "glimmer":
+        return _glimmer_name(glimmer_url(), glimmer_model())
+    return SPARK_CONTRIBUTOR if training_consent() else SPARK
+
+
 @dataclass
 class Backend:
     name: str
@@ -174,8 +187,7 @@ class Backend:
     def glimmer(cls, url: str | None = None, model: str | None = None) -> "Backend":
         """Muse Glimmer on a llama-server in the house (no key needed on the LAN)."""
         url, model = url or glimmer_url(), model or glimmer_model()
-        host = url.split("//", 1)[-1].split("/", 1)[0].split(":", 1)[0]
-        return cls(f"{model}@{host}", url, model, "none")
+        return cls(_glimmer_name(url, model), url, model, "none")
 
     @classmethod
     def default(cls) -> "Backend":

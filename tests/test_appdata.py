@@ -296,3 +296,19 @@ def test_hypothesis_checks_by_day_joined_by_words(tmp_path):
 def test_hypothesis_checks_without_expectations(tmp_path):
     (tmp_path / "records").mkdir()
     assert appdata.hypothesis_checks(tmp_path / "records") == {}
+
+
+def test_reader_line_names_the_reader_without_a_key(tmp_path, monkeypatch):
+    """Who reads is said by name from the settings alone; no key is read to say it."""
+    from fieldnotes import llm
+    from fieldnotes.ui import Words
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
+    monkeypatch.delenv("MODEL_API_KEY", raising=False)
+    w = Words("en")
+    assert appdata.reader_line(w, "ja") == "Next reading by muse-spark-1.3 (Muse Spark (api.meta.ai)), written in 日本語 (this device's language)"
+    llm.set_training_consent(True)
+    llm.set_language("en")
+    assert appdata.reader_line(w, "ja") == "Next reading by muse-spark-1.3-contributor (Muse Spark (api.meta.ai)), written in English"
+    llm.set_reader("glimmer", "http://10.0.0.5:11434/v1", "muse-glimmer-30B")
+    assert llm.reader_name() == llm.Backend.glimmer().name == "muse-glimmer-30B@10.0.0.5"
+    assert "muse-glimmer-30B@10.0.0.5 (Muse Glimmer (a machine in the house))" in appdata.reader_line(w)

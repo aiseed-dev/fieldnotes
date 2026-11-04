@@ -445,3 +445,14 @@ def check_fields(records_root: Path) -> list[str]:
 def short_day(day: str) -> str:
     """'2026-11-02' -> '11-02', for a column head."""
     return day[5:] if DATED.match(day) else day
+
+
+# ---- who reads, in which language (WP18 item 5) ----------------------------
+
+def reader_line(w: Words, device: str | None = None) -> str:
+    """The reader by name and the language its reading will be written in, from the settings:
+    'Next reading by muse-spark-1.3 (Muse Spark (api.meta.ai)), written in English'."""
+    from . import llm
+    code = llm.language(device)
+    lang = llm.language_label(code) + ("" if llm.language_setting() != llm.AUTO else " " + w("reader.auto_lang"))
+    return w("reader.next", name=llm.reader_name(), kind=w("reader." + llm.reader()), lang=lang)

@@ -194,6 +194,8 @@ TEXTS: dict[str, tuple[str, str]] = {
                     "SAM always runs on Meta's API. This chooses the AI that reads the fields."),
     "reader.spark": ("Muse Spark（api.meta.ai）", "Muse Spark (api.meta.ai)"),
     "reader.glimmer": ("Muse Glimmer（自宅のマシン）", "Muse Glimmer (a machine in the house)"),
+    "reader.next": ("次の読み: {name}（{kind}）、{lang}で書きます", "Next reading by {name} ({kind}), written in {lang}"),
+    "reader.auto_lang": ("（この端末の言語）", "(this device's language)"),
     "reader.url": ("Glimmer の接続先", "Glimmer server"),
     "reader.model": ("Glimmer のモデル名", "Glimmer model name"),
     "reader.test": ("Glimmer につながるか試す", "Test the Glimmer server"),

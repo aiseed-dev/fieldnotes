@@ -362,6 +362,7 @@ def read_view(page: ft.Page, dialogs: Dialogs, w: Words, lang: str | None):
     read_btn = ft.FilledButton(w("read.button"), icon=ft.Icons.VISIBILITY, height=56, expand=True)
     busy = ft.Row([ft.ProgressRing(width=24, height=24), ft.Text("", expand=True)], visible=False, spacing=12)
     status = ft.Text("")
+    who = ft.Text("", size=14, color=ft.Colors.ON_SURFACE_VARIANT)
     photos = ft.Column(spacing=8)
     lines = ft.Column(spacing=10)
     running = {"on": False}
@@ -371,6 +372,7 @@ def read_view(page: ft.Page, dialogs: Dialogs, w: Words, lang: str | None):
 
     def refresh(e=None):
         """Re-scan photos/ (the 送る view may have added some) and redraw."""
+        who.value = appdata.reader_line(w, lang)
         fields = appdata.photo_fields(PHOTOS)
         field_dd.options = [ft.DropdownOption(key=f, text=appdata.place_label(f, w)) for f in fields]
         if field_dd.value not in fields:
@@ -525,7 +527,7 @@ def read_view(page: ft.Page, dialogs: Dialogs, w: Words, lang: str | None):
     day_dd.on_select = show
     read_btn.on_click = on_read
     view = ft.Column([
-        ft.Text(w("read.title"), size=22, weight=ft.FontWeight.BOLD),
+        ft.Text(w("read.title"), size=22, weight=ft.FontWeight.BOLD), who,
         ft.Row([field_dd]), ft.Row([day_dd]),
         ft.Row([read_btn]), busy, status, photos, lines,
         voice_button(page, w, w("voice.answer"), chosen, lang, on_done=show),
@@ -684,7 +686,7 @@ def land_view(page: ft.Page, dialogs: Dialogs, w: Words):
             return ft.Chip(ft.Text(label, size=14), selected=state["status"] == key, on_select=pick, show_checkmark=False)
 
         filter_row.controls = [chip(None, w("land.all", n=sum(counts.values())))] + [
-            chip(k, f"{w('land.status.' + k).split(' ')[0]} {n}") for k, n in counts.items()]
+            chip(k, f"{k} {n}") for k, n in counts.items()]
         body.controls.clear()
         for head, p, empty in ((w("land.site"), site, "land.no_site"),
                                (w("land.lookup", fetched=(lookup.front.get("fetched", "—") if lookup else "—")), lookup, "land.no_lookup")):
@@ -821,7 +823,7 @@ def ask_reader(page: ft.Page, dialogs: Dialogs):
     def save(e):
         llm.set_reader(group.value, url.value.strip(), model.value.strip())
         page.pop_dialog()
-        dialogs.say(w("reader.saved", name=w("reader." + llm.reader())))
+        dialogs.say(w("reader.saved", name=w("reader." + llm.reader()) + " — " + llm.reader_name()))
 
     width = min(page.width or 360, 480) - 96
     page.show_dialog(ft.AlertDialog(
