@@ -38,7 +38,7 @@ fieldnotes --root ~/farm/myfield app                          # the phone app on
 fieldnotes --root ~/farm/myfield mcp                          # stdio MCP server; --http for an AI on another machine
 ```
 
-`--root` is the folder that holds `photos/` and `records/` (default: `$FIELDNOTES_ROOT`, else the current folder). Photos go in `photos/<field>/<date>/`; the app files them from the phone. Every record is Markdown with YAML front matter; the format is in `docs/records.md`, so any program or AI can read a farm folder.
+`--root` is the folder that holds `photos/` and `records/` (default: `$FIELDNOTES_ROOT`, else the current folder). Photos go in `photos/<field>/<date>/`; the app files them from the phone. Every record is Markdown with YAML front matter; the format is in `docs/records.md`, so any program or AI can read a farm folder. This package is the code that runs and nothing else; the sample farm, the record format, the manuals and the design notes are on GitHub (links below).
 
 ## Links
 
