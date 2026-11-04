@@ -29,6 +29,7 @@ from datetime import date
 from pathlib import Path
 
 import flet as ft
+import flet.canvas as cv
 
 from . import appdata, concepts, llm, pipeline, voice
 from .inbox import AROUND, file_photo, list_fields, valid_field
@@ -42,7 +43,7 @@ UPLOADS = ROOT / "uploads"
 NEW = "__new__"
 
 
-def send_view(page: ft.Page, w: Words, lang: str | None = None) -> ft.Control:
+def send_view(page: ft.Page, dialogs: "Dialogs", w: Words, lang: str | None = None) -> ft.Control:
     """送る: pick the field and day, choose photos, upload; each lands in photos/ via inbox.file_photo."""
     fields = list_fields(PHOTOS, RECORDS)
     field_dd = ft.Dropdown(
@@ -57,12 +58,23 @@ def send_view(page: ft.Page, w: Words, lang: str | None = None) -> ft.Control:
     status = ft.Text("")
     progress = ft.ProgressBar(value=0, visible=False)
     sent = ft.Column(spacing=4)
+    walk = ft.Column(spacing=6)
+
+    def show_walk(e=None):
+        """The day's photos so far, as the strip in walk order with the map."""
+        walk.controls.clear()
+        field, d = chosen_field(), chosen_day()
+        if field and d:
+            walk.controls.append(walk_strip(page, dialogs, w, field, d.isoformat(), open_photo=True))
+        if e is not None:
+            page.update()
 
     def on_field_change(e):
         new_field.visible = field_dd.value == NEW
-        page.update()
+        show_walk(e)
 
     field_dd.on_select = on_field_change
+    new_field.on_change = day.on_change = show_walk
 
     batch: dict = {}
 
@@ -84,6 +96,7 @@ def send_view(page: ft.Page, w: Words, lang: str | None = None) -> ft.Control:
         if e.progress is None or e.progress < 1.0:
             return
         batch["done"] += 1
+        batch["left"].discard(e.file_name)
         progress.value = batch["done"] / batch["total"]
         try:
             dest = file_photo(UPLOADS / batch["dir"] / e.file_name, batch["field"], batch["day"], PHOTOS)
@@ -93,6 +106,9 @@ def send_view(page: ft.Page, w: Words, lang: str | None = None) -> ft.Control:
         if batch["done"] == batch["total"]:
             status.value = w("send.placed", n=batch["total"], field=appdata.place_label(batch["field"], w))
             progress.visible = False
+            show_walk(e)
+        else:
+            status.value = w("send.left", n=len(batch["left"]), names=", ".join(sorted(batch["left"])[:5]))
         page.update()
 
     picker = ft.FilePicker(on_upload=on_upload)
@@ -113,7 +129,7 @@ def send_view(page: ft.Page, w: Words, lang: str | None = None) -> ft.Control:
         if not files:
             return
         sub = secrets.token_hex(4)
-        batch.update(dir=sub, field=field, day=d, total=len(files), done=0)
+        batch.update(dir=sub, field=field, day=d, total=len(files), done=0, left={f.name for f in files})
         progress.value, progress.visible = 0, True
         status.value = w("send.sending", n=len(files))
         page.update()
@@ -130,6 +146,7 @@ def send_view(page: ft.Page, w: Words, lang: str | None = None) -> ft.Control:
             return None
         return field, d
 
+    show_walk()
     return ft.Column([
         ft.Text(w("send.title"), size=22, weight=ft.FontWeight.BOLD),
         ft.Row([field_dd]),
@@ -140,6 +157,7 @@ def send_view(page: ft.Page, w: Words, lang: str | None = None) -> ft.Control:
         progress,
         status,
         sent,
+        walk,
         voice_button(page, w, w("voice.button"), voice_target, lang),
     ])
 
@@ -259,6 +277,70 @@ def card(*controls: ft.Control, expand: bool = False) -> ft.Container:
                         border=ft.Border.all(1, ft.Colors.OUTLINE_VARIANT), expand=expand)
 
 
+MAP_H = 170  # the walk map's height; its width is the screen's
+STRIP_W, STRIP_H = 96, 72  # one thumbnail in the strip
+
+
+def walk_strip(page: ft.Page, dialogs: Dialogs, w: Words, field: str, day: str, open_photo: bool = True) -> ft.Column:
+    """The day's photos as a strip in walk order under a map of where each was taken: the
+    GPS points numbered on the parcel outline (or the walk's extent) the way walk.py places
+    them (appdata.walk_map). A tap on a thumbnail moves the marker to its point and, in Read,
+    opens the photo or its SAM overlay. Says plainly when there is no GPS."""
+    items = appdata.strip(ROOT, field, day)
+    if not items:
+        return ft.Column([ft.Text(w("walk.none"), size=14, color=ft.Colors.ON_SURFACE_VARIANT)])
+    width = min(page.width or 360, 600) - 32
+    m = appdata.walk_map([i.entry for i in items], RECORDS, width, MAP_H)
+    overlays = sum(1 for i in items if i.overlay)
+    note = w("walk.parcel") if m.kind == "parcel" else w("walk.extent") if m.kind == "walk" else w("walk.no_gps")
+    head = ft.Text(w("walk.count", n=len(items), gps=m.n_gps, note=note)
+                   + ("　" + w("read.with_sam") if overlays else ""), size=14)
+
+    shapes: list = []
+    outline = ft.Paint(color=ft.Colors.OUTLINE, stroke_width=2, style=ft.PaintingStyle.STROKE)
+    for ring in m.rings:
+        shapes.append(cv.Path([cv.Path.MoveTo(*ring[0])] + [cv.Path.LineTo(x, y) for x, y in ring[1:]] + [cv.Path.Close()],
+                              paint=outline))
+    route = [p for p in m.points if p]
+    if len(route) > 1:  # the walk, as a dashed line through the points in order
+        shapes.append(cv.Path([cv.Path.MoveTo(*route[0])] + [cv.Path.LineTo(x, y) for x, y in route[1:]],
+                              paint=ft.Paint(color=ft.Colors.PRIMARY, stroke_width=1, style=ft.PaintingStyle.STROKE,
+                                             stroke_dash_pattern=[4, 4])))
+    dot = ft.Paint(color=ft.Colors.PRIMARY, style=ft.PaintingStyle.FILL)
+    for i, p in zip(items, m.points):
+        if p:
+            shapes.append(cv.Circle(p[0], p[1], 5, paint=dot))
+            shapes.append(cv.Text(p[0] + 6, p[1] - 6, str(i.n), style=ft.TextStyle(size=10, color=ft.Colors.ON_SURFACE)))
+    marker = ft.Container(width=20, height=20, border_radius=10, border=ft.Border.all(3, ft.Colors.ERROR), visible=False,
+                          animate_position=ft.Animation(300, ft.AnimationCurve.EASE_OUT))
+    stack = ft.Stack([cv.Canvas(shapes, width=width, height=MAP_H), marker], width=width, height=MAP_H)
+    chosen = ft.Text("", size=13, color=ft.Colors.ON_SURFACE_VARIANT)
+
+    def select(i: int):
+        """Move the marker to photo i's point (it slides there) and name the photo."""
+        p = m.points[i]
+        marker.visible = p is not None
+        if p:
+            marker.left, marker.top = p[0] - 10, p[1] - 10
+        chosen.value = items[i].label
+        page.update()
+
+    def on_tap(e, i: int):
+        select(i)
+        if open_photo:
+            it = items[i]
+            dialogs.photo(it.overlay or it.photo, ("SAM " if it.overlay else "") + it.label)
+
+    thumbs = ft.Row([ft.Container(
+        ft.Stack([ft.Image(src=appdata.shrunk_jpeg(it.overlay or it.photo, 320), width=STRIP_W, height=STRIP_H,
+                           fit=ft.BoxFit.COVER, border_radius=6),
+                  ft.Container(ft.Text(str(it.n), size=11, color=ft.Colors.WHITE), bgcolor=ft.Colors.with_opacity(0.55, ft.Colors.BLACK),
+                               padding=ft.Padding.symmetric(horizontal=5, vertical=1), border_radius=4, left=4, top=4)]),
+        on_click=lambda e, i=i: on_tap(e, i), tooltip=it.label) for i, it in enumerate(items)],
+        scroll=ft.ScrollMode.AUTO, spacing=6)
+    return ft.Column([head, stack if m.kind != "none" else ft.Container(), chosen, thumbs], spacing=6)
+
+
 def read_view(page: ft.Page, dialogs: Dialogs, w: Words, lang: str | None):
     """読む: run the pipeline on a field and day, then show the SAM overlays and the
     AI's lines, each with ✓ / ✗ saved through pipeline.mark. Returns (view, refresh)."""
@@ -294,24 +376,12 @@ def read_view(page: ft.Page, dialogs: Dialogs, w: Words, lang: str | None):
         show()
 
     def show(e=None):
-        """Photos (with overlays once read) and the record's lines for the chosen field and day."""
+        """The walk strip (with overlays once read) and the record's lines for the chosen field and day."""
         photos.controls.clear()
         lines.controls.clear()
         sel = chosen()
         if sel:
-            field, day = sel
-            originals = appdata.day_photos(PHOTOS, field, day)
-            overlays = appdata.overlay_paths(RECORDS, field, day)
-            tiles = []
-            for i, p in enumerate(originals):
-                shown, what = (overlays[i], "SAM") if i < len(overlays) else (p, w("read.photo"))
-                tiles.append(ft.Container(
-                    ft.Image(src=appdata.shrunk_jpeg(shown, 480), width=THUMB, height=THUMB * 3 // 4, fit=ft.BoxFit.COVER,
-                             border_radius=6),
-                    on_click=lambda e, shown=shown, i=i, what=what: dialogs.photo(shown, f"{what} {i + 1}/{len(originals)}"),
-                    tooltip=w("read.tap")))
-            note = w("read.with_sam") if overlays else w("read.not_yet")
-            photos.controls += [ft.Text(w("read.photos", n=len(originals), note=note), size=14), ft.Row(tiles, wrap=True, spacing=8, run_spacing=8)]
+            photos.controls.append(walk_strip(page, dialogs, w, *sel))
             show_lines()
         page.update()
 
@@ -613,7 +683,7 @@ def build(page: ft.Page, here: str | None, rebuild) -> Dialogs:
     page.services[:] = [s for s in page.services if not isinstance(s, ft.FilePicker)]  # send_view and the voice buttons add their own
     read, refresh_read = read_view(page, dialogs, w, lang)
     nouns, refresh_nouns = nouns_view(page, dialogs, w)
-    views = [(send_view(page, w, lang), None), (read, refresh_read), (nouns, refresh_nouns)]
+    views = [(send_view(page, dialogs, w, lang), None), (read, refresh_read), (nouns, refresh_nouns)]
     holder = ft.Container()
 
     def go(e=None):

@@ -8,6 +8,7 @@ is shrunk for a phone screen are decided here.
 from __future__ import annotations
 
 import io
+import math
 import os
 import re
 from dataclasses import dataclass
@@ -229,3 +230,69 @@ def sources(rec: Record, records_root: Path, w: Words = Words("ja")) -> str:
         wrong = sum(o.verdict == "wrong" for r in earlier for o in r.observations)
         parts.append(w("src.earlier", n=len(earlier), wrong=wrong))
     return w("src.given", list=", ".join(parts))
+
+
+# ---- the walk (WP18 item 3) ----------------------------------------------
+# The day's photos as a strip in walk order, each GPS point drawn on the
+# parcel outline (or the walk's own extent) the way walk.py places them.
+
+Point = tuple[float, float]
+
+
+@dataclass
+class WalkMap:
+    kind: str  # "parcel": the outline is the farm parcel; "walk": the walk's extent; "none": no GPS
+    rings: list[list[Point]]  # the parcel outline(s) in canvas pixels, x right, y down
+    points: list[Point | None]  # one per photo in walk order, in canvas pixels; None without GPS
+    n_gps: int
+
+
+def walk_map(found: list[dict], records_root: Path, width: float, height: float, pad: float = 14) -> WalkMap:
+    """Where to draw each photo and the parcel on a width × height canvas: the frame walk.frame
+    chooses (the parcel holding at least half the points, else the walk's extent, widened to
+    show the parcel when there is one), scaled in metres so the shape is true, fitted with
+    `pad` pixels around."""
+    from .walk import EARTH_M_PER_DEG, frame
+    gps = [(e["lon"], e["lat"]) for e in found if e.get("lat") is not None and e.get("lon") is not None]
+    fr = frame(gps, records_root)
+    if not fr:
+        return WalkMap("none", [], [None] * len(found), 0)
+    (w0, s0, e0, n0), kind, ring = fr
+    rings = [[(x, y) for x, y in ring]] if ring else []
+    for r in rings:  # the walk's frame grows to show the parcel it missed
+        w0, e0 = min(w0, min(x for x, _ in r)), max(e0, max(x for x, _ in r))
+        s0, n0 = min(s0, min(y for _, y in r)), max(n0, max(y for _, y in r))
+    m_lon = EARTH_M_PER_DEG * math.cos(math.radians((s0 + n0) / 2))
+    span_x, span_y = max((e0 - w0) * m_lon, 1.0), max((n0 - s0) * EARTH_M_PER_DEG, 1.0)
+    scale = min((width - 2 * pad) / span_x, (height - 2 * pad) / span_y)
+    ox, oy = (width - span_x * scale) / 2, (height - span_y * scale) / 2
+
+    def px(lon: float, lat: float) -> Point:
+        return (round(ox + (lon - w0) * m_lon * scale, 1), round(oy + (n0 - lat) * EARTH_M_PER_DEG * scale, 1))
+
+    return WalkMap(kind, [[px(x, y) for x, y in r] for r in rings],
+                   [px(e["lon"], e["lat"]) if e.get("lat") is not None and e.get("lon") is not None else None for e in found],
+                   len(gps))
+
+
+@dataclass
+class StripItem:
+    n: int  # 1-based place in the walk
+    photo: Path
+    overlay: Path | None  # what SAM drew on it, once the day is read
+    label: str  # "3 of 42, 10:21, NW corner, facing W" (walk.labels)
+    entry: dict
+
+
+def strip(root: Path, field: str, day: str) -> list[StripItem]:
+    """The day's photos in walk order with their overlays and labels; empty when there are none."""
+    from .walk import entries, labels
+    found = entries(root, field, day)
+    if not found:
+        return []
+    records = root / "records"
+    overlays = overlay_paths(records, field, day)
+    names = labels(found, records)
+    d = root / "photos" / field / day
+    return [StripItem(i + 1, d / e["file"], overlays[i] if i < len(overlays) else None, names.get(e["file"], ""), e)
+            for i, e in enumerate(found)]

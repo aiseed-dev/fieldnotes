@@ -1,0 +1,66 @@
+"""The phone app's views build without a browser: each is constructed with a stub page,
+so a control or colour that Flet 1.0.5 does not have fails here, not on the phone.
+No network, no model; what the views show is tested in test_appdata.py."""
+
+from __future__ import annotations
+
+import importlib
+from pathlib import Path
+
+import pytest
+
+flet = pytest.importorskip("flet")
+
+
+class StubPage:
+    width, height = 360, 640
+    services: list = []
+
+    def update(self):
+        pass
+
+    def get_upload_url(self, name, seconds):
+        return "http://x/" + name
+
+
+@pytest.fixture
+def app(tmp_path, monkeypatch):
+    """fieldnotes.app bound to a scratch farm folder."""
+    monkeypatch.setenv("FIELDNOTES_ROOT", str(tmp_path))
+    import fieldnotes.app as module
+    importlib.reload(module)
+    (tmp_path / "records").mkdir(exist_ok=True)
+    return module
+
+
+def test_walk_strip_builds_with_and_without_gps(app, tmp_path):
+    from test_walk import parcel, walk_photos
+    from fieldnotes.ui import Words
+    w = Words("en")
+    dialogs = app.Dialogs(StubPage(), w)
+    none = app.walk_strip(StubPage(), dialogs, w, "uncut", "2026-10-28")
+    assert none.controls[0].value == "No photos for this day yet"
+    parcel(tmp_path)
+    walk_photos(tmp_path)
+    strip = app.walk_strip(StubPage(), dialogs, w, "uncut", "2026-10-28")
+    assert strip.controls[0].value == "3 photo(s), 3 with GPS (on the parcel outline)"
+    assert len(strip.controls[-1].controls) == 3  # the thumbnails
+
+
+def test_every_view_builds(app, tmp_path):
+    """Send, Read and Nouns are built as build() builds them, on a farm with one read day."""
+    from test_walk import parcel, walk_photos
+    from fieldnotes.records import Observation, Record
+    from fieldnotes.ui import Words
+    parcel(tmp_path)
+    walk_photos(tmp_path)
+    Record(field="uncut", date="2026-10-28", photos=["a"], ai_model="muse-spark-1.3",
+           observations=[Observation("overall", "x [0.8]")]).save(tmp_path / "records")
+    page, w = StubPage(), Words("ja")
+    dialogs = app.Dialogs(page, w)
+    send = app.send_view(page, dialogs, w, "ja")
+    read, refresh_read = app.read_view(page, dialogs, w, "ja")
+    nouns, refresh_nouns = app.nouns_view(page, dialogs, w)
+    refresh_read()
+    refresh_nouns()
+    assert send.controls and read.controls and nouns.controls

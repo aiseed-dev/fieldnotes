@@ -162,3 +162,49 @@ def test_sources_say_what_the_model_was_given(tmp_path):
     assert appdata.sources(rec, tmp_path, Words("en")) == (
         "Given: 2 photo(s), SAM cover (2 nouns), weather (Open-Meteo), site.md, 1 earlier day(s) (1 ✗)")
     assert appdata.model_of(rec, "ai") == "none"
+
+
+# ---- the walk (WP18 item 3) ----------------------------------------------
+
+def test_walk_map_draws_the_points_on_the_parcel_true_to_scale(tmp_path):
+    from test_walk import E, N, PARCEL, S, W, parcel
+    import json
+    root = tmp_path
+    parcel(root)
+    d = 0.000001  # just inside the corners (a point on the edge counts as outside)
+    found = [{"file": "a.jpg", "lat": N - d, "lon": W + d}, {"file": "b.jpg", "lat": (S + N) / 2, "lon": (W + E) / 2},
+             {"file": "c.jpg", "lat": None, "lon": None}, {"file": "d.jpg", "lat": S + d, "lon": E - d}]
+    m = appdata.walk_map(found, root / "records", 200, 100, pad=10)
+    assert m.kind == "parcel" and m.n_gps == 3 and len(m.rings) == 1
+    xs = [x for x, _ in m.rings[0]]
+    ys = [y for _, y in m.rings[0]]
+    # the parcel keeps its shape in metres (about 37 m x 33 m), limited by the 80 px of height
+    import math
+    ratio = (E - W) * math.cos(math.radians((S + N) / 2)) / (N - S)
+    assert max(ys) - min(ys) == 80 and abs((max(xs) - min(xs)) - 80 * ratio) < 0.5
+    near = lambda p, q: abs(p[0] - q[0]) < 1 and abs(p[1] - q[1]) < 1  # noqa: E731
+    assert near(m.points[0], (min(xs), min(ys)))  # NW corner is top left
+    assert m.points[2] is None
+    assert near(m.points[3], (max(xs), max(ys)))  # SE corner is bottom right
+    assert near(m.points[1], ((min(xs) + max(xs)) / 2, 50.0))
+    # no GPS at all: nothing to draw, said so
+    assert appdata.walk_map([{"file": "x.jpg"}], root / "records", 200, 100) == appdata.WalkMap("none", [], [None], 0)
+    # points outside the parcel: the walk's extent, widened to show the parcel
+    far = [{"file": "a.jpg", "lat": S - 0.001, "lon": W}, {"file": "b.jpg", "lat": S - 0.0012, "lon": E}]
+    m = appdata.walk_map(far, root / "records", 200, 100)
+    assert m.kind == "walk" and len(m.rings) == 1 and all(p for p in m.points)
+    assert max(y for _, y in m.rings[0]) < min(y for p in m.points for y in [p[1]])  # the parcel is north of the walk
+
+
+def test_strip_pairs_photos_with_overlays_and_labels(tmp_path):
+    from test_walk import walk_photos
+    root = tmp_path
+    (root / "records").mkdir()
+    walk_photos(root)
+    jpg(root / "records" / "uncut" / "2026-10-28-overlay-1.jpg")
+    items = appdata.strip(root, "uncut", "2026-10-28")
+    assert [i.n for i in items] == [1, 2, 3]
+    assert [i.photo.name for i in items] == ["100000-a.jpg", "101000-b.jpg", "102000-c.jpg"]
+    assert items[0].overlay.name == "2026-10-28-overlay-1.jpg" and items[1].overlay is None
+    assert items[0].label.startswith("1 of 3, 10:00, NW corner")
+    assert appdata.strip(root, "uncut", "2026-10-29") == []

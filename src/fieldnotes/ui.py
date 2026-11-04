@@ -39,7 +39,14 @@ TEXTS: dict[str, tuple[str, str]] = {
     "send.bad_field": ("畑の名前を確かめてください（英小文字・数字・ハイフン）", "Check the field name (a-z, 0-9, hyphens)"),
     "send.bad_day": ("日付は 2026-10-28 の形で", "Write the date like 2026-10-28"),
     "send.sending": ("{n} 枚を送っています…", "Sending {n} photo(s)…"),
+    "send.left": ("まだ届いていない {n} 枚: {names}", "{n} not yet uploaded: {names}"),
     "around": ("近所（畑のまわり）", "Neighbourhood (around the fields)"),
+    # the walk strip
+    "walk.none": ("この日の写真はまだありません", "No photos for this day yet"),
+    "walk.count": ("写真 {n} 枚、GPS つき {gps} 枚（{note}）", "{n} photo(s), {gps} with GPS ({note})"),
+    "walk.parcel": ("筆ポリゴンの上に", "on the parcel outline"),
+    "walk.extent": ("歩いた範囲に", "on the walk's extent"),
+    "walk.no_gps": ("位置は写真にありません。歩いた順だけ", "no location in the photos; walk order only"),
     # 読む
     "voice.button": ("声を送る（したこと・見たこと）", "Send your voice (what you did and saw)"),
     "voice.answer": ("声で答える（✓ ✗ と理由）", "Answer by voice (✓ ✗ and why)"),

@@ -23,7 +23,7 @@
         "-m",
         "fieldnotes",
         "--root",
-        "sample",
+        "/tmp/claude-1001/-home-dev-dev-fieldnotes--claude-worktrees-muse-app-57226f/a3e25311-73b4-4452-8375-7f39ba2650c7/scratchpad/farm",
         "app",
         "--port",
         "8550"
