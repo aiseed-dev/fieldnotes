@@ -8,6 +8,7 @@ is shrunk for a phone screen are decided here.
 from __future__ import annotations
 
 import io
+import os
 import re
 from dataclasses import dataclass
 from functools import lru_cache
@@ -138,3 +139,93 @@ def mark_count(rec: Record) -> tuple[int, int, int]:
 def count_label(rec: Record, w: Words = Words("ja")) -> str:
     right, wrong, total = mark_count(rec)
     return w("read.count", right=right, wrong=wrong, total=total)
+
+
+# ---- readings, not answers (WP18 item 2) ---------------------------------
+# A model line is headed by its model and date and the sources the model was
+# given; two readings of the same field and day (another farm folder next to
+# this one, e.g. sample/ and sample-en/, or the lines a re-run replaced) stand
+# side by side for the same key so the farmer marks both.
+
+ALSO = "FIELDNOTES_ALSO"  # more farm folders whose readings stand beside this one's, os.pathsep-separated
+
+
+@dataclass
+class Reading:
+    label: str  # where it is from: the folder's name, or "earlier" for the lines a re-run replaced
+    root: Path | None  # the farm folder whose records/ holds it (None: not markable)
+    record: Record
+    refs: list[LineRef]
+
+
+def sibling_roots(root: Path) -> list[Path]:
+    """Farm folders beside `root` named <root>-<something> with a records/ folder (sample → sample-en),
+    and those named in $FIELDNOTES_ALSO."""
+    root = root.resolve()
+    found = []
+    if root.parent.is_dir():
+        found += sorted(p for p in root.parent.iterdir()
+                        if p.is_dir() and p != root and p.name.startswith(root.name + "-") and (p / "records").is_dir())
+    for x in filter(None, os.environ.get(ALSO, "").split(os.pathsep)):
+        p = Path(x).expanduser().resolve()
+        if (p / "records").is_dir() and p != root and p not in found:
+            found.append(p)
+    return found
+
+
+def readings(root: Path, field: str, day: str) -> list[Reading]:
+    """The day's reading in this farm folder, the lines a re-run of it replaced, and the same
+    field and day in the sibling folders; the first is the one the view is about."""
+    out = []
+    for r in [root] + sibling_roots(root):
+        path = Record.path_for(r / "records", field, day)
+        if not path.exists():
+            continue
+        try:
+            rec = Record.load(r / "records", field, day)
+        except Exception:  # noqa: BLE001 - a broken sibling must not hide the day
+            continue
+        out.append(Reading(r.resolve().name, r, rec, line_refs(rec)))
+        if r == root and rec.earlier:
+            out.append(Reading("earlier", None, rec, [LineRef("ai", o.key, o) for o in rec.earlier]))
+    return out
+
+
+def side_by_side(found: list[Reading]) -> list[tuple[str, str, list[LineRef | None]]]:
+    """(group, ref, one LineRef or None per reading): the first reading's lines in its order,
+    then any line only another reading has, so the same key stands in one row."""
+    rows: dict[tuple[str, str], list[LineRef | None]] = {}
+    for i, reading in enumerate(found):
+        for ref in reading.refs:
+            cells = rows.setdefault((ref.group, ref.ref), [None] * len(found))
+            cells[i] = ref
+    order = {"ai": 0, "voice": 1, "checks": 2}
+    return [(g, r, cells) for (g, r), cells in sorted(rows.items(), key=lambda kv: order[kv[0][0]]) if any(cells)] \
+        if len(found) > 1 else [(ref.group, ref.ref, [ref]) for ref in found[0].refs] if found else []
+
+
+def model_of(rec: Record, group: str) -> str:
+    return {"ai": rec.ai_model, "voice": rec.voice_model, "checks": rec.checks_model}[group] or "none"
+
+
+def sources(rec: Record, records_root: Path, w: Words = Words("ja")) -> str:
+    """What the reading model was given for this day, as the record shows it: the photos,
+    SAM's cover numbers, the weather, the farm's site and lookup pages, and the earlier days
+    with the farmer's corrections (pipeline.run_observation, describe.build_messages)."""
+    from .records import previous_records
+    parts = [w("src.photos", n=len(rec.photos))]
+    if rec.coverage:
+        parts.append(w("src.sam", n=len(rec.coverage)))
+    if rec.weather:
+        parts.append(w("src.weather"))
+    pages = [name for name in ("site.md", "lookup.md", "surroundings.md") if (records_root / name).exists()]
+    if pages:
+        parts.append(", ".join(pages))
+    try:
+        earlier = previous_records(records_root, rec.field, rec.date, n=3)
+    except Exception:  # noqa: BLE001 - a broken earlier record is not this day's problem
+        earlier = []
+    if earlier:
+        wrong = sum(o.verdict == "wrong" for r in earlier for o in r.observations)
+        parts.append(w("src.earlier", n=len(earlier), wrong=wrong))
+    return w("src.given", list=", ".join(parts))

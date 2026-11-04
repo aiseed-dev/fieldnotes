@@ -205,15 +205,17 @@ THUMB = 164  # two thumbnails side by side in 375 px minus the 16 px page paddin
 GOOD, BAD = ft.Colors.GREEN_700, ft.Colors.RED_700
 
 
-def verdict_row(w: Words, current: str | None, on_right, on_wrong) -> ft.Row:
-    """✓ / ✗ as two large buttons; the one matching `current` is filled."""
+def verdict_row(w: Words, current: str | None, on_right, on_wrong, short: bool = False) -> ft.Row:
+    """✓ / ✗ as two large buttons a thumb apart; the one matching `current` is filled.
+    `short` keeps only the marks, for a half-width column."""
     def button(label: str, color, picked: bool, on_click):
         cls = ft.FilledButton if picked else ft.OutlinedButton
         kw = {"style": ft.ButtonStyle(bgcolor=color, color=ft.Colors.WHITE)} if picked else {"style": ft.ButtonStyle(color=color)}
         return cls(label, on_click=on_click, expand=True, height=48, **kw)
 
-    return ft.Row([button(w("right"), GOOD, current == "right", on_right),
-                   button(w("wrong"), BAD, current == "wrong", on_wrong)], spacing=8)
+    right, wrong = ("✓", "✗") if short else (w("right"), w("wrong"))
+    return ft.Row([button(right, GOOD, current == "right", on_right),
+                   button(wrong, BAD, current == "wrong", on_wrong)], spacing=12 if short else 24)
 
 
 class Dialogs:
@@ -252,9 +254,9 @@ class Dialogs:
         ))
 
 
-def card(*controls: ft.Control) -> ft.Container:
+def card(*controls: ft.Control, expand: bool = False) -> ft.Container:
     return ft.Container(ft.Column(list(controls), spacing=8), padding=12, border_radius=8,
-                        border=ft.Border.all(1, ft.Colors.OUTLINE_VARIANT))
+                        border=ft.Border.all(1, ft.Colors.OUTLINE_VARIANT), expand=expand)
 
 
 def read_view(page: ft.Page, dialogs: Dialogs, w: Words, lang: str | None):
@@ -316,57 +318,83 @@ def read_view(page: ft.Page, dialogs: Dialogs, w: Words, lang: str | None):
     count = {"text": ft.Text("")}  # the day's mark count, redrawn with the lines and after each mark
 
     def show_lines():
-        """The day's lines, each a row to mark; the count of marks at the top."""
+        """The day's lines, each a row to mark, headed by the model and date that wrote them and
+        what the model was given; a second reading of the same day (appdata.readings) stands
+        beside the first for the same key. The count of marks at the top."""
         lines.controls.clear()
         field, day = chosen()
-        path = Record.path_for(RECORDS, field, day)
-        if not path.exists():
+        found = appdata.readings(ROOT, field, day)
+        if not found:
             lines.controls.append(ft.Text(w("state.no_reading"), size=16, color=ft.Colors.ON_SURFACE_VARIANT))
             return
-        try:
-            rec = Record.load(RECORDS, field, day)
-        except Exception as ex:
-            lines.controls.append(ft.Text(w("read.bad_record", e=ex), color=ft.Colors.ERROR))
-            return
+        rec = found[0].record
         count["text"] = ft.Text(appdata.count_label(rec, w), size=18, weight=ft.FontWeight.BOLD)
         lines.controls.append(count["text"])
+        two = len(found) > 1
+        if two:  # which reading is which, once at the top
+            lines.controls.append(ft.Row([ft.Text(
+                w("read.earlier") if r.label == "earlier" else w("read.from", label=r.label),
+                size=13, weight=ft.FontWeight.BOLD, expand=True) for r in found], spacing=8))
         heading = {"ai": w("read.question"), "voice": w("voice.heading"), "checks": w("read.checks")}
         shown = None
-        refs = appdata.line_refs(rec)
-        for r in refs:
-            if r.group != shown:
-                shown = r.group
-                lines.controls.append(ft.Text(heading[r.group], size=18, weight=ft.FontWeight.BOLD))
-            lines.controls.append(line_row(r, field, day))
-        if not refs:
+        rows = appdata.side_by_side(found)
+        for group, ref, cells in rows:
+            if group != shown:
+                shown = group
+                lines.controls.append(ft.Text(heading[group], size=18, weight=ft.FontWeight.BOLD))
+                for r in found:  # the model, the date and the sources of each reading of this group
+                    if r.label != "earlier" and any(x.group == group for x in r.refs):
+                        lines.controls.append(ft.Text(
+                            (f"{r.label}: " if two else "") + w("read.by", model=appdata.model_of(r.record, group), date=r.record.date)
+                            + "　" + appdata.sources(r.record, (r.root or ROOT) / "records", w),
+                            size=12, color=ft.Colors.ON_SURFACE_VARIANT))
+            if not two:
+                lines.controls.append(line_row(cells[0], found[0], field, day))
+            else:
+                lines.controls.append(ft.Row([
+                    line_row(c, r, field, day, short=True) if c else ft.Container(
+                        ft.Text(w("read.only_here"), size=13, color=ft.Colors.ON_SURFACE_VARIANT), padding=12, expand=True)
+                    for c, r in zip(cells, found)], spacing=8, vertical_alignment=ft.CrossAxisAlignment.START))
+        if not rows:
             lines.controls.append(ft.Text(w("read.empty")))
         if rec.farmer_note:
             lines.controls.append(card(ft.Text(w("read.note"), size=13), ft.Text(rec.farmer_note, selectable=True)))
 
-    def line_row(r: appdata.LineRef, field: str, day: str) -> ft.Container:
-        """One line as one row: the text and its confidence, ✓ and ✗ a thumb apart, and
-        the reason box, which opens under ✗. Each mark is saved at once (pipeline.mark)
-        and the row and the day's count are redrawn from the file, not the rest of the list."""
+    def line_row(r: appdata.LineRef, reading: appdata.Reading, field: str, day: str, short: bool = False) -> ft.Container:
+        """One line as one row: the model that wrote it, the text and its confidence, ✓ and ✗ a
+        thumb apart, and the reason box, which opens under ✗. Each mark is saved at once
+        (pipeline.mark, into the folder the reading is from) and the row and the day's count
+        are redrawn from the file, not the rest of the list."""
         text, conf = appdata.split_conf(r.line.text)
         head = appdata.key_label(r.line.key, w) + ("　" + w("read.confidence", c=conf) if conf else "")
+        model = ft.Text(appdata.model_of(reading.record, r.group) + ", " + reading.record.date, size=11,
+                        color=ft.Colors.ON_SURFACE_VARIANT)
         reason = ft.TextField(label=w("what_wrong"), value=r.line.reason or "", dense=True, multiline=True,
                               min_lines=1, max_lines=4, visible=r.line.verdict == "wrong",
                               text_size=15, animate_size=ft.Animation(200, ft.AnimationCurve.EASE_OUT))
-        buttons = ft.Row(spacing=24)
+        buttons = ft.Row(spacing=12 if short else 24)
         now = {"reason": r.line.reason or ""}
-        box = card(ft.Text(head, size=13, color=ft.Colors.ON_SURFACE_VARIANT), ft.Text(text, size=16, selectable=True),
-                   buttons, reason)
+        body = [ft.Text(head, size=13, color=ft.Colors.ON_SURFACE_VARIANT), ft.Text(text, size=16, selectable=True), model]
+        if reading.root is None:  # the lines a re-run replaced keep the marks they had; not marked again
+            mark = {"right": w("right"), "wrong": w("wrong")}.get(r.line.verdict, "")
+            if mark:
+                body.append(ft.Text(mark + (f"　{r.line.reason}" if r.line.reason else ""), size=14,
+                                    color=GOOD if r.line.verdict == "right" else BAD))
+            return card(*body, expand=True)
+        box = card(*body, buttons, reason, expand=True)
 
         def apply(line: Observation):
-            buttons.controls = verdict_row(w, line.verdict, lambda e: save("right"), lambda e: save("wrong")).controls
+            buttons.controls = verdict_row(w, line.verdict, lambda e: save("right"), lambda e: save("wrong"), short).controls
+            buttons.spacing = 12 if short else 24
             reason.visible = line.verdict == "wrong"
             reason.value = now["reason"] = line.reason or ""
 
         def save(verdict: str):
             why = reason.value.strip() if verdict == "wrong" else None
             try:
-                line = pipeline.mark(field, date.fromisoformat(day), r.ref, verdict, why or None, root=ROOT)
-                count["text"].value = appdata.count_label(Record.load(RECORDS, field, day), w)
+                line = pipeline.mark(field, date.fromisoformat(day), r.ref, verdict, why or None, root=reading.root)
+                if reading.root == ROOT:
+                    count["text"].value = appdata.count_label(Record.load(RECORDS, field, day), w)
             except Exception as ex:
                 dialogs.say(w("not_saved", e=ex), error=True)
                 return
