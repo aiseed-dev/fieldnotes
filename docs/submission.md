@@ -59,7 +59,7 @@ The author's own field in Tokushima, Shikoku, just south of the Median Tectonic 
 ## Links
 
 - Public repository: https://github.com/aiseed-dev/fieldnotes （the `origin` remote; the author pushes `main` before the form）
-- Demo video (3 minutes): （作者が記入）
+- Demo video (3 minutes): https://youtu.be/xw2kbu5pmWg (YouTube, public; uploaded by the author 2026-11-05 10:10 JST)
 - Package: `fieldnotes-farm` on PyPI, https://pypi.org/project/fieldnotes-farm/ (0.1.0 published 2026-11-04 from the GitHub Actions Trusted Publisher workflow)
 
 ## Licence

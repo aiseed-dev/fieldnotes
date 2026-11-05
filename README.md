@@ -1,6 +1,6 @@
 # fieldnotes — read your field from the photos of a walk, with AI
 
-Built for the Meta Global AI Developer Hackathon (26 Oct – 4 Nov 2026), track *Indie Developer*, theme *Build for Your World*. Meta's models read a farmer's field; a Flet phone app is where the farmer walks, reads and marks; the records stay at home as plain text.
+Built for the Meta Global AI Developer Hackathon (26 Oct – 4 Nov 2026), track *Indie Developer*, theme *Build for Your World*. Demo video (3 min): https://youtu.be/xw2kbu5pmWg. Meta's models read a farmer's field; a Flet phone app is where the farmer walks, reads and marks; the records stay at home as plain text.
 
 ```bash
 pip install "fieldnotes-farm[app,voice]"
