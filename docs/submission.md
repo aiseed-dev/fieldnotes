@@ -90,3 +90,9 @@ Honest state. On my field the walks of 11-01 to 11-03 are read but still unmarke
 
 Built during the hackathon: everything in the repository. pip install "fieldnotes-farm[app]". AGPL-3.0-or-later.
 ```
+
+- Describe your use of Meta products to build the submitted project (10:25):
+
+```
+Three models on the Meta Model API (dev.meta.ai), each called from src/fieldnotes/: sam-3.1 segments every photo of a walk, one concept per request (leaves, flower clusters, bare soil, the field's own noun phrases), and the masks become cover per concept per day and the overlays the farmer sees in the app. muse-spark-1.3 reads the whole walk (20–50 photos, each labelled with where it was taken) in one request against the previous days and the land's public data, in the farmer's language, and writes the zone, emerging and per-hypothesis lines; it also writes the cut proposals and the expectations, sorts what the farmer said into work, seen and verdicts, and copies a photographed document page into the site record. muse-voice-transcribe-1.0 is wired in to write down the farmer's voice notes, language-biased with the field's plant names as keywords (built and tested with mocked answers; no real recording has been through it yet). Muse Glimmer 30B runs the same reading locally through llama.cpp on a Ryzen AI Max+ 395 box, so photos need not leave the house; the same code, a different base_url. Muse Code was not used to write the code (no commit carries its line); the README shows how to connect fieldnotes to Muse Code as an MCP client.
+```
