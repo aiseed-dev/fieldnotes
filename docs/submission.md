@@ -72,7 +72,7 @@ AGPL-3.0-or-later.
 - Team Members: ysniji (Yasuhiro Niji)
 - Track: Indie Developer
 - Problem statement: Build for Your World
-- Most Viral Track (X post): left blank
+- Most Viral Track (X post): https://x.com/creativewebjp/status/2118156947979694226 (posted by the author from YouTube, 2026-11-05 10:45 JST)
 - Project Description (under 3,000 characters):
 
 ```
