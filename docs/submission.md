@@ -68,7 +68,7 @@ AGPL-3.0-or-later.
 
 ## Form answers (2026-11-05 10:00 JST, the farmer filling the form: 「提出用フォームを埋めて行きたいです」)
 
-- Team Name: aiseed (the farmer, 10:02: 「aiseed で」)
+- Team Name: aiseed.dev (the farmer, 10:03: 「チーム名は、aiseed.devにします」)
 - Team Members: ysniji (Yasuhiro Niji)
 - Track: Indie Developer
 - Problem statement: Build for Your World
