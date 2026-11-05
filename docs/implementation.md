@@ -633,3 +633,5 @@ Answered to seed at 06:40: the 0.2.0 API as docs/api.md on the WP15 branch has i
 (The farmer, 09:50, on the final check: 「8秒〜14秒ぐらいの写真は私の畑ではなくて飯尾川の堤防の写真です。私の畑の写真に替えて」 — the clip under "my field" (IMG_3798) was the Iinō river levee, not the field. Put back: the 11-01 photo of the field; the sound under it is the field clip's. Re-rendered and re-narrated 09:48; the file name is unchanged.)
 
 (The farmer, 09:55: 「2:50からの動画には自分の服が写っているので、別の動画に差し替えて」 — the close's clip (IMG_3790) showed the farmer's clothes. Replaced by the river bank with its trees (IMG_3791, no one in it), its own sound under it. Re-rendered and re-narrated 09:52; the file name is unchanged. Real footage in the video now: the cut strip (IMG_3787), the river (IMG_3795, IMG_3797), the close (IMG_3791).)
+
+**The video is decided (the farmer, 2026-11-05 09:58 JST: 「動画はこれにします」):** `~/farm/video/fieldnotes-demo-2026-11-05.mp4` as of 09:52 (2:59, English narration by a synthetic voice, the field's and the river's ambience, real footage of the cut strip, the river and the river bank). The form answers are in `docs/submission.md` ("Form answers").

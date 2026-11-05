@@ -65,3 +65,28 @@ The author's own field in Tokushima, Shikoku, just south of the Median Tectonic 
 ## Licence
 
 AGPL-3.0-or-later.
+
+## Form answers (2026-11-05 10:00 JST, the farmer filling the form: 「提出用フォームを埋めて行きたいです」)
+
+- Team Name: aiseed （作者が選ぶ; the GitHub organisation is aiseed-dev）
+- Team Members: ysniji (Yasuhiro Niji)
+- Track: Indie Developer
+- Problem statement: Build for Your World
+- Most Viral Track (X post): left blank
+- Project Description (under 3,000 characters):
+
+```
+fieldnotes — read your field from the photos of a walk, with Meta's models, kept as plain text at home.
+
+The problem. Farming today runs on things bought from outside: fertiliser from suppliers, and the know-how to use it from the co-op and the dealers. Every field has different soil and different weeds, so no single method can be handed down from above. I built fieldnotes on my own field in Tokushima, Japan — a former paddy, no fertiliser for four years, one plot left uncut for a year that now looks like abandoned farmland — so that any farmer, whatever way they farm, can read their own field and keep the record themselves, nothing hidden and every line with its source.
+
+What it does. The farmer walks the field with a phone and takes 20–50 photos. SAM 3.1 segments each photo (leaves, flower clusters, bare soil, the field's own noun phrases) into cover per concept. Muse Spark 1.3 reads the whole walk in one request, each photo labelled with where it was taken, against the previous days and against public data about the land (elevation, landform, geology, soil, the farmland parcel, local history — each line with its source), and writes what differs where in the field, what is coming up, and an answer per hypothesis about the land: agrees, disagrees or cannot tell. Muse Voice Transcribe is wired in to write down what the farmer says in the field, in the farmer's language. Muse Glimmer 30B runs the same reading at home when photos should not leave the house.
+
+The AI is not a teacher. Every model line is a reading headed by its model and date, never shown as a fact; the farmer marks each line right or wrong with a reason, and the corrections feed the next reading. Two readings of the same day (Japanese and English, Spark and a home model) sit side by side, never merged by a machine.
+
+The phone app (Flet, Python) is the main entrance: Send (photos and voice in; the walk as a strip under the GPS points on the parcel outline), Read (the SAM overlays, every AI line with ✓ ✗ and a reason, the day's mark count), Land (the public data line by line with sources, the hypotheses checked day by day, and from the phone: start a farm, add a note, timeline, expectations, a cut proposal) and Nouns (SAM's prompts, correctable). Dark screen, a QR code to open it, no keyboard beyond the reason box, no sign-in on the home network. The command line and an MCP server are the same functions, so the farmer's own AI (Claude, Muse Code, any MCP client) can read and mark the records too. Records are plain Markdown with a written format, readable by any person or model.
+
+Honest state. On my field the walks of 11-01 to 11-03 are read but still unmarked; the voice path is built and tested with mocked answers and no real recording has been through it yet; SAM's cover came out near zero with the default prompts and right only with scene-level nouns. All of this is written in the README. The real check is by growing.
+
+Built during the hackathon: everything in the repository. pip install "fieldnotes-farm[app]". AGPL-3.0-or-later.
+```
