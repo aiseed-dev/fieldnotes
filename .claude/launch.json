@@ -3,7 +3,7 @@
   "configurations": [
     {
       "name": "fieldnotes-app",
-      "runtimeExecutable": "/home/dev/dev/fieldnotes/.venv/bin/fieldnotes",
+      "runtimeExecutable": ".venv/bin/fieldnotes",
       "runtimeArgs": [
         "--root",
         "sample",
